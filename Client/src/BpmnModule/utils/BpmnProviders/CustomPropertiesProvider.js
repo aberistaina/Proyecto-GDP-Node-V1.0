@@ -1,37 +1,47 @@
-export default class CustomPropertiesProvider {
-    constructor(propertiesPanel) {
-        propertiesPanel.registerProvider(500, this);
-    }
+import { TextFieldEntry, isTextFieldEntryEdited } from '@bpmn-io/properties-panel';
+import { getBusinessObject } from 'bpmn-js/lib/util/ModelUtil';
 
-    getGroups() {
-        return (groups) => {
-            
-            return groups
-                /* .filter((group) => group.id !== "CamundaPlatform__HistoryCleanup" && 
-                group.id !== "CamundaPlatform__Form" && 
-                group.id !== "CamundaPlatform__ExecutionListener" &&
-                group.id !== "CamundaPlatform__AsynchronousContinuations"
-                
-            ) */
-                .map((group) => {
-                    if (group.entries) {
-                        group.entries.forEach((entry) => {
-                        });
-                      }
-                    if (group.id === "general" && Array.isArray(group.entries)) {
-                        return {
-                            ...group,
-                            entries: group.entries.filter(
-                                (entry) => entry.id !== "id" && entry.id !== "isExecutable"
-                                
-                            ),
-                            
-                        };
+export default {
+  __init__: ['customPropertiesProvider'],
+  customPropertiesProvider: ['type', function(propertiesPanel, translate) {
+    propertiesPanel.registerProvider(500, {
+      getGroups(element) {
+        const bo = getBusinessObject(element);
+
+        if (bo.$type === 'bpmn:Process') {
+          return function(groups) {
+            groups.push({
+              id: 'processCustomGroup',
+              label: 'Configuración del Proceso',
+              entries: [
+                {
+                  id: 'approvalLevel',
+                  component: TextFieldEntry,
+                  isEdited: isTextFieldEntryEdited,
+                  label: 'Nivel de Aprobación',
+                  getValue: () => bo.approvalLevel || '',
+                  setValue: (value) => {
+                    bo.approvalLevel = value;
+                    return [];
+                  },
+                  validate: (value) => {
+                    if (value && isNaN(value)) {
+                      return 'Debe ser un número';
                     }
-                    return group;
-                });
-        };
-    }
-}
+                    return undefined;
+                  }
+                }
+              ]
+            });
 
-CustomPropertiesProvider.$inject = ["propertiesPanel"];
+            return groups;
+          };
+        }
+
+        return function(groups) {
+          return groups;
+        };
+      }
+    });
+  }]
+};

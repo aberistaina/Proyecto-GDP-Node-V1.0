@@ -8,7 +8,7 @@ import {errorHandler} from "./middlewares/errors.middlewares.js"
 
 //Importaciones Para autenticación con SAML
 import session from "express-session";
-import passport from "./services/SAMLConfiguration.js";
+/* import passport from "./services/SAMLConfiguration.js"; */
 
 
 
@@ -27,8 +27,8 @@ app.use(session({
   cookie: { secure: false }
 }));
 
-app.use(passport.initialize());
-app.use(passport.session());
+/* app.use(passport.initialize());
+app.use(passport.session()); */
 
 
 //MIDDLEWARES

@@ -5,7 +5,9 @@ import CustomMarkerProvider from "./CustomMarkerProvider";
 import CustomPropertiesProvider from "./CustomPropertiesProvider";
 
 
+
 export const customBpmnProviders = [
+    CustomPropertiesProvider,
     {
         __init__: ["customPaletteProvider"],
         customPaletteProvider: ["type", CustomPaletteProvider],

@@ -1,0 +1,19 @@
+.bio-properties-panel-collapsible-entry-header-title.empty::before {
+    content: "Sin Información";
+    color: #374151; 
+    font-style: italic;
+}
+  
+  .bio-properties-panel-collapsible-entry-header-title.empty {
+    color: transparent; 
+}
+
+
+
+.bio-properties-panel-add-entry-label::before {
+    content: "Agregar";
+}
+  
+.bio-properties-panel-add-entry-label {
+    content: "Agregar"
+}

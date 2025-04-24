@@ -1,0 +1,91 @@
+/* Start Event */
+.marker-start-event .djs-visual > :nth-child(1),
+.marker-start-event .djs-visual > circle,
+.marker-start-event .djs-visual > path,
+.icon-start-event{
+    fill: #e6ff97 !important;
+    stroke: #86bb49 !important;
+}
+
+/* End Event */
+.marker-end-event .djs-visual > :nth-child(1),
+.marker-end-event .djs-visual > path{
+    fill: #eeaaaa !important;
+    stroke: #a31515 !important;
+}
+
+/* Intermediate Event */
+.marker-intermediate-event .djs-visual > :nth-child(1),
+.marker-intermediate-event .djs-visual > circle,
+.marker-intermediate-event .djs-visual > path {
+    fill: #fefbf6 !important;
+    stroke: #aba76b !important;
+}
+
+/* Exclusive Gateway */
+.marker-exclusive-gateway .djs-visual > :nth-child(1),
+.marker-exclusive-gateway .djs-visual > circle,
+.marker-exclusive-gateway .djs-visual > path {
+    fill: #ffffcc !important;
+    stroke: #b9b94e !important;
+}
+
+/* CallActivity / SubProceso */
+.marker-call-activity .djs-visual > :nth-child(1) {
+    fill: #ecefff !important;
+    stroke: #03689a !important;
+}
+
+/* Task (general) */
+.marker-task .djs-visual > :nth-child(1) {
+    fill: #ecefff !important;
+    stroke: #03689a !important;
+}
+
+/* Service Task */
+.marker-service-task .djs-visual > :nth-child(1) {
+    fill: #ecefff !important;
+    stroke: #03689a !important;
+}
+
+/* Colores íconos de la paleta */
+
+.entry.bpmn-icon-task,
+.entry.bpmn-icon-service-task,
+.entry.bpmn-icon-subprocess-collapsed {
+    color: #03689a !important;
+}
+
+.entry.bpmn-icon-start-event-none {
+    color: #86bb49 !important;
+}
+
+.entry.bpmn-icon-end-event-none {
+    color: #a31515 !important;
+}
+
+.entry.bpmn-icon-gateway-none {
+    color: #b9b94e !important;
+}
+
+.entry.bpmn-icon-intermediate-event-none {
+    color: #aba76b !important;
+}
+
+/* Hover para íconos */
+.entry:hover {
+    transform: scale(1.1) !important;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Quitar branding y breadcrumbs */
+.bjs-powered-by,
+.bjs-breadcrumbs {
+    display: none;
+}
+
+.icon-end-event{
+    fill: #a31515 !important;
+    stroke: #a31515 !important;
+    fill-rule: evenodd;
+}

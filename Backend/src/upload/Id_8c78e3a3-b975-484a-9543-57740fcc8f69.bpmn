@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Id_8c78e3a3-b975-484a-9543-57740fcc8f69" name="Proceso con nombre cambiado 44" isExecutable="false">
+    <bpmn:startEvent id="Id_a9344302-606c-4128-9cd8-2a222e3f2760" />
+    <bpmn:task id="Activity_1ql9ush" />
+    <bpmn:endEvent id="Event_18swgaa" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Id_8c78e3a3-b975-484a-9543-57740fcc8f69">
+      <bpmndi:BPMNShape id="Event_14ubgxu_di" bpmnElement="Id_a9344302-606c-4128-9cd8-2a222e3f2760">
+        <dc:Bounds x="192" y="212" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1ql9ush_di" bpmnElement="Activity_1ql9ush">
+        <dc:Bounds x="330" y="200" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_18swgaa_di" bpmnElement="Event_18swgaa">
+        <dc:Bounds x="512" y="212" width="36" height="36" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

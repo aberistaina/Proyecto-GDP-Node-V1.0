@@ -595,7 +595,6 @@ export const getProcessByNivel = async (req, res, next) => {
         res.status(200).json({
             code: 200,
             message: "Oportunidades obtenidas correctamente",
-            data: niveles
         })
     } catch (error) {
         logger.error("Controlador getProcessByNivel", error);

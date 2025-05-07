@@ -25,7 +25,7 @@ export default function Comentarios({idProceso}) {
     
 
     return (
-      <div className="overflow-x-auto bg-white shadow-md rounded-lg">
+      <div className="overflow-x-auto max-h-52 bg-white shadow-md rounded-lg">
         <table className="min-w-full table-auto text-sm text-left text-gray-700">
         <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
             <tr>

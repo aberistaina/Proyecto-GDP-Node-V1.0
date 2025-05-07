@@ -1,11 +1,11 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { HomePage } from "./pages/HomeViews/homePage/HomePage";
 import { LoginPage } from "./pages/AuthViews/loginPage/LoginPage";
 import { RegisterPage } from "./pages/AuthViews/registerPage/RegisterPage";
 import { PasswordPage } from "./pages/AuthViews/passwordPage/PasswordPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
-import { ProcesosOperativosPage } from "./pages/ProcessViews/operativoPage/ProcesosOperativosPage";
-import { EstrategiaComercialPage } from "./pages/ProcessViews/comercialPage/EstrategiaComercialPage";
+import { TipoProcesoPage } from "./pages/ProcessViews/tipoProceso/TipoProcesoPage";
+
 import { UpdatePasswordPage } from "./pages/AuthViews/updatePasswordPage/UpdatePasswordPage";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
@@ -33,20 +33,21 @@ function App() {
                     <Route path="/update-password" element={<UpdatePasswordPage />} />
 
                     {/* RUTA TEST BPMN */}
-                    <Route path="/bpmn" element={<BpmnViewerModule />} />
-                    <Route path="/bpmnModeler" element={<BpmnDesignerModule />} />
-                    <Route path="/subproceso/:idSubproceso" element={<BpmnViewerModule />} />
-                    <Route path="/subproceso/:callActivity/:idProcesoPadre" element={<BpmnDesignerModule />} />
-                    <Route path="/upload-process" element={<UploadProcessPage />} />
-                    <Route path="/process-details/:idProceso" element={<DetalleProcesoPage />} />
+                    <Route element={<Layout />}>
+                        <Route path="/bpmn" element={<BpmnViewerModule />} />
+                        <Route path="/bpmnModeler" element={<BpmnDesignerModule />} />
+                        <Route path="/subproceso/:idSubproceso" element={<BpmnViewerModule />} />
+                        <Route path="/subproceso/:callActivity/:idProcesoPadre" element={<BpmnDesignerModule />} />
+                        <Route path="/upload-process" element={<UploadProcessPage />} />
+                        <Route path="/process-details/:idProceso" element={<DetalleProcesoPage />} />
+                    </Route>
                     {/* RUTA TEST BPMN */}
 
                     {/* Rutas protegidas con Layout */}
                     <Route element={<ProtectedRoute />}>
                         <Route element={<Layout />}>
                             <Route path="/" element={<HomePage />} />
-                            <Route path="/operativos" element={<ProcesosOperativosPage />}/>
-                            <Route path="/comercial" element={<EstrategiaComercialPage />}/>
+                            <Route path="/tipo-proceso/:id" element={<TipoProcesoPage />}/>
                         </Route>
                     </Route>
                 </Routes>

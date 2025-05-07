@@ -20,3 +20,16 @@ return `${capitalizar(diaSemana)} ${diaNum} de ${capitalizar(mes)} del ${año}`;
 
 
 };
+
+export const formatShortTime = (fechaIso) => {
+    const fecha = new Date(fechaIso);
+
+    const day = String(fecha.getDate()).padStart(2, "0");
+    const month = String(fecha.getMonth() + 1).padStart(2, "0");
+    const year = fecha.getFullYear();
+
+    const hours = String(fecha.getHours()).padStart(2, "0");
+    const minutes = String(fecha.getMinutes()).padStart(2, "0");
+
+    return `${day}-${month}-${year} ${hours}:${minutes}`;
+}

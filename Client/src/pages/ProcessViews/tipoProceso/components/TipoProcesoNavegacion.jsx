@@ -1,6 +1,6 @@
 import React from "react";
 
-export const ProcesosOperativosNavegacion = ({
+export const TipoProcesoNavegacion = ({
     vista,
     setVista,
     procesoSeleccionado,

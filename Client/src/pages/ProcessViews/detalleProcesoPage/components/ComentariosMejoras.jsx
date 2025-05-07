@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ButtonMejorasComentarios } from "./ButtonMejorasComentarios";
 import Comentarios from "./Comentarios";
+import { Oportunidades } from "./Oportunidades";
 
 export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabActiva}) => {
   
@@ -45,7 +46,7 @@ export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabAc
       {tabActiva === "oportunidades" && (
         <div>
           {/* Oportunidades */}
-          <p className="text-sm text-gray-700">Contenido de Oportunidades</p>
+          <Oportunidades idProceso={idProceso}/>
         </div>
       )}
 

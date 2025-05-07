@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 export default function ModalMejorasComentarios({ menu, setOpenModal, idProceso }) {
     const { enqueueSnackbar } = useSnackbar();
     const [comentario, setComentario] = useState("");
+    const [asunto, setAsunto ] = useState("")
     const fileInputRef = useRef(null);
     const [files, setFiles] = useState([]);
     const user = useSelector((state) => state.auth.user);
@@ -42,9 +43,10 @@ export default function ModalMejorasComentarios({ menu, setOpenModal, idProceso 
 
             const formData = new FormData();
             files.forEach((file) => formData.append("archivos", file));
-            formData.append(menu === "oportunidades" ? "oportunidad" : "comentario", comentario);
+            formData.append(menu === "oportunidades" ? "descripcion" : "comentario", comentario);
             formData.append("idProceso", idProceso)
             formData.append("id_usuario", loggedUser)
+            formData.append("asunto", asunto)
 
             const requestOptions = {
                 method: "POST",
@@ -75,15 +77,25 @@ export default function ModalMejorasComentarios({ menu, setOpenModal, idProceso 
                         : "Agregar Comentario"}
                 </h2>
 
-                <label className="block text-gray-700 font-semibold mb-1">
-                    {menu === "oportunidades" ? "Opornunidad" : "Comentario"}
-                </label>
+                {menu === "oportunidades" && (
+                    <div className="border border-lime-400 rounded p-2 mb-4">
+                    <input
+                        className="w-full outline-none"
+                        type="text"
+                        placeholder="Escriba el asunto"
+                        value={asunto}
+                        name="asunto"
+                        onChange={(e) => setAsunto(e.target.value)}
+                    />
+                </div>
+                )}
+
                 <div className="border border-lime-400 rounded p-2 mb-4">
                     <textarea
                         className="w-full h-40 resize-y outline-none"
                         placeholder={
                             menu === "oportunidades"
-                                ? "Escriba su oportunidad aquí"
+                                ? "Escriba la descipción aquí"
                                 : "Escriba su comentario aquí"
                         }
                         value={comentario}

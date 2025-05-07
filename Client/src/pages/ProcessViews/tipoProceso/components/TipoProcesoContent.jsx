@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { ProcesosOperativosTable } from "./ProcesosOperativosTable";
+import { TipoProcesoTable } from "./TipoProcesoTable";
 import { Botones } from "./Botones";
-import { ProcesosOperativosNavegacion } from "./ProcesosOperativosNavegacion";
+import { TipoProcesoNavegacion } from "./TipoProcesoNavegacion";
 
 
 
-export const ProcesosOperativosContent = ( { openSubProcesoModal, openFlujoModal }) => {
+export const TipoProcesoContent = ( { openProcessModal }) => {
     const [ vista, setVista ] = useState("inicio");
     const [ procesos, setProcesos ] = useState([]);
     const [ procesoSeleccionado, setProcesoSeleccionado ] = useState({
@@ -38,16 +38,13 @@ export const ProcesosOperativosContent = ( { openSubProcesoModal, openFlujoModal
         }
     };
 
-
-    
-
     return (
         <div className="bg-[#ececec] rounded-lg drop-shadow-lg h-36 pt-4">
             <div className="flex justify-between px-8 py-2 mb-4">
-                <ProcesosOperativosNavegacion vista={vista} setVista={setVista} procesoSeleccionado={procesoSeleccionado} />
-                <Botones />
+                <TipoProcesoNavegacion vista={vista} setVista={setVista} procesoSeleccionado={procesoSeleccionado} />
+                <Botones openProcessModal={openProcessModal} />
             </div>
-            <ProcesosOperativosTable vista={vista} setVista={setVista} handleClickMacroprocesos={handleClickMacroprocesos} handleClickProcesos={handleClickProcesos} procesos={procesos} procesoSeleccionado={procesoSeleccionado} subProcesos={subProcesos}/>
+            <TipoProcesoTable vista={vista} setVista={setVista} handleClickMacroprocesos={handleClickMacroprocesos} handleClickProcesos={handleClickProcesos} procesos={procesos} procesoSeleccionado={procesoSeleccionado} subProcesos={subProcesos}/>
         </div>
     );
 };

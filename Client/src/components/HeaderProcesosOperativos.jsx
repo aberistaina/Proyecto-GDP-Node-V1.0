@@ -4,7 +4,7 @@ import { MdOutlinePendingActions } from "react-icons/md";
 import { RxCounterClockwiseClock } from "react-icons/rx";
 import { TfiMenuAlt } from "react-icons/tfi";
 
-export const HeaderProcesosOperativos = () => {
+export const TipoDeProcesoHeader = () => {
     return (
         <div className="bg-[#ececec] rounded-lg drop-shadow-lg h-40 pt-4 mb-8 flex justify-evenly">
             <div className="flex justify-between w-full mx-auto">

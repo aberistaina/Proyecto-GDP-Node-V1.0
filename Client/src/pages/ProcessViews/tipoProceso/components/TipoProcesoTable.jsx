@@ -3,7 +3,7 @@ import { FaFolder } from "react-icons/fa";
 import { IoDocumentTextOutline } from "react-icons/io5";
 
 //nombre, fecha publicacion, version, creador, aprobadores
-export const ProcesosOperativosTable = ({ vista, setVista, handleClickMacroprocesos, handleClickProcesos, procesos, procesoSeleccionado, subProcesos }) => {
+export const TipoProcesoTable = ({ vista, setVista, handleClickMacroprocesos, handleClickProcesos, procesos, procesoSeleccionado, subProcesos }) => {
   return (
     <div className="bg-white">
                 <table className="w-full table-auto">

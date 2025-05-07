@@ -1,10 +1,10 @@
 import * as path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs/promises";
-import { Procesos, IntermediaProcesos, Usuarios, Aprobadores, ComentariosVersionProceso, VersionProceso } from "../models/models.js";
+import { Procesos, IntermediaProcesos, Usuarios, Aprobadores, ComentariosVersionProceso, VersionProceso, OportunidadesMejora, Niveles } from "../models/models.js";
 import logger from "../utils/logger.js";
 import { changeCallElement, extraerDatosBpmn, formatFileName, extraerParticipantesBpmn } from "../utils/bpmnUtils.js";
-import { formatearFecha } from "../utils/formatearFecha.js";
+import { formatearFecha, formatShortTime } from "../utils/formatearFecha.js";
 import { createAssociation, createProcessIfNotExist } from "../services/Bpmn.services.js";
 import { getDataFileBpmnFromS3, uploadFileToS3 } from "../services/s3Client.services.js";
 import { moveFile } from "../utils/uploadFile.js";
@@ -466,22 +466,141 @@ export const getCommentaries = async (req, res, next) => {
 
         const versionMockup = "1" // Cambiar por la version real del proceso
 
-        const comentarios = await ComentariosVersionProceso.findAll({
+        let comentarios = await ComentariosVersionProceso.findAll({
+            include: [
+                {
+                    model: Usuarios,
+                    as: "id_usuario_usuario",
+                    attributes: ["nombre"]
+                }
+            ],
             where: {
                 id_bpmn: idProceso,
                 id_version_proceso: versionMockup
             },
         })
 
+        const comentariosMap = comentarios.map((comentario) => {
+            const data = comentario.toJSON(); 
+            return {
+              ...data,
+              nombre_creador: comentario.id_usuario_usuario?.nombre,
+              created_at: formatShortTime(data.created_at)
+            };
+          });
+        
+
+
+        
+
         res.status(202).json({
             code: 202,
-            message: "Comentario creado correctamente",
-            data: comentarios
+            message: "Comentarios obtenidos correctamente",
+            data: comentariosMap
         })
 
     } catch (error) {
-        logger.error("Controlador Crear Comentario", error);
+        logger.error("Controlador Obtener Comentarios", error);
         console.log(error);
         next(error)
     }
+}
+
+export const createOppotunity = async(req, res, next) =>{
+    try {
+        const { idProceso, descripcion, asunto, versionProceso, id_usuario  } = req.body
+
+        const versionMock = "1" // Cambiar por la version real del proceso
+
+        await OportunidadesMejora.create({
+            id_usuario,
+            id_bpmn: idProceso,
+            asunto,
+            descripcion,
+            id_version_proceso: versionMock
+        })
+        res.status(201).json({
+            code: 201,
+            message: "Oportunidad creada correctamente"
+        })
+    } catch (error) {
+        logger.error("Controlador Crear Oportunidad", error);
+        console.log(error);
+        next(error)
+    }
+}
+
+export const getOpportunities = async (req, res, next) => {
+    try {
+        const { idProceso, idVersionProceso } = req.params
+
+        const versionMockup = "1" // Cambiar por la version real del proceso
+
+        let oportunidades = await OportunidadesMejora.findAll({
+            include: [
+                {
+                    model: Usuarios,
+                    as: "id_usuario_usuario",
+                    attributes: ["nombre"]
+                }
+            ],
+            where: {
+                id_bpmn: idProceso,
+                id_version_proceso: versionMockup
+            },
+        })
+
+        const oportunidadesMap = oportunidades.map((oportunidad) => {
+            const data = oportunidad.toJSON(); 
+            return {
+              ...data,
+              nombre_creador: oportunidad.id_usuario_usuario?.nombre,
+              created_at: formatShortTime(data.created_at)
+            };
+          });
+
+        res.status(200).json({
+            code: 200,
+            message: "Oportunidades obtenidas correctamente",
+            data: oportunidadesMap
+        })
+
+    } catch (error) {
+        logger.error("Controlador Crear Oportunidad", error);
+        console.log(error);
+        next(error)
+    }
+}
+
+export const getNiveles = async (req, res, next) => {
+    try {
+        const niveles = await Niveles.findAll()
+        
+        res.status(200).json({
+            code: 200,
+            message: "Oportunidades obtenidas correctamente",
+            data: niveles
+        })
+    } catch (error) {
+        logger.error("Controlador Obtener Niveles", error);
+        console.log(error);
+        next(error)
+    }
+}
+
+export const getProcessByNivel = async (req, res, next) => {
+    try {
+        const { id_nivel } = req.body
+        //Este controlador tiene que traer los macroprocesos de cada nivel, sus procesos separados por nivel y además los subprocesos de los procesos padres, todo organizado por el tema de la navegación (pensar como hacer esto)
+        res.status(200).json({
+            code: 200,
+            message: "Oportunidades obtenidas correctamente",
+            data: niveles
+        })
+    } catch (error) {
+        logger.error("Controlador getProcessByNivel", error);
+        console.log(error);
+        next(error)
+    }
+    
 }

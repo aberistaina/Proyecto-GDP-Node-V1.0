@@ -1,5 +1,5 @@
 import { useLocation, Outlet } from "react-router-dom";
-import { Sidebar } from "./Sidebar";
+import { NavBar } from "./NavBar";
 
 export const Layout = () => {
     const location = useLocation();
@@ -7,9 +7,9 @@ export const Layout = () => {
     const shouldShowSidebar = !hideSidebarRoutes.includes(location.pathname);
 
     return (
-        <div className="flex h-screen">
-            {shouldShowSidebar && <Sidebar />}
-            <div className="flex-1 p-6">
+        <div>
+            {shouldShowSidebar && <NavBar className="z-50"/>}
+            <div className="p-6 z-40">
                 <Outlet />
             </div>
         </div>

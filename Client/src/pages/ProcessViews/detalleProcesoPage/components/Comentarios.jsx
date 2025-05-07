@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { FaRegCalendarAlt } from "react-icons/fa";
 
 
 export default function Comentarios({idProceso}) {
@@ -20,19 +21,30 @@ export default function Comentarios({idProceso}) {
             }
         }
         getAllComentaries()
-    }, [comentarios])
+    }, [])
     
 
     return (
-      <div>
-        {comentarios && comentarios.map((comentario) => (
-            <div className="border-l-4 border-green-500 pl-3 mb-4" key={comentario.id}>
-                <div className="text-sm font-semibold text-green-700">{comentario.nombre}</div>
-                <div className="text-xs text-gray-500 mb-1">{comentario.created_at}</div>
-                <p className="text-sm text-gray-800">{comentario.comentario}</p>
-            </div>
-        ))}
-      </div>
+      <div className="overflow-x-auto bg-white shadow-md rounded-lg">
+        <table className="min-w-full table-auto text-sm text-left text-gray-700">
+        <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+            <tr>
+            <th className="px-4 py-3">Fecha</th>
+            <th className="px-4 py-3">Comentario</th>
+            <th className="px-4 py-3">Usuario</th>
+            </tr>
+        </thead>
+        <tbody>
+            {comentarios.map((comentario) => (
+            <tr key={comentario.id_comentario} className="border-b hover:bg-gray-50">
+                <td className="px-4 py-2 flex gap-1 items-center min-w-44 max-w-44 "><FaRegCalendarAlt />{comentario.created_at}</td>
+                <td className="px-4 py-2 text-gray-600">{comentario.comentario}</td>
+                <td className="px-4 py-2 text-green-700 font-medium min-w-40 max-w-40">{comentario.nombre_creador}</td>
+            </tr>
+            ))}
+        </tbody>
+        </table>
+    </div>  
     );
   }
   

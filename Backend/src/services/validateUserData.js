@@ -1,6 +1,6 @@
 import { ValidationError } from "../errors/TypeError.js";
 import { isValidName, isValidEmail, isValidPassword } from "../utils/validators.js";
-import { Usuario } from "../models/Usuario.model.js";
+import { Usuarios } from "../models/models.js";
 
 export const validateUserData = (nombre, email, password) => {
 
@@ -26,7 +26,7 @@ export const validateUserData = (nombre, email, password) => {
 export const userIfExist = async (email) => {
     
     if (email) {
-        const userByEmail = await Usuario.findOne({
+        const userByEmail = await Usuarios.findOne({
             where: { email }
         });
         if (userByEmail) {
@@ -40,13 +40,15 @@ export const userIfExist = async (email) => {
 export const userNotExist = async (email) => {
     
     if (email) {
-        const userByEmail = await Usuario.findOne({
+        const userByEmail = await Usuarios.findOne({
             where: { email }
         });
         if (!userByEmail) {
             throw new ValidationError("Usuario no encontrado", {
                 field: "email",
             });
+        }else{
+            return userByEmail;
         }
     }
 }

@@ -4,11 +4,15 @@ export default function CustomIdProvider(
   palette,
   create,
   elementFactory,
-  translate
+  translate,
+  bpmnFactory,
+  canvas
 ) {
   this.create = create;
   this.elementFactory = elementFactory;
   this.translate = translate;
+  this.bpmnFactory = bpmnFactory;
+  this.canvas = canvas;
 
   palette.registerProvider(this);
 }
@@ -18,10 +22,12 @@ CustomIdProvider.$inject = [
   "create",
   "elementFactory",
   "translate",
+  "bpmnFactory",
+  "canvas"
 ];
 
 CustomIdProvider.prototype.getPaletteEntries = function () {
-  const { create, elementFactory, translate } = this;
+    const { create, elementFactory, translate, bpmnFactory, canvas } = this;
 
   // Función reutilizable para crear cualquier tipo de elemento con UUID
   function createElementWithId(type, options = {}) {
@@ -64,6 +70,48 @@ CustomIdProvider.prototype.getPaletteEntries = function () {
         },
       },
     };
+
+    entries["create.laneset"] = {
+        group: "structure",
+        className: "bpmn-icon-lane",
+        title: translate("Create Lane"),
+        action: {
+          dragstart: function (event) {
+            const laneBusinessObject = bpmnFactory.create("bpmn:Lane", {
+              id: `Id_${uuidv4()}`,
+              name: "Nuevo Lane",
+            });
+  
+            const laneShape = elementFactory.createShape({
+              type: "bpmn:Lane",
+              businessObject: laneBusinessObject,
+              x: 100,
+              y: 100,
+              width: 1000,
+              height: 200,
+            });
+  
+            create.start(event, laneShape);
+          },
+          click: function (event) {
+            const laneBusinessObject = bpmnFactory.create("bpmn:Lane", {
+              id: `Id_${uuidv4()}`,
+              name: "Nuevo Lane",
+            });
+  
+            const laneShape = elementFactory.createShape({
+              type: "bpmn:Lane",
+              businessObject: laneBusinessObject,
+              x: 100,
+              y: 100,
+              width: 1000,
+              height: 200,
+            });
+  
+            create.start(event, laneShape);
+          },
+        },
+      };
 
     return entries;
   };

@@ -3,6 +3,7 @@ import CustomReplaceUpdater from "./CustomReplaceUpdaterProvider";
 import customTranslate from "./CustomTranslateProvider";
 import CustomMarkerProvider from "./CustomMarkerProvider";
 import CustomPropertiesProvider from "./CustomPropertiesProvider";
+import CustomOverrideProvider from "./CustomOverrideProvider";
 
 
 
@@ -20,9 +21,13 @@ export const customBpmnProviders = [
         __init__: ["customMarkerProvider"],
         customMarkerProvider: ["type", CustomMarkerProvider],
     },
-    {
+    /* {
         __init__: ['customPropertiesProvider'],
         customPropertiesProvider: ['type', CustomPropertiesProvider]
+    }, */
+    {
+        __init__: ['customOverrideProvider'],
+        customOverrideProvider: ['type', CustomOverrideProvider]
     },
     {
         translate: ['value', customTranslate]

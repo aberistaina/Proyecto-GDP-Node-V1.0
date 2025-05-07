@@ -3,11 +3,10 @@ import { sequelize } from "./src/database/database.js";
 import { Server as SocketServer } from "socket.io";
 import { configurarSockets } from "./src/sockets/socketHandlers.js";
 import { initializeCognitoOIDCClient } from "./src/services/cognito.services.js";
+import initModels from "./src/models/init-models.js"
 
 import logger from "./src/utils/logger.js";
 
-//MODELS
-import "./src/models/Asociaciones.model.js";
 
 const PORT = 3000;
 
@@ -16,6 +15,7 @@ const main = async () => {
         await sequelize.authenticate();
         logger.info("Conexión a la base de datos establecida correctamente.");
         console.log("Conexión a la base de datos establecida correctamente.");
+        initModels(sequelize) 
         await sequelize.sync({ force: false, alter: false });
         logger.info("Modelos sincronizados correctamente.");
         await initializeCognitoOIDCClient();

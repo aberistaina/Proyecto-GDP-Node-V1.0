@@ -10,10 +10,15 @@ import { UploadProcessPage } from "../components/UploadProcess/UploadProcessPage
 import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import { useConfirmAlert } from "../../context/ConfirmAlertProvider";
+import { ModalSaveChanges } from "./components/ModalSaveChanges";
 
 export const BpmnDesignerModule = () => {
     const [showModal, setShowModal] = useState(false);
+    const [showModalSaveChanges, setShowModalSaveChanges] = useState(false);
     const [idProcessSocket, setIdProcessSocket] = useState("");
+
+
+    
     const navigate = useNavigate();
     const { confirm, alert } = useConfirmAlert();
 
@@ -88,8 +93,17 @@ export const BpmnDesignerModule = () => {
                             <BpmnModeler />
                             <PropertiesPanel />
                         </div>
-                        <ModelerButtons modo="designer" />
+                        <ModelerButtons modo="designer" setShowModalSaveChanges={setShowModalSaveChanges} />
                         <MenuContextListener />
+
+                        {/* Modal para Guardar cambios proceso */}
+                        {showModalSaveChanges && (
+                            <ModalSaveChanges
+                            setShowModalSaveChanges={setShowModalSaveChanges}
+                            />
+                        )}
+
+                        {/* Modal para subir un proceso */}
                         {showModal && (
                             <UploadProcessPage setShowModal={setShowModal} />
                         )}

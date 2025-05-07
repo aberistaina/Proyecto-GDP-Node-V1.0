@@ -1,25 +1,24 @@
 import { AuthenticationError, UnauthorizedError } from "../errors/TypeError.js";
 import logger from "../utils/logger.js";
-import { comparePassword, createToken, verifyToken } from "../services/auth.services.js";
-import { Usuario } from "../models/Usuario.model.js";
-import { Rol } from "../models/Rol.model.js"
-import { Empresa } from "../models/Empresa.model.js"
+import { comparePassword, createToken, verifyToken, hashPassword } from "../services/auth.services.js";
+import { Usuarios, Roles, Cargo } from "../models/models.js";
 
 
 export const issueTokenMiddleware = async(req, res, next) =>{
     try {
         const {email, password } = req.body
 
-        let user = await Usuario.findOne({
-            attributes: ["id_usuario", "nombre", "email", "id_rol", "id_empresa", "password_hash" ],
+
+        let user = await Usuarios.findOne({
+            attributes: ["id_usuario", "id_rol", "id_cargo", "id_jefe_directo", "nombre", "email", "password_hash"],
             include: [
                 {
-                    model: Rol,
-                    as: "roles"
+                    model: Roles,
+                    as: "id_rol_role"
                 },
                 {
-                    model: Empresa,
-                    as: "empresa"
+                    model: Cargo,
+                    as: "id_cargo_cargo"
                 }
             ],
             where:{
@@ -35,8 +34,8 @@ export const issueTokenMiddleware = async(req, res, next) =>{
             id_usuario: user.id_usuario,
             nombre: user.nombre,
             email: user.email,
-            rol: user.roles.nombre,
-            empresa: user.empresa.nombre
+            rol: user.id_rol_role.nombre,
+            cargo: user.id_cargo_cargo.nombre,
         }
 
         const validatePassword = await comparePassword(password, user.password_hash)
@@ -48,7 +47,6 @@ export const issueTokenMiddleware = async(req, res, next) =>{
         const token = createToken(userMap, "1d")
 
         req.token = token
-        /* req.user = userMap */
         next()
 
     } catch (error) {
@@ -76,7 +74,8 @@ export const verifyTokenMiddleware = async(req, res, next) =>{
 
         const decoded = await verifyToken(token);
 
-        req.user = decoded.data
+        req.user = decoded
+        req.token = token
         next()
         
     } catch (error) {

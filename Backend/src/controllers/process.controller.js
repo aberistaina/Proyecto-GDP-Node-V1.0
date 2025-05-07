@@ -1,15 +1,15 @@
 import * as path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs/promises";
-import { Procesos } from "../models/Procesos.model.js";
-import {CallActivity} from "../models/CallActivity.model.js";
+import { Procesos, IntermediaProcesos, Usuarios, Aprobadores, ComentariosVersionProceso, VersionProceso } from "../models/models.js";
 import logger from "../utils/logger.js";
-import { changeCallElement, extraerDatosBpmn, formatFileName } from "../utils/bpmnUtils.js";
+import { changeCallElement, extraerDatosBpmn, formatFileName, extraerParticipantesBpmn } from "../utils/bpmnUtils.js";
+import { formatearFecha } from "../utils/formatearFecha.js";
 import { createAssociation, createProcessIfNotExist } from "../services/Bpmn.services.js";
+import { getDataFileBpmnFromS3, uploadFileToS3 } from "../services/s3Client.services.js";
 import { moveFile } from "../utils/uploadFile.js";
 import { sequelize } from "../database/database.js";
-import { ListBucketsCommand, S3Client, GetObjectCommand  } from "@aws-sdk/client-s3"
-import { where } from "sequelize";
+
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -29,22 +29,16 @@ export const getAllProcess = async (req, res, next) => {
     }
 };
 
-
-export const readProcessById = async (req, res, next) => {
+//Función leer el contenido XML de un subproceso desde S3
+export const readActualProcessVersion = async (req, res, next) => {
     try {
         const { idProceso } = req.params;
-        const proceso = await Procesos.findOne({
-            where: {
-                idProceso
-            },
-        });
+    
+        
+        const xmlContent = await getDataFileBpmnFromS3("test-bpmn", `${idProceso}.bpmn`)
 
-        const rutaAbsoluta = path.join(__dirname, "../", proceso.ruta);
-        let data = await fs.readFile(rutaAbsoluta, "utf8");
-        res.setHeader("Access-Control-Expose-Headers", "Proceso-Nombre");
-        res.setHeader("Proceso-Nombre", proceso.nombre);
         res.setHeader("Content-Type", "application/xml");
-        res.status(200).send(data);
+        res.status(200).send(xmlContent);
     } catch (error) {
         logger.error("Controlador readProcessById", error);
         console.log(error);
@@ -135,6 +129,7 @@ export const connectSubprocess = async (req, res, next) => {
     }
 };
 
+//Función para subir procesos a S3 y guardar en la base de datos
 export const uploadProcess = async (req, res, next) => {  
     const transaction = await sequelize.transaction();
     try {
@@ -145,6 +140,13 @@ export const uploadProcess = async (req, res, next) => {
             });
         }
         const { archivos } = req.files;
+        const {id_aprobador, id_creador} = req.body
+
+        //Variables momentáneas
+        const nivel = 1
+        const estado = "activo"
+        //variables momentáneas
+
         const archivosArray = Array.isArray(archivos) ? archivos : [archivos];
         const datosArchivos = []
 
@@ -153,6 +155,7 @@ export const uploadProcess = async (req, res, next) => {
             const nombreArchivo = formatFileName(archivo.name.split(".")[0])
             datosArchivos.push(datoArchivo);
 
+            console.log("Datos Archivo",datoArchivo);
             const {  idProceso, subProcesos } = datoArchivo;
             let callActivity = subProcesos.callActivity
 
@@ -166,30 +169,41 @@ export const uploadProcess = async (req, res, next) => {
             const rutaRelativa = path.join("upload", `${idProceso}.bpmn`);
             const rutaAbsoluta = path.join(__dirname, "../", rutaRelativa);
             
-            await createProcessIfNotExist(idProceso, nombreArchivo, rutaRelativa);
+            await createProcessIfNotExist(id_creador, idProceso, id_aprobador, nivel, nombreArchivo, null, estado, null, transaction);
             await moveFile(archivo, rutaAbsoluta)
 
-            if(callActivity && calledElement !== ""){
+            /* if(callActivity && calledElement !== ""){
                 const rutaRelativaSubproceso = path.join("upload", `${calledElement}.bpmn`);
-                await createProcessIfNotExist(calledElement, "Pendiente", rutaRelativaSubproceso, true);
-                await createAssociation(idProceso, callActivity, calledElement);
-                }
+                await createProcessIfNotExist(calledElement, "Pendiente", rutaRelativaSubproceso, transaction);
+                await createAssociation(idProceso, callActivity, calledElement, null, null, null, transaction);
+                } */
+
+            await uploadFileToS3("test-bpmn", `${idProceso}.bpmn`, archivo.data, "application/xml")
             }
+
+
+            await transaction.commit()
             res.status(201).json({
                 code: 201,
                 message: "Procesos cargado correctamente",
             });
 
     } catch (error) {
+        await transaction.rollback()
         logger.error("Controlador Cargar Proceso", error);
         console.log(error);
         next(error)
     }
 }
 
+//Guardar cambios cuando se trabaja en el modelador o crear un nuevo proceso si este no existe
 export const saveProcessChanges = async(req, res, next) =>{
     try {
         const { archivo } = req.files
+        const { id_creador, aprobadores, estado, esMacroproceso } = req.body
+        const id_aprobador = 1
+        const nivel = 2
+
 
         if (!req.files || Object.keys(req.files).length === 0) {
             return res.status(400).json({
@@ -197,14 +211,31 @@ export const saveProcessChanges = async(req, res, next) =>{
                 message: "No se ha subido ningún archivo.",
             });
         }
-        
-        const { idProceso, name } = await extraerDatosBpmn(archivo)
 
-        const rutaRelativa = path.join("upload", `${idProceso}.bpmn`);
-        const rutaAbsoluta = path.join(__dirname, "../", rutaRelativa);
- 
-        await createProcessIfNotExist(idProceso, name, rutaRelativa )
-        await moveFile(archivo, rutaAbsoluta)
+        
+
+        const estadoFormateado = estado.toLowerCase()
+
+        const { idProceso, name, descripcion } = await extraerDatosBpmn(archivo) 
+
+        await createProcessIfNotExist(id_creador, idProceso, id_aprobador, nivel, name, descripcion, estadoFormateado, esMacroproceso, null )
+
+        const versionProceso = await VersionProceso.findOne({
+            where: {
+                id_bpmn: idProceso,
+            }
+        })
+
+        if(!versionProceso){
+            await VersionProceso.create({
+                id_creador,
+                id_bpmn: idProceso,
+                estado: "pendiente",
+                version: 1
+            })
+        }
+
+        await uploadFileToS3("test-bpmn", `${idProceso}.bpmn`, archivo.data, "application/xml")
 
         res.status(201).json({
             code: 201,
@@ -215,9 +246,10 @@ export const saveProcessChanges = async(req, res, next) =>{
         logger.error("Controlador Save Changes", error);
         console.log(error);
         next(error)
-         
+
     }
 }
+
 
 export const saveSubProcessChanges = async(req, res, next) =>{
     try {
@@ -295,41 +327,161 @@ export const getSubprocessesOfProcess = async(req, res, next) =>{
     }
 }
 
-export const getS3Bucket = async(req, res) =>{
+//Función que envía borrador para su aprobación
+export const enviarAprobacion = async (req, res, next) => {
     try {
-        console.log("S3");
-        const s3Client = new S3Client({
-            region: 'us-east-1',
-            credentials: {
-                accessKeyId: process.env.S3_ACCESS_KEY,
-                secretAccessKey: process.env.S3_SECRET_ACCESS_KEY
-            },
-            
-        });
-
-        const { Body } = await s3Client.send(new GetObjectCommand({
-            Bucket: "test-bpmn",
-            Key: "Solicitud de Vacaciones.bpmn"
-        }));
-
-        const streamToString = (stream) => new Promise((resolve, reject) => {
-            const chunks = [];
-            stream.on('data', (chunk) => chunks.push(chunk));
-            stream.on('error', reject);
-            stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
-        });
-
-        // Obtiene el contenido XML como string
-        const xmlContent = await streamToString(Body);
-        
-        res.setHeader("Content-Type", "application/xml");
-        res.status(200).send(xmlContent);
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            code: 500,
-            message: "Hubo un error interno en el servidor"
+        const { idProceso, idAprobador } = req.body
+        const versionProceso = await VersionProceso.findOne({
+            where: {
+                id_bpmn: idProceso,
+            }
         })
+        if(!versionProceso){
+            await VersionProceso.create({
+                id_creador: idProceso,
+                id_bpmn: idAprobador,
+                estado: "pendiente",
+                version: 1
+            })
+        }
+    } catch (error) {
+        logger.error("Controlador Enviar Aprobacion", error);
+        console.log(error);
+        next(error)
+        
     }
+}
 
+//Función que extrae contenido de un archivo BPMN para visualizar el resumen del proceso
+export const getProcessSummary = async (req, res, next) => {
+    try {
+        const { idProceso } = req.params
+        const xmlContent = await getDataFileBpmnFromS3("test-bpmn", `${idProceso}.bpmn`)
+
+        const participantes = extraerParticipantesBpmn(xmlContent)
+
+        const proceso = await Procesos.findOne({
+            include: [
+                {
+                    model: Usuarios,
+                    as: "id_creador_usuario",
+                    attributes:["nombre"]
+                }
+            ],
+            where: {
+                id_bpmn: idProceso
+            },
+        })
+        const aprobadores = await Aprobadores.findAll({
+            where: {
+                id_aprobador: proceso.id_aprobadores_cargo
+            },
+            raw: true,
+            include: [
+                {
+                    model: Usuarios,
+                    as: "id_usuario_usuario",
+                    attributes: ["nombre"]
+                }
+            ]
+        })
+
+        const subprocesos = await IntermediaProcesos.findAll({
+            where: {
+                id_bpmn_padre: idProceso
+            },
+            include: [
+                {
+                    model: Procesos,
+                    as: "id_bpmn_proceso",
+                    attributes: ["id_bpmn", "nombre"]
+                }
+            ]
+        })
+
+        const resumenProceso = {
+            Subprocesos: [...subprocesos],
+            ...participantes,
+            TiempoSLA: ["2 días", "Automatizable 70%"]
+        };
+
+        
+
+        const fechaFormateada = formatearFecha(proceso.created_at)
+
+        const headerProceso ={
+            nombre: proceso.nombre,
+            descripcion: proceso.descripcion,
+            creador: proceso.id_creador_usuario?.nombre,
+            aprobadores: aprobadores.map((aprobador) => aprobador["id_usuario_usuario.nombre"]),
+            fechaCreacion: fechaFormateada,
+            estado: proceso.estado,
+            version: proceso.version
+        }
+
+        res.status(200).json({
+            code: 200,
+            message: "Resumen de Proceso",
+            data: resumenProceso,
+            dataHeader: headerProceso
+        })
+
+    }
+    catch (error) {
+        logger.error("Controlador Resumen Proceso", error);
+        console.log(error);
+        next(error)
+    }
+}
+
+//Funcion que crea los comentarios de la versión de un proceso
+export const createCommentary = async (req, res, next) => {
+    try {
+        const { idProceso, comentario, versionProceso, id_usuario  } = req.body
+
+        const versionMock = "1" // Cambiar por la version real del proceso
+
+        await ComentariosVersionProceso.create({
+            id_usuario,
+            id_bpmn: idProceso,
+            comentario,
+            id_version_proceso: versionMock
+        })
+
+        res.status(201).json({
+            code: 201,
+            message: "Comentario creado correctamente"
+        })
+    } catch (error) {
+        logger.error("Controlador Crear Comentario", error);
+        console.log(error);
+        next(error)
+    }
+}
+
+//Función que obtiene los comentarios de la versión un proceso
+export const getCommentaries = async (req, res, next) => {
+    try {
+        const { idProceso, idVersionProceso } = req.params
+
+        const versionMockup = "1" // Cambiar por la version real del proceso
+
+        const comentarios = await ComentariosVersionProceso.findAll({
+            where: {
+                id_bpmn: idProceso,
+                id_version_proceso: versionMockup
+            },
+        })
+
+        res.status(202).json({
+            code: 202,
+            message: "Comentario creado correctamente",
+            data: comentarios
+        })
+
+    } catch (error) {
+        logger.error("Controlador Crear Comentario", error);
+        console.log(error);
+        next(error)
+    }
 }

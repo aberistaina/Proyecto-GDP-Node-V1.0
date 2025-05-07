@@ -4,6 +4,7 @@ import fileUpload from "express-fileupload";
 import authRoutes  from "./routes/auth.routes.js"
 import externalAuthRoutes  from "./routes/externalAuth.routes.js"
 import processRoutes  from "./routes/procesos.routes.js"
+import aprobadoresRoutes  from "./routes/aprobadores.routes.js"
 import {errorHandler} from "./middlewares/errors.middlewares.js"
 
 //Importaciones Para autenticación con SAML
@@ -21,7 +22,7 @@ export const app = express()
 
 //Middlewares SAML
 app.use(session({
-  secret: "202110bf13e1a7508a30b92f08e2766f0259f4e0b2018a38af0b273151ffd8f1", 
+  secret: process.env.SECRET_MIDDLEWARE_SAML, 
   resave: false,
   saveUninitialized: true,
   cookie: { secure: false }
@@ -45,6 +46,7 @@ app.use("/public", express.static(__dirname + "/public"));
 app.use("/api/v1/auth", authRoutes)
 app.use("/api/v1/externalAuth", externalAuthRoutes)
 app.use("/api/v1/procesos", processRoutes)
+app.use("/api/v1/aprobadores", aprobadoresRoutes)
 
 
 //Errors Handler

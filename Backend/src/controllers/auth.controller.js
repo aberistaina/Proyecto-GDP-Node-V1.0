@@ -1,10 +1,11 @@
-import { Usuario } from "../models/Usuario.model.js";
+import { Usuarios, Token } from "../models/models.js";
 import { createToken, hashPassword } from "../services/auth.services.js";
 import {
     validateUserData,
     userIfExist,
     userNotExist,
 } from "../services/validateUserData.js";
+import { AuthenticationError } from "../errors/TypeError.js";
 import { normalizeEmail } from "../utils/normalize.js";
 import logger from "../utils/logger.js";
 import { sendEmail } from "../services/email.services.js";
@@ -20,7 +21,7 @@ export const createUser = async (req, res, next) => {
 
         const hash = hashPassword(password);
 
-        await Usuario.create({
+        await Usuarios.create({
             nombre,
             email: normalizeEmail(email),
             password_hash: hash,
@@ -45,7 +46,6 @@ export const login = async (req, res, next) => {
         res.status(200).json({
             code: 200,
             message: "Inicio de sesión Exitoso",
-            /* usuario: req.user, */
             token: req.token,
         });
     } catch (error) {
@@ -59,12 +59,16 @@ export const forgotPassword = async (req, res, next) => {
     try {
         const { email } = req.body;
 
-        //Verifica si el usuario no existe en la base de datos
-        await userNotExist(email);
-
-        const user = await Usuario.findOne({ raw: true, where: { email } });
+        //Verifica si el usuario no existe en la base de datos, si existe lo almacena en la variable user
+        const user = await userNotExist(email);
 
         const token = createToken(email, "30m");
+
+        await Token.create({
+            id_usuario: user.id_usuario,
+            token,
+            activo: true,
+        });
 
         sendEmail(email, "recover-password", user.nombre, token);
 
@@ -85,10 +89,32 @@ export const forgotPassword = async (req, res, next) => {
 
 export const changePassword = async (req, res, next) => {
     try {
-        const { email, password } = req.body;
+        const { password } = req.body;
+        const email = req.user.data
+
+
+        if (!email) {
+            throw new AuthenticationError("No se pudo validar tu solicitud. Por favor solicita un nuevo enlace de recuperación.");
+        }
+
+        //se verifica si el token existe en la base de datos de token de recuperación de contraseña
+        const token = await Token.findOne({
+            where: { token: req.token },
+        });
+
+
+        if (!token) {
+            throw new AuthenticationError("No se pudo validar tu solicitud. Por favor solicita un nuevo enlace de recuperación.");
+        }
+        
+        if (token.activo === false) {
+            throw new AuthenticationError("El enlace de recuperación ya no es válido.");
+        }
 
         const hash = hashPassword(password);
-        await Usuario.update(
+        const user = await Usuarios.findOne({ where: { email } });
+        
+        await Usuarios.update(
             {
                 password_hash: hash,
             },
@@ -97,6 +123,17 @@ export const changePassword = async (req, res, next) => {
             }
         );
 
+        sendEmail(email, "passwordChanged", user.Nombre, null);
+
+        //Se anula el token luego de utilizado
+        await Token.update(
+            {
+                activo: false,
+            },
+            {
+                where: { token: req.token },
+            }
+        );
         res.status(200).json({
             code: 200,
             message: "Contraseña modificada con éxito",

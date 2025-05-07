@@ -1,15 +1,19 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useSnackbar } from "notistack";
 import { FaUpload, FaFileUpload } from "react-icons/fa";
 import { IoMdCloseCircle } from "react-icons/io";
 import { useBpmnContext } from "../../context/useBpmnContext";
+import { useSelector } from "react-redux";
 
 export const UploadProcessModal = ({ setShowModal }) => {
     const { enqueueSnackbar } = useSnackbar();
     const fileInputRef = useRef(null);
     const { setRefreshProcess } = useBpmnContext();
+    const user = useSelector((state) => state.auth.user);
 
     const [files, setFiles] = useState([]);
+    const [aprobadores, setAprobadores] = useState([]);
+    const [aprobadorSeleccionado, setAprobadorSeleccionado] = useState("");
 
     const handleFileChange = (e) => {
         const selectedFiles = Array.from(e.target.files);
@@ -29,8 +33,11 @@ export const UploadProcessModal = ({ setShowModal }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            const loggedUser = user.data?.id_usuario;
             const form = new FormData();
             files.forEach((file) => form.append("archivos", file));
+            form.append("id_creador", loggedUser);
+            form.append("id_aprobador", aprobadorSeleccionado);
 
             const URL =
                 import.meta.env.VITE_APP_MODE === "desarrollo"
@@ -50,8 +57,8 @@ export const UploadProcessModal = ({ setShowModal }) => {
             if (data.code === 201) {
                 enqueueSnackbar(data.message, { variant: "success" });
                 setFiles([]);
-                setRefreshProcess(true)
-                setShowModal(false)
+                setRefreshProcess(true);
+                setShowModal(false);
             } else {
                 enqueueSnackbar(data.message, { variant: "error" });
             }
@@ -62,6 +69,38 @@ export const UploadProcessModal = ({ setShowModal }) => {
             });
         }
     };
+
+    useEffect(() => {
+        const getAprobadores = async () => {
+            try {
+                const URL =
+                    import.meta.env.VITE_APP_MODE === "desarrollo"
+                        ? import.meta.env.VITE_URL_DESARROLLO
+                        : import.meta.env.VITE_URL_PRODUCCION;
+
+                const response = await fetch(
+                    `${URL}/api/v1/aprobadores/get-all`,
+                    {
+                        method: "GET",
+                    }
+                );
+
+                const data = await response.json();
+
+                if (data.code === 200) {
+                    setAprobadores(data.data);
+                } else {
+                    enqueueSnackbar(data.message, { variant: "error" });
+                }
+            } catch (error) {
+                console.error(error);
+                enqueueSnackbar("Error al cargar los aprobadores", {
+                    variant: "error",
+                });
+            }
+        };
+        getAprobadores();
+    }, []);
 
     return (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-30 flex justify-center items-center">
@@ -115,6 +154,30 @@ export const UploadProcessModal = ({ setShowModal }) => {
                             ))}
                         </ul>
                     )}
+
+                    {/* Nuevo: Dropdown de Aprobador */}
+                    <div className="flex items-center space-x-4">
+                        <label className="font-medium text-gray-700 whitespace-nowrap">
+                            Seleccionar Aprobador:
+                        </label>
+                        <select
+                            name="aprobador"
+                            value={aprobadorSeleccionado.id_aprobador}
+                            onChange={(e) =>
+                                setAprobadorSeleccionado(e.target.value)
+                            }
+                            className="flex w-full px-4 py-2 border border-gray-400 rounded-lg shadow-sm bg-white"
+                        >
+                            <option value="">
+                                -- Selecciona un aprobador --
+                            </option>
+                            {aprobadores.map((aprobador) => (
+                                <option key={aprobador.id_aprobador} value={aprobador.id_aprobador}>
+                                    {aprobador.nombre}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
 
                     <div className="flex justify-end">
                         <button

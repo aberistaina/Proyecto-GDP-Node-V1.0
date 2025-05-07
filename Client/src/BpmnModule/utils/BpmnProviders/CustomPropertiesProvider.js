@@ -1,47 +1,115 @@
-import { TextFieldEntry, isTextFieldEntryEdited } from '@bpmn-io/properties-panel';
-import { getBusinessObject } from 'bpmn-js/lib/util/ModelUtil';
+import { is } from "bpmn-js/lib/util/ModelUtil";
 
-export default {
-  __init__: ['customPropertiesProvider'],
-  customPropertiesProvider: ['type', function(propertiesPanel, translate) {
-    propertiesPanel.registerProvider(500, {
-      getGroups(element) {
-        const bo = getBusinessObject(element);
+import CustomPropertyList from "../../components/customProperties/CustomPropertyList";
 
-        if (bo.$type === 'bpmn:Process') {
-          return function(groups) {
-            groups.push({
-              id: 'processCustomGroup',
-              label: 'Configuración del Proceso',
-              entries: [
+export default class CustomPropertiesProvider {
+  constructor(propertiesPanel, popupData) {
+    this.propertiesPanel = propertiesPanel;
+    this.popupVisible = popupData.popupVisible;
+    this.setPopupVisible = popupData.setPopupVisible;
+    this.setElementSeleccionado = popupData.setElementSeleccionado;
+    this.setPropertyName = popupData.setPropertyName;
+
+    propertiesPanel.registerProvider(500, this);
+  }
+
+  getGroups(element) {
+    return (groups) => {
+      // Campos del proceso general
+      if (
+        is(element, "bpmn:Process") ||
+        is(element, "bpmn:Task") ||
+        is(element, "bpmn:CallActivity")
+    ) {
+        groups.push({
+          id: "custom-process-properties-ejecutantes",
+          label: "Ejecutantes",
+          entries: [
+            {
+              id: "ejecutantes",
+              component: (props) =>
+                CustomPropertyList({
+                  ...props,
+                  popupVisible: this.popupVisible,
+                  setPopupVisible: this.setPopupVisible,
+                  setElementSeleccionado: this.setElementSeleccionado,
+                  setPropertyName: this.setPropertyName,
+                  label: "Ejecutantes",
+                  propertyName: "ejecutantes"
+                }),
+            },
+            
+          ],
+        },
+        {
+            id: "custom-process-properties-responsable",
+            label: "Responsables",
+            entries: [
                 {
-                  id: 'approvalLevel',
-                  component: TextFieldEntry,
-                  isEdited: isTextFieldEntryEdited,
-                  label: 'Nivel de Aprobación',
-                  getValue: () => bo.approvalLevel || '',
-                  setValue: (value) => {
-                    bo.approvalLevel = value;
-                    return [];
+                    id: "responsable",
+                    component: (props) =>
+                      CustomPropertyList({
+                        ...props,
+                        popupVisible: this.popupVisible,
+                        setPopupVisible: this.setPopupVisible,
+                        setElementSeleccionado: this.setElementSeleccionado,
+                        setPropertyName: this.setPropertyName,
+                        label: "Responsable",
+                        propertyName: "responsable"
+                      }),
                   },
-                  validate: (value) => {
-                    if (value && isNaN(value)) {
-                      return 'Debe ser un número';
-                    }
-                    return undefined;
+              
+            ],
+          },
+          {
+            id: "custom-process-properties-consultado",
+            label: "Consultado",
+            entries: [
+                {
+                    id: "consultado",
+                    component: (props) =>
+                      CustomPropertyList({
+                        ...props,
+                        popupVisible: this.popupVisible,
+                        setPopupVisible: this.setPopupVisible,
+                        setElementSeleccionado: this.setElementSeleccionado,
+                        setPropertyName: this.setPropertyName,
+                        label: "Consultado",
+                        propertyName: "consultado"
+                      }),
                   }
-                }
-              ]
-            });
-
-            return groups;
-          };
-        }
-
-        return function(groups) {
-          return groups;
-        };
+              
+            ],
+          },
+          {
+            id: "custom-process-properties-informado",
+            label: "Informado",
+            entries: [
+                {
+                    id: "informado",
+                    component: (props) =>
+                      CustomPropertyList({
+                        ...props,
+                        popupVisible: this.popupVisible,
+                        setPopupVisible: this.setPopupVisible,
+                        setElementSeleccionado: this.setElementSeleccionado,
+                        setPropertyName: this.setPropertyName,
+                        label: "Informado",
+                        propertyName: "informado"
+                      }),
+                  }
+              
+            ],
+          }
+    
+    );
       }
-    });
-  }]
-};
+
+      return groups;
+    };
+  }
+}
+
+
+CustomPropertiesProvider.$inject = ["propertiesPanel", "popupData"];
+

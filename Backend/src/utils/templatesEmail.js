@@ -79,7 +79,67 @@ export const crearTemplateHtml = (email, asunto, token, username) => {
                     </body>
                 </html>
             `;
-    } else{
+    }else if (asunto === "passwordChanged") {
+        template = `
+            <html>
+                <head>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            background-color: #f7f7f7;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        .email-container {
+                            width: 100%;
+                            max-width: 600px;
+                            margin: 0 auto;
+                            background-color: #ffffff;
+                            padding: 20px;
+                            border-radius: 8px;
+                            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 20px;
+                        }
+                        .header h1 {
+                            color: #4A90E2;
+                        }
+                        .content {
+                            font-size: 16px;
+                            color: #333333;
+                            line-height: 1.5;
+                            margin-bottom: 20px;
+                        }
+                        .footer {
+                            text-align: center;
+                            font-size: 12px;
+                            color: #888888;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="email-container">
+                        <div class="header">
+                            <h1>Contraseña modificada - Proyecto GDP</h1>
+                        </div>
+                        <div class="content">
+                            <p>¡Hola! <strong>${username}</strong></p>
+                            <p>Te informamos que la contraseña de tu cuenta asociada al correo <strong>${email}</strong> fue modificada exitosamente.</p>
+                            <p>Si tú realizaste este cambio, puedes ignorar este mensaje.</p>
+                            <p>Si no fuiste tú, por favor contacta de inmediato a nuestro soporte: <a href="mailto:support@backspace.cl">support@backspace.cl</a>.</p>
+                        </div>
+                        <div class="footer">
+                            <p>&copy; 2025 Proyecto GDP | Todos los derechos reservados</p>
+                            <p>Si tienes alguna pregunta, puedes contactarnos a <a href="mailto:support@backspace.cl">support@backspace.cl</a>.</p>
+                        </div>
+                    </div>
+                </body>
+            </html>
+        `;
+    }  
+    else{
         template = `
                 <html>
                     <head>

@@ -1,9 +1,7 @@
 import logger from "./logger.js";
-import fs from 'fs/promises';
-import { parseStringPromise, Builder } from 'xml2js';
+import fs from "fs/promises";
 
 const extaerIdProceso = (xmlString) => {
-
     if (xmlString.includes("bizagi")) {
         const regex = /<process id="([^"]+)" name="([^"]+)">/g;
         let match;
@@ -16,98 +14,123 @@ const extaerIdProceso = (xmlString) => {
             }
         }
     } else {
-
-        const regex = /<bpmn:process id="([^"]+)" name="([^"]+)" isExecutable="false">/g;
+        const regex =
+            /<bpmn:process[^>]*\s+id="([^"]+)"[^>]*\s+name="([^"]+)"/g;
         let match = regex.exec(xmlString);
 
         if (match) {
-            return { id: match[1], name: match[2] }
+            return { id: match[1], name: match[2] };
         }
     }
 
     return null;
 };
 
-
 const extraerIdSubproceso = (xmlString) => {
-    const regex = /<(?:bpmn:)?callActivity\b[^>]*\bid="([^"]*)"[^>]*\bcalledElement="([^"]*)"[^>]*>(?:<\/\w+:callActivity>)?/g;
+    const regex =
+        /<(?:bpmn:)?callActivity\b[^>]*\bid="([^"]*)"[^>]*\bcalledElement="([^"]*)"[^>]*>(?:<\/\w+:callActivity>)?/g;
     let match;
     const resultados = [];
-  
+
     while ((match = regex.exec(xmlString)) !== null) {
-      resultados.push({
-        callActivity: match[1],
-        calledElement: match[2],
-      });
+        resultados.push({
+            callActivity: match[1],
+            calledElement: match[2],
+        });
     }
     return resultados;
-  };
-  
-  
+};
 
-
-export const extractSubProcessId =async (archivo) =>{
+export const extractSubProcessId = async (archivo) => {
     const data = archivo.data.toString("utf8");
-    const result =  extaerIdProceso(data)
-    return result
-}
+    const result = extaerIdProceso(data);
+    return result;
+};
 
-export const changeCallElement = async(archivoBpmn, callActivity, calledElement, name = "") => {
+const extraerDescripcionProceso = (xmlString) => {
+    const regex = /<bpmn:documentation>([\s\S]*?)<\/bpmn:documentation>/;
+    const match = xmlString.match(regex);
+
+    return match ? match[1].trim() : null;
+};
+
+
+export const changeCallElement = async (
+    archivoBpmn,
+    callActivity,
+    calledElement,
+    name = ""
+) => {
     try {
         // 1. Leer el archivo
-        const xmlContent = await fs.readFile(archivoBpmn, 'utf-8');
+        const xmlContent = await fs.readFile(archivoBpmn, "utf-8");
 
         console.log(xmlContent);
-        console.log("CALL ACTIVITY", callActivity)
-        console.log("CALLED ELEMENT", calledElement)
+        console.log("CALL ACTIVITY", callActivity);
+        console.log("CALLED ELEMENT", calledElement);
         console.log("NOMBRE", name);
-        
+
         // 2. Buscar y reemplazar SOLO el callActivity específico (con o sin bpmn:)
         const updatedXml = xmlContent.replace(
             new RegExp(
                 `(<(?:bpmn:)?callActivity\\s+[^>]*?id="${callActivity}")([^>]*?)(name=")[^"]*(")([^>]*?)(calledElement=")[^"]*(")([^>]*?>)`,
-                'g'
+                "g"
             ),
             `$1$2$3${name}$4$5$6${calledElement}$7$8`
         );
-        
+
         // 3. Guardar los cambios en el mismo archivo
-        await fs.writeFile(archivoBpmn, updatedXml, 'utf-8');
-        
-        console.log(`✅ CallActivity "${callActivity}" actualizado con calledElement="${calledElement}"`);
+        await fs.writeFile(archivoBpmn, updatedXml, "utf-8");
+
+        console.log(
+            `✅ CallActivity "${callActivity}" actualizado con calledElement="${calledElement}"`
+        );
     } catch (error) {
         console.error(`❌ Error al modificar el archivo: ${error.message}`);
         throw error;
     }
-}
+};
 
-
-
-
-export const extraerDatosBpmn = async(archivo) =>{
+export const extraerDatosBpmn = async (archivo) => {
     try {
         const data = archivo.data.toString("utf8");
-        const result =  extaerIdProceso(data) 
-        const subproceso = extraerIdSubproceso(data)
-        
+        const result = extaerIdProceso(data);
+        const subproceso = extraerIdSubproceso(data);
+        const descripcion = extraerDescripcionProceso(data);
+
+
         const processData = {
             idProceso: result.id,
             name: result.name,
-            subProcesos: subproceso
-        } 
-        return processData
+            subProcesos: subproceso,
+            descripcion: descripcion,
 
-        
+        };
+        return processData;
     } catch (error) {
-        logger.error("Utils extraerDatosBpmn", error)
+        logger.error("Utils extraerDatosBpmn", error);
         console.log(error);
     }
-}
-
-export const formatFileName = (nombre) => {
-    return Buffer.from(nombre, 'latin1').toString('utf8');
 };
 
-export const cleanBpmnFile = () =>{
-    
-}
+export const formatFileName = (nombre) => {
+    return Buffer.from(nombre, "latin1").toString("utf8");
+};
+
+export const extraerParticipantesBpmn = (xml) => {
+    try {
+        const regex = /<camunda:property\s+name="([^"]+)"\s+value="([^"]+)"\s*\/>/g;
+
+        const propiedades = {};
+        let match;
+
+        while ((match = regex.exec(xml)) !== null) {
+            const [_, name, value] = match;
+            propiedades[name] = value.split(",").map((v) => v.trim());
+        }
+
+        return propiedades;
+    } catch (error) {
+        console.log(error);
+    }
+};

@@ -24,7 +24,7 @@ export const EmailForm = ({ handleEmailSent, saveTimeNow, timeLeft }) => {
             localStorage.setItem("email", formUser.email);
             saveTimeNow();
             setIsLoading(true);
-            handleEmailSent();
+            
             const body = {
                 email: formUser.email,
             }
@@ -33,8 +33,10 @@ export const EmailForm = ({ handleEmailSent, saveTimeNow, timeLeft }) => {
 
             if(data.code === 200){
                 enqueueSnackbar("Correo enviado. Sigue las instrucciones para restablecer tu contraseña", { variant: "success" });
+                handleEmailSent();
             }else{
-                enqueueSnackbar("Hubo un error interno del servidor", { variant: "error" });
+                enqueueSnackbar(data.message, { variant: "error" });
+                
                 setIsLoading(false)
             }
             

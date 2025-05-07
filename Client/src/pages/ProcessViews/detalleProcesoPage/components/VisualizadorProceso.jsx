@@ -2,12 +2,11 @@ import { useEffect } from "react";
 import { BpmnViewer } from "../../../../BpmnModule/BpmnViewer/components/BpmnViewer";
 import { FaDiagramProject } from "react-icons/fa6";
 import { useBpmnContext } from "../../../../BpmnModule/context/useBpmnContext";
-import { useParams } from "react-router-dom";
 
 
-export const VisualizadorProceso = () => {
+
+export const VisualizadorProceso = ({idProceso}) => {
     const { setEmptyDiagram } = useBpmnContext();
-    const { idProceso } = useParams();
 
     useEffect(() => {
         const getData = async () => {
@@ -16,7 +15,6 @@ export const VisualizadorProceso = () => {
                 const response = await fetch(url)
                 const data = await response.text()
                 setEmptyDiagram(data)
-                console.log(data);
             } catch (error) {
                 console.log(error);
             }

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn">
-  <bpmn:process id="Id_02e77888-7607-41d4-a1d6-6af8c316510b" name="Proceso 45" isExecutable="false">
+  <bpmn:process id="Id_02e77888-7607-41d4-a1d6-6af8c316510b" name="Proceso Principal" isExecutable="false">
     <bpmn:startEvent id="Event_1yagbfg">
       <bpmn:outgoing>Flow_0gyo0fx</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:callActivity id="Id_a5f99cef-0f4a-4a0e-8f79-f3ed5a6f1a14" name="Proceso con nombre cambiado 44" calledElement="Id_8c78e3a3-b975-484a-9543-57740fcc8f69">
+    <bpmn:callActivity id="Id_a5f99cef-0f4a-4a0e-8f79-f3ed5a6f1a14" name="Subproceso 1" calledElement="">
       <bpmn:incoming>Flow_01ue14b</bpmn:incoming>
       <bpmn:outgoing>Flow_0n1fhco</bpmn:outgoing>
     </bpmn:callActivity>
-    <bpmn:callActivity id="Id_cc35f5cb-a2ab-4da2-a34a-1f87c3456d92" name="Validación y autorización48" calledElement="Id_f425d670-ce44-4121-a3f9-d30f05db7ee2">
+    <bpmn:callActivity id="Id_cc35f5cb-a2ab-4da2-a34a-1f87c3456d92" name="Subproceso 2" calledElement="">
       <bpmn:incoming>Flow_1hqrmwa</bpmn:incoming>
       <bpmn:outgoing>Flow_1xurzef</bpmn:outgoing>
     </bpmn:callActivity>

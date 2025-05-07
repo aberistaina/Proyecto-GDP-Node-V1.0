@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="Definitions_8c3b1652-9837-4d62-a930-df8bedec9680" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Id_ba9cbe2e-d9e4-4ca5-8850-7202390bc539" name="Proceso Días Administrativos" isExecutable="false" camunda:versionTag="1.0">
+    <bpmn:documentation>Proceso Para Solicitar Días Administrativos</bpmn:documentation>
+    <bpmn:extensionElements>
+      <camunda:properties>
+        <camunda:property name="ejecutantes" value="legal,rrhh" />
+        <camunda:property name="responsable" value="jefatura" />
+        <camunda:property name="consultado" value="legal" />
+        <camunda:property name="informado" value="Zeus,jefatura,rrhh,legal" />
+      </camunda:properties>
+    </bpmn:extensionElements>
+    <bpmn:laneSet id="LaneSet_bbf2dff4-2dc8-4db7-b495-2891d7f961e9">
+      <bpmn:lane id="Lane_7cec8c88-6fdc-4971-97b0-4d475c404a5e" name="Nuevo Lane">
+        <bpmn:flowNodeRef>Event_01ixprx</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0fuscwf</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Event_0yox9v9</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="Event_01ixprx">
+      <bpmn:outgoing>Flow_0q8iict</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:task id="Activity_0fuscwf">
+      <bpmn:incoming>Flow_0q8iict</bpmn:incoming>
+      <bpmn:outgoing>Flow_0bfv21o</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:endEvent id="Event_0yox9v9">
+      <bpmn:incoming>Flow_0bfv21o</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0q8iict" sourceRef="Event_01ixprx" targetRef="Activity_0fuscwf" />
+    <bpmn:sequenceFlow id="Flow_0bfv21o" sourceRef="Activity_0fuscwf" targetRef="Event_0yox9v9" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_90844751-2665-4266-8c8b-205d04b9ddeb">
+    <bpmndi:BPMNPlane id="BPMNPlane_f641d88f-5551-430e-a6b0-486cff7c2949" bpmnElement="Id_ba9cbe2e-d9e4-4ca5-8850-7202390bc539">
+      <bpmndi:BPMNShape id="LaneShape_7bcfa798-c6ce-4b47-a827-f6d2ae4fc70e" bpmnElement="Lane_7cec8c88-6fdc-4971-97b0-4d475c404a5e" isHorizontal="true">
+        <dc:Bounds x="100" y="100" width="700" height="250" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_01ixprx_di" bpmnElement="Event_01ixprx">
+        <dc:Bounds x="352" y="212" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0fuscwf_di" bpmnElement="Activity_0fuscwf">
+        <dc:Bounds x="440" y="190" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0yox9v9_di" bpmnElement="Event_0yox9v9">
+        <dc:Bounds x="642" y="212" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0q8iict_di" bpmnElement="Flow_0q8iict">
+        <di:waypoint x="388" y="230" />
+        <di:waypoint x="440" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0bfv21o_di" bpmnElement="Flow_0bfv21o">
+        <di:waypoint x="540" y="230" />
+        <di:waypoint x="642" y="230" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

@@ -1,0 +1,6 @@
+[
+    { "id": "legal", "label": "Aprobación Legal" },
+    { "id": "rrhh", "label": "Aprobación RRHH" },
+    { "id": "jefatura", "label": "Aprobación Jefatura" },
+    { "id": "Zeus", "label": "Aprobación del Olimpo" }
+]

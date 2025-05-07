@@ -1,0 +1,100 @@
+import _sequelize from 'sequelize';
+const { Model, Sequelize } = _sequelize;
+
+export default class VersionProceso extends Model {
+  static init(sequelize, DataTypes) {
+  return sequelize.define('VersionProceso', {
+    id_version_proceso: {
+      autoIncrement: true,
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      primaryKey: true
+    },
+    id_proceso: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'procesos',
+        key: 'id_proceso'
+      }
+    },
+    id_creador: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'usuarios',
+        key: 'id_usuario'
+      }
+    },
+    id_aprobador: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'aprobadores',
+        key: 'id_aprobador'
+      }
+    },
+    nombre_version: {
+      type: DataTypes.STRING(50),
+      allowNull: false
+    },
+    observacion_version: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    estado: {
+      type: DataTypes.ENUM('borrador','enviado','aprobado','eliminado'),
+      allowNull: true,
+      defaultValue: "borrador"
+    },
+    s3_key: {
+      type: DataTypes.STRING(512),
+      allowNull: true
+    },
+    s3_bucket: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    },
+    id_bpmn: {
+      type: DataTypes.STRING(255),
+      allowNull: true
+    }
+  }, {
+    tableName: 'version_proceso',
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: false,
+    indexes: [
+      {
+        name: "PRIMARY",
+        unique: true,
+        using: "BTREE",
+        fields: [
+          { name: "id_version_proceso" },
+        ]
+      },
+      {
+        name: "id_proceso",
+        using: "BTREE",
+        fields: [
+          { name: "id_proceso" },
+        ]
+      },
+      {
+        name: "id_creador",
+        using: "BTREE",
+        fields: [
+          { name: "id_creador" },
+        ]
+      },
+      {
+        name: "id_aprobador",
+        using: "BTREE",
+        fields: [
+          { name: "id_aprobador" },
+        ]
+      },
+    ]
+  });
+  }
+}

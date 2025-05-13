@@ -15,7 +15,6 @@ export default function Comentarios({idProceso}) {
                 const response = await fetch(`${URL}/api/v1/procesos/comentarios/getAll/${idProceso}`)
                 const data = await response.json()
                 setComentarios(data.data)
-                console.log(data);
             } catch (error) {
                 console.log(error);
             }

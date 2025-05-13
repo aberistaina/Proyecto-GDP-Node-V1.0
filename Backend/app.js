@@ -16,7 +16,7 @@ const main = async () => {
         logger.info("Conexión a la base de datos establecida correctamente.");
         console.log("Conexión a la base de datos establecida correctamente.");
         initModels(sequelize) 
-        await sequelize.sync({ force: false, alter: false });
+        await sequelize.sync({ force: false, alter: true });
         logger.info("Modelos sincronizados correctamente.");
         await initializeCognitoOIDCClient();
         console.log("Cognito OIDC Client inicializado correctamente.");

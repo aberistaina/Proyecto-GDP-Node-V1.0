@@ -54,7 +54,6 @@ const extraerDescripcionProceso = (xmlString) => {
     return match ? match[1].trim() : null;
 };
 
-
 export const changeCallElement = async (
     archivoBpmn,
     callActivity,
@@ -64,11 +63,6 @@ export const changeCallElement = async (
     try {
         // 1. Leer el archivo
         const xmlContent = await fs.readFile(archivoBpmn, "utf-8");
-
-        console.log(xmlContent);
-        console.log("CALL ACTIVITY", callActivity);
-        console.log("CALLED ELEMENT", calledElement);
-        console.log("NOMBRE", name);
 
         // 2. Buscar y reemplazar SOLO el callActivity específico (con o sin bpmn:)
         const updatedXml = xmlContent.replace(
@@ -98,13 +92,11 @@ export const extraerDatosBpmn = async (archivo) => {
         const subproceso = extraerIdSubproceso(data);
         const descripcion = extraerDescripcionProceso(data);
 
-
         const processData = {
             idProceso: result.id,
             name: result.name,
             subProcesos: subproceso,
             descripcion: descripcion,
-
         };
         return processData;
     } catch (error) {
@@ -119,18 +111,48 @@ export const formatFileName = (nombre) => {
 
 export const extraerParticipantesBpmn = (xml) => {
     try {
-        const regex = /<camunda:property\s+name="([^"]+)"\s+value="([^"]+)"\s*\/>/g;
+        const claves = [
+            "responsable",
+            "consultado",
+            "informado",
+            "ejecutantes",
+        ];
 
-        const propiedades = {};
+        // Inicializar todas las claves con arrays vacíos
+        const propiedades = Object.fromEntries(
+            claves.map((clave) => [clave, []])
+        );
+
+        const processMatch = xml.match(
+            /<bpmn:process[^>]*>[\s\S]*?<\/bpmn:process>/
+        );
+
+        if (!processMatch) return propiedades; 
+
+        const processBlock = processMatch[0];
+
+        const regex =
+            /<camunda:property\s+name="([^"]+)"\s+value="([^"]+)"\s*\/>/g;
+
         let match;
+        while ((match = regex.exec(processBlock)) !== null) {
+            const [, name, value] = match;
 
-        while ((match = regex.exec(xml)) !== null) {
-            const [_, name, value] = match;
-            propiedades[name] = value.split(",").map((v) => v.trim());
+            if (propiedades[name]) {
+                propiedades[name].push(
+                    ...value.split(",").map((v) => v.trim())
+                );
+            }
         }
 
         return propiedades;
     } catch (error) {
-        console.log(error);
+        console.error("Error extrayendo participantes del BPMN:", error);
+        return {
+            responsable: [],
+            consultado: [],
+            informado: [],
+            ejecutantes: [],
+        };
     }
 };

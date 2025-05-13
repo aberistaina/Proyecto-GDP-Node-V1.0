@@ -17,7 +17,20 @@ export default class Aprobadores extends Model {
         model: 'usuarios',
         key: 'id_usuario'
       }
-    }
+    },
+    id_version_proceso: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'version_proceso',
+          key: 'id_version_proceso'
+        }
+      },
+    estado: {
+      type: DataTypes.ENUM('pendiente','rechazado','aprobado'),
+      allowNull: true,
+      defaultValue: "pendiente"
+    },
   }, {
     tableName: 'aprobadores',
     timestamps: true,
@@ -39,6 +52,11 @@ export default class Aprobadores extends Model {
           { name: "id_usuario" },
         ]
       },
+      {
+          name: "id_version_proceso",
+          using: "BTREE",
+          fields: [{ name: "id_version_proceso" }]
+    }
     ]
   });
   }

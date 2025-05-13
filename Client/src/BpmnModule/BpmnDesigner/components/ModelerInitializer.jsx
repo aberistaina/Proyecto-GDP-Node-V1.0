@@ -18,7 +18,7 @@ export const ModelerInitializer = () => {
     const [propertyName, setPropertyName] = useState("");
     const [elementSeleccionado, setElementSeleccionado] = useState(null);
     const { bpmnModelerRef, containerRef, emptyDiagram, setEmptyDiagram } = useBpmnContext();
-    const { idProcesoPadre, callActivity } = useParams();
+    const { idProceso, callActivity, version } = useParams();
 
     useEffect(() => {
 
@@ -52,7 +52,7 @@ export const ModelerInitializer = () => {
 
 
         const initDiagram = async () => {
-            if (idProcesoPadre && callActivity) {
+            if (idProceso && version) {
                 try {
                     const requestOptions = {
                         method: "GET",
@@ -63,7 +63,7 @@ export const ModelerInitializer = () => {
                             : import.meta.env.VITE_URL_PRODUCCION;
 
                     const response = await fetch(
-                        `${URL}/api/v1/procesos/get-subproceso/${callActivity}/${idProcesoPadre}`,
+                        `${URL}/api/v1/procesos/get-process-xml/${idProceso}/${version}`,
                         requestOptions
                     );
                     console.log(response);

@@ -4,6 +4,8 @@ export const TipoProcesoNavegacion = ({
     vista,
     setVista,
     procesoSeleccionado,
+    getSubprocess,
+    macroProcesoSeleccionado
 }) => {
     return (
         <div className="text-sm text-gray-700 flex items-center space-x-2">
@@ -17,7 +19,7 @@ export const TipoProcesoNavegacion = ({
                 <>
                     <span
                         className="text-emerald-600 hover:underline cursor-pointer"
-                        onClick={() => setVista("inicio")}
+                        onClick={() => setVista("inicio") }
                     >
                         Procesos Operativos
                     </span>
@@ -39,7 +41,7 @@ export const TipoProcesoNavegacion = ({
                     <span className="text-gray-400">›</span>
                     <span
                         className="text-emerald-600 hover:underline cursor-pointer"
-                        onClick={() => setVista("macroprocesos")}
+                        onClick={() => {setVista("macroprocesos"), getSubprocess(macroProcesoSeleccionado.id_bpmn)}}
                     >
                         Macroprocesos
                     </span>
@@ -61,7 +63,7 @@ export const TipoProcesoNavegacion = ({
                     <span className="text-gray-400">›</span>
                     <span
                         className="text-emerald-600 hover:underline cursor-pointer"
-                        onClick={() => setVista("macroprocesos")}
+                        onClick={() => {setVista("macroprocesos"), getSubprocess(macroProcesoSeleccionado.id_bpmn)}}
                     >
                         Macroprocesos
                     </span>

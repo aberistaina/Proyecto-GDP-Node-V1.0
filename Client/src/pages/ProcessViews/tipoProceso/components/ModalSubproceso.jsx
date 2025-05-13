@@ -1,24 +1,52 @@
-import { useState} from "react";
+import { useState, useEffect } from "react";
 import { useSnackbar } from "notistack";
+import { useNavigate } from "react-router-dom"
 
-export const ModalSubproceso = ({ isOpen, closeModal }) => {
-
+export const ModalSubproceso = ({ isOpen, closeModal, idNivel }) => {
     const { enqueueSnackbar } = useSnackbar();
-    const [formSubproceso, setFormSubproceso] = useState({
+    const [aprobadores, setAprobadores] = useState([]);
+    const [formProceso, setFormProceso] = useState({
         nombre: "",
-        descripcion: ""
+        descripcion: "",
+        aprobadores: "",
+        macroproceso: "",
+        nivel: idNivel
     });
+    const navigate = useNavigate()
 
     const handleChange = (e) => {
-        setFormSubproceso({ ...formSubproceso, [e.target.name]: e.target.value });
+        setFormProceso({
+            ...formProceso,
+            [e.target.name]: e.target.value,
+        });
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        enqueueSnackbar("Subproceso creado Exitosamente", { variant: "success" });
-        closeModal()
+        sessionStorage.setItem("datos", JSON.stringify(formProceso));
+        navigate("/bpmnModeler")
+    };
 
-    }
+    useEffect(() => {
+        const getAprobadores = async () => {
+            try {
+                const URL =
+                    import.meta.env.VITE_APP_MODE === "desarrollo"
+                        ? import.meta.env.VITE_URL_DESARROLLO
+                        : import.meta.env.VITE_URL_PRODUCCION;
+                const response = await fetch(
+                    `${URL}/api/v1/aprobadores/get-all`
+                );
+                const data = await response.json();
+                setAprobadores(data.data);
+                console.log(data.data);
+            } catch (error) {
+                console.log(error);
+            }
+        };
+        getAprobadores();
+    }, []);
+
     return (
         <div className="flex flex-col items-center justify-center h-screen">
             {/* Modal */}
@@ -26,15 +54,15 @@ export const ModalSubproceso = ({ isOpen, closeModal }) => {
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                     <div className="bg-white p-6 rounded-lg shadow-lg w-1/4 h-3/7">
                         <h2 className="text-2xl font-bold text-center mb-6">
-                            Crear Subproceso
+                            Crear Proceso
                         </h2>
-                        <form>
+                        <form onSubmit={handleSubmit}>
                             <div className="mb-4 ">
                                 <label
                                     htmlFor="nombre"
                                     className="block text-gray-700"
                                 >
-                                    Nombre
+                                    Nombre Proceso
                                 </label>
                                 <div className="flex items-center space-x-2">
                                     <input
@@ -44,9 +72,33 @@ export const ModalSubproceso = ({ isOpen, closeModal }) => {
                                         className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-[#10644C]"
                                         required
                                         onChange={handleChange}
-                                        value={formSubproceso.nombre}
+                                        value={formProceso.nombre}
                                     />
                                 </div>
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium mb-1">
+                                    Aprobadores
+                                </label>
+                                <select
+                                    className="w-full border rounded px-3 py-2"
+                                    name="aprobadores"
+                                    value={formProceso.aprobadores}
+                                    onChange={handleChange}
+                                >
+                                    <option value="">
+                                        Selecciona un aprobador
+                                    </option>
+                                    {aprobadores.map((aprobador) => (
+                                        <option
+                                            key={aprobador.id_aprobador}
+                                            value={aprobador.id_aprobador}
+                                        >
+                                            {aprobador.nombre}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
 
                             <div className="mb-4 ">
@@ -64,10 +116,33 @@ export const ModalSubproceso = ({ isOpen, closeModal }) => {
                                         className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring focus:ring-[#10644C]"
                                         required
                                         onChange={handleChange}
-                                        value={formSubproceso.descripcion}
+                                        value={formProceso.descripcion}
                                     />
                                 </div>
                             </div>
+
+                            <div className="mb-4 flex gap-4">
+                                <label
+                                    htmlFor="macroproceso"
+                                    className="text-gray-700"
+                                >
+                                    Es Macroproceso
+                                </label>
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        name="macroproceso"
+                                        id="macroproceso"
+                                        className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+                                        required
+                                        onChange={(e) =>
+                                            setFormProceso({ ...formProceso, macroproceso: e.target.checked })
+                                        }
+                                        checked={formProceso.macroproceso}
+                                    />
+                                </div>
+                            </div>
+
                             <div className="flex justify-between">
                                 <button
                                     onClick={closeModal}
@@ -89,4 +164,4 @@ export const ModalSubproceso = ({ isOpen, closeModal }) => {
             )}
         </div>
     );
-}
+};

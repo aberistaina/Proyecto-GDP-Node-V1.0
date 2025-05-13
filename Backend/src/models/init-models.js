@@ -49,7 +49,7 @@ export default function initModels(sequelize) {
   Niveles.hasMany(Procesos, { as: "procesos", foreignKey: "id_nivel"});
   ArchivosOportunidadesMejora.belongsTo(OportunidadesMejora, { as: "id_oportunidad_oportunidades_mejora", foreignKey: "id_oportunidad"});
   OportunidadesMejora.hasMany(ArchivosOportunidadesMejora, { as: "archivos_oportunidades_mejoras", foreignKey: "id_oportunidad"});
-  IntermediaProcesos.belongsTo(Procesos, { as: "id_bpmn_proceso", foreignKey: "id_bpmn"});
+  IntermediaProcesos.belongsTo(Procesos, { as: "id_bpmn_proceso", foreignKey: "id_bpmn", targetKey: "id_bpmn"});
   Procesos.hasMany(IntermediaProcesos, { as: "intermedia_procesos", foreignKey: "id_bpmn"});
   IntermediaProcesos.belongsTo(Procesos, { as: "id_bpmn_padre_proceso", foreignKey: "id_bpmn_padre"});
   Procesos.hasMany(IntermediaProcesos, { as: "id_bpmn_padre_intermedia_procesos", foreignKey: "id_bpmn_padre"});
@@ -81,6 +81,18 @@ export default function initModels(sequelize) {
   VersionProceso.hasMany(ComentariosVersionProceso, { as: "comentarios_version_procesos", foreignKey: "id_version_proceso"});
   OportunidadesMejora.belongsTo(VersionProceso, { as: "id_version_proceso_version_proceso", foreignKey: "id_version_proceso"});
   VersionProceso.hasMany(OportunidadesMejora, { as: "oportunidades_mejoras", foreignKey: "id_version_proceso"});
+
+  //Preguntar después no estaba hecha la asociacion pero sin en el modelo
+  Aprobadores.belongsTo(VersionProceso, {
+  as: "version_proceso",
+  foreignKey: "id_version_proceso"
+});
+
+VersionProceso.hasMany(Aprobadores, {
+  as: "aprobadores",
+  foreignKey: "id_version_proceso"
+});
+
 
   return {
     Aprobadores,

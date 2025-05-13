@@ -5,13 +5,13 @@ import { useBpmnContext } from "../../../../BpmnModule/context/useBpmnContext";
 
 
 
-export const VisualizadorProceso = ({idProceso}) => {
+export const VisualizadorProceso = ({idProceso, version}) => {
     const { setEmptyDiagram } = useBpmnContext();
 
     useEffect(() => {
         const getData = async () => {
             try {
-                const url = `http://localhost:3000/api/v1/procesos/get-process/${idProceso}`
+                const url = `http://localhost:3000/api/v1/procesos/get-process/${idProceso}/${version}`
                 const response = await fetch(url)
                 const data = await response.text()
                 setEmptyDiagram(data)

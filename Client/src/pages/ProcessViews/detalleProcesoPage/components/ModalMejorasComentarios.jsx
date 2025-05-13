@@ -4,7 +4,7 @@ import { IoMdCloseCircle } from "react-icons/io";
 import { useSnackbar } from "notistack";
 import { useSelector } from "react-redux";
 
-export default function ModalMejorasComentarios({ menu, setOpenModal, idProceso }) {
+export default function ModalMejorasComentarios({ menu, setOpenModal, idProceso,version }) {
     const { enqueueSnackbar } = useSnackbar();
     const [comentario, setComentario] = useState("");
     const [asunto, setAsunto ] = useState("")
@@ -38,7 +38,7 @@ export default function ModalMejorasComentarios({ menu, setOpenModal, idProceso 
                     ? import.meta.env.VITE_URL_DESARROLLO
                     : import.meta.env.VITE_URL_PRODUCCION;
 
-            const loggedUser = user.data?.id_usuario
+            const loggedUser = user.usuario?.id_usuario
             
 
             const formData = new FormData();
@@ -47,6 +47,7 @@ export default function ModalMejorasComentarios({ menu, setOpenModal, idProceso 
             formData.append("idProceso", idProceso)
             formData.append("id_usuario", loggedUser)
             formData.append("asunto", asunto)
+            formData.append("version", version)
 
             const requestOptions = {
                 method: "POST",

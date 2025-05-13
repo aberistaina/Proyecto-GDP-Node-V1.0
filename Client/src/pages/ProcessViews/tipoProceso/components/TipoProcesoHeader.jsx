@@ -1,5 +1,3 @@
-import { FaUserLarge } from "react-icons/fa6";
-import { FaRegCalendarAlt } from "react-icons/fa";
 
 export const TipoProcesoHeader = ({ titulo }) => {
     return (

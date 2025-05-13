@@ -43,7 +43,7 @@ export default class VersionProceso extends Model {
       allowNull: true
     },
     estado: {
-      type: DataTypes.ENUM('borrador','enviado','aprobado','eliminado'),
+      type: DataTypes.ENUM('borrador','enviado','aprobado','eliminado', 'inactivo', 'rechazado'),
       allowNull: true,
       defaultValue: "borrador"
     },

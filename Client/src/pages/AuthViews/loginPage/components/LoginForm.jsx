@@ -1,5 +1,4 @@
 import { useState} from "react";
-import { fetchHook } from "../../../../hooks/fetchHook";
 import { useNavigate, Link } from "react-router-dom"; 
 import PulseLoader from "react-spinners/PulseLoader";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -7,7 +6,7 @@ import { MdEmail } from "react-icons/md";
 import { validarEmail } from "../../../../utils/validators";
 import { useSnackbar } from "notistack";
 import { useDispatch } from "react-redux";
-import { loginSuccess } from "../../../../store/authSlice";
+import { fetchUsuario } from "../../../../store/authThunks";
 
 
 export const LoginForm = () => {
@@ -48,11 +47,24 @@ export const LoginForm = () => {
         
             setIsLoading(true);
 
-            //Intento de inicio de sesión. Acá nos comunicamos con el Backend
-            const data = await fetchHook("http://localhost:3000/api/v1/auth/login", "POST", formUser);
+            const myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            const requestOptions = {
+                method: "POST",
+                headers: myHeaders,
+                credentials: "include",
+                body: JSON.stringify(formUser),
+                
+
+            }
+            const response = await fetch("http://localhost:3000/api/v1/auth/login", requestOptions);
+            const data = await response.json()
+            console.log(data);
+
             if (data.code === 200) {
-                dispatch(loginSuccess(data.token));
                 enqueueSnackbar("Sesión iniciada correctamente", { variant: "success" });
+                dispatch(fetchUsuario());
                 navigate("/"); 
             } else {
                 setError({ ...error, invalidCredentials: true });

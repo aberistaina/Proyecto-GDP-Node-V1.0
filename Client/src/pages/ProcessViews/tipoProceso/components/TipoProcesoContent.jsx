@@ -5,34 +5,48 @@ import { TipoProcesoNavegacion } from "./TipoProcesoNavegacion";
 
 
 
-export const TipoProcesoContent = ( { openProcessModal }) => {
-    const [ vista, setVista ] = useState("inicio");
-    const [ procesos, setProcesos ] = useState([]);
+export const TipoProcesoContent = ( { openProcessModal, procesos, vista, setVista }) => {
+    
     const [ procesoSeleccionado, setProcesoSeleccionado ] = useState({
         nombre: "",
-        idProceso: ""
+        idProceso: "",
+        id_bpmn:"",
+        created_at:"",
+        crador: "",
+        version:""
+        
     })
+
+    const [macroProcesoSeleccionado, setMacroProcesoSeleccionado] = useState({
+        nombre: "",
+        idProceso: "",
+        id_bpmn:"",
+        created_at:"",
+        crador: "",
+        version:""
+    })
+
     const [ subProcesos, setSubProcesos ] = useState([])
 
-    const handleClickMacroprocesos = async() => {
-        setVista("macroprocesos");
-            try {
-                const response = await fetch("http://localhost:3000/api/v1/procesos");
-                const data = await response.json();
-                setProcesos(data.data);
-            } catch (error) {
-                console.log(error);
-            }
-    };
-
-    const handleClickProcesos = async(nombre, idProceso) => {
-        setProcesoSeleccionado({ nombre, idProceso });
-
-        setVista("procesos");
-        try {
-            const response = await fetch(`http://localhost:3000/api/v1/procesos/get-subprocess-process/${idProceso}`);
+    const getSubprocess = async(id_bpmn) =>{
+        const response = await fetch(`http://localhost:3000/api/v1/procesos/get-subprocess-process/${id_bpmn}`);
             const data = await response.json();
             setSubProcesos(data.data);
+            console.log("DATA", data);
+    }
+
+    const handleClickMacroprocesos = async(nombre, idProceso ,id_bpmn, created_at, creador, version) => {
+        setVista("macroprocesos");
+        setMacroProcesoSeleccionado({ nombre, idProceso, id_bpmn, created_at, creador, version})
+        await getSubprocess(id_bpmn)
+        
+    };
+
+    const handleClickProcesos = async(nombre, idProceso, id_bpmn, created_at, creador, version) => {
+        setProcesoSeleccionado({ nombre, idProceso, id_bpmn, created_at, creador, version });
+        setVista("procesos");
+        try {
+            await getSubprocess(id_bpmn)
         } catch (error) {
             console.log(error);
         }
@@ -41,10 +55,10 @@ export const TipoProcesoContent = ( { openProcessModal }) => {
     return (
         <div className="bg-[#ececec] rounded-lg drop-shadow-lg h-36 pt-4">
             <div className="flex justify-between px-8 py-2 mb-4">
-                <TipoProcesoNavegacion vista={vista} setVista={setVista} procesoSeleccionado={procesoSeleccionado} />
+                <TipoProcesoNavegacion vista={vista} setVista={setVista} procesoSeleccionado={procesoSeleccionado} getSubprocess={getSubprocess} macroProcesoSeleccionado={macroProcesoSeleccionado} />
                 <Botones openProcessModal={openProcessModal} />
             </div>
-            <TipoProcesoTable vista={vista} setVista={setVista} handleClickMacroprocesos={handleClickMacroprocesos} handleClickProcesos={handleClickProcesos} procesos={procesos} procesoSeleccionado={procesoSeleccionado} subProcesos={subProcesos}/>
+            <TipoProcesoTable vista={vista} setVista={setVista} handleClickMacroprocesos={handleClickMacroprocesos} handleClickProcesos={handleClickProcesos} procesos={procesos} procesoSeleccionado={procesoSeleccionado} subProcesos={subProcesos} macroProcesoSeleccionado={macroProcesoSeleccionado}/>
         </div>
     );
 };

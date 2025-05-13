@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useSnackbar } from "notistack";
-import { FaUpload, FaFileUpload } from "react-icons/fa";
+import { FaUpload, FaFileUpload, FaProjectDiagram } from "react-icons/fa";
 import { IoMdCloseCircle } from "react-icons/io";
+import { TiGroup } from "react-icons/ti";
 import { useBpmnContext } from "../../context/useBpmnContext";
 import { useSelector } from "react-redux";
 
@@ -13,6 +14,8 @@ export const UploadProcessModal = ({ setShowModal }) => {
 
     const [files, setFiles] = useState([]);
     const [aprobadores, setAprobadores] = useState([]);
+    const [niveles, setNiveles] = useState([]);
+    const [nivelSeleccionado, setnivelSeleccionado] = useState([]);
     const [aprobadorSeleccionado, setAprobadorSeleccionado] = useState("");
 
     const handleFileChange = (e) => {
@@ -33,11 +36,12 @@ export const UploadProcessModal = ({ setShowModal }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const loggedUser = user.data?.id_usuario;
+            const loggedUser = user.usuario?.id_usuario
             const form = new FormData();
             files.forEach((file) => form.append("archivos", file));
             form.append("id_creador", loggedUser);
             form.append("id_aprobador", aprobadorSeleccionado);
+            form.append("id_nivel", nivelSeleccionado);
 
             const URL =
                 import.meta.env.VITE_APP_MODE === "desarrollo"
@@ -102,6 +106,24 @@ export const UploadProcessModal = ({ setShowModal }) => {
         getAprobadores();
     }, []);
 
+    useEffect(() => {
+        const getNiveles = async() => {
+            try {
+                
+                const URL =
+                import.meta.env.VITE_APP_MODE === "desarrollo"
+                    ? import.meta.env.VITE_URL_DESARROLLO
+                    : import.meta.env.VITE_URL_PRODUCCION;
+                const response = await fetch(`${URL}/api/v1/procesos/get-niveles`)
+                const data = await response.json()
+                setNiveles(data.data)
+            } catch (error) {
+                console.log(error)
+            }
+        }
+        getNiveles()
+    }, [])
+
     return (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-30 flex justify-center items-center">
             <div className="bg-white w-full max-w-2xl rounded-lg shadow-lg overflow-hidden">
@@ -155,11 +177,9 @@ export const UploadProcessModal = ({ setShowModal }) => {
                         </ul>
                     )}
 
-                    {/* Nuevo: Dropdown de Aprobador */}
+                    {/* Dropdown de Aprobador */}
                     <div className="flex items-center space-x-4">
-                        <label className="font-medium text-gray-700 whitespace-nowrap">
-                            Seleccionar Aprobador:
-                        </label>
+                        <TiGroup />
                         <select
                             name="aprobador"
                             value={aprobadorSeleccionado.id_aprobador}
@@ -169,11 +189,33 @@ export const UploadProcessModal = ({ setShowModal }) => {
                             className="flex w-full px-4 py-2 border border-gray-400 rounded-lg shadow-sm bg-white"
                         >
                             <option value="">
-                                -- Selecciona un aprobador --
+                                -- Selecciona los aprobadores --
                             </option>
                             {aprobadores.map((aprobador) => (
                                 <option key={aprobador.id_aprobador} value={aprobador.id_aprobador}>
                                     {aprobador.nombre}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Dropdown de Niveles */}
+                    <div className="flex items-center space-x-4">
+                        <FaProjectDiagram />
+                        <select
+                            name="nivel"
+                            value={nivelSeleccionado.id_nivel}
+                            onChange={(e) =>
+                                setnivelSeleccionado(e.target.value)
+                            }
+                            className="flex w-full px-4 py-2 border border-gray-400 rounded-lg shadow-sm bg-white"
+                        >
+                            <option value="">
+                                -- Selecciona un Tipo De Proceso --
+                            </option>
+                            {niveles.map((nivel) => (
+                                <option key={nivel.id_nivel} value={nivel.id_nivel}>
+                                    {nivel.nombre}
                                 </option>
                             ))}
                         </select>

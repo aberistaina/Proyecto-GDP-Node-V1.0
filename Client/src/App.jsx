@@ -17,6 +17,7 @@ import { UploadProcessPage } from "./BpmnModule/components/UploadProcess/UploadP
 import { BpmnDesignerModule } from "./BpmnModule/BpmnDesigner/BpmnDesignerModule";
 import { DetalleProcesoPage } from "./pages/ProcessViews/detalleProcesoPage/DetalleProcesoPage";
 import { AprobadoresHome } from "./pages/HomeViews/Aprobadores/AprobadoresHome";
+import { AdminDashboard } from "./pages/AdminViews/AdminDashboard";
 
 function App() {
 
@@ -47,6 +48,7 @@ function App() {
                         <Route path="/new-version/:idProceso/:version" element={<BpmnDesignerModule />} />
 
                         <Route path="/aprobador" element={<AprobadoresHome />} />
+                        <Route path="/admin" element={<AdminDashboard />} />
                     </Route>
                     {/* RUTA TEST BPMN */}
 

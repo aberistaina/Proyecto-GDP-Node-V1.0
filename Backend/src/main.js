@@ -6,6 +6,7 @@ import authRoutes  from "./routes/auth.routes.js"
 import externalAuthRoutes  from "./routes/externalAuth.routes.js"
 import processRoutes  from "./routes/procesos.routes.js"
 import aprobadoresRoutes  from "./routes/aprobadores.routes.js"
+import adminRoutes  from "./routes/admin.routes.js"
 import {errorHandler} from "./middlewares/errors.middlewares.js"
 
 //Importaciones Para autenticación con SAML
@@ -54,6 +55,7 @@ app.use("/api/v1/auth", authRoutes)
 app.use("/api/v1/externalAuth", externalAuthRoutes)
 app.use("/api/v1/procesos", processRoutes)
 app.use("/api/v1/aprobadores", aprobadoresRoutes)
+app.use("/api/v1/admin", adminRoutes)
 
 
 //Errors Handler

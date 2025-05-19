@@ -24,8 +24,13 @@ export const DetalleProcesoPage = () => {
             setIsLoading(false);
             const fetchData = async () => {
                 try {
+
+                    const URL =
+                    import.meta.env.VITE_APP_MODE === "desarrollo"
+                        ? import.meta.env.VITE_URL_DESARROLLO
+                        : import.meta.env.VITE_URL_PRODUCCION;
                     const response = await fetch(
-                        `http://localhost:3000/api/v1/procesos/get-process/resumen-proceso/${idProceso}/${version}`
+                        `${URL}/api/v1/procesos/get-process/resumen-proceso/${idProceso}/${version}`
                     );
                     const data = await response.json();
                     setResumenProceso(data.data);

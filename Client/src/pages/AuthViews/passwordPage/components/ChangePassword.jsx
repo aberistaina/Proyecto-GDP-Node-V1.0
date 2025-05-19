@@ -56,8 +56,12 @@ export const ChangePassword = () => {
                 email,
                 password: formPassword.password
             }
-    
-            const data = await fetchHook("http://localhost:3000/api/v1/auth/change-password", "POST", body, token);
+            const URL =
+                import.meta.env.VITE_APP_MODE === "desarrollo"
+                    ? import.meta.env.VITE_URL_DESARROLLO
+                    : import.meta.env.VITE_URL_PRODUCCION;
+
+            const data = await fetchHook(`${URL}/api/v1/auth/change-password`, "POST", body, token);
             
             if(data.code === 200){
                 enqueueSnackbar("Contraseña Modificada con éxito", { variant: "success" });

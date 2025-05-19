@@ -11,8 +11,12 @@ export const VisualizadorProceso = ({idProceso, version}) => {
     useEffect(() => {
         const getData = async () => {
             try {
-                const url = `http://localhost:3000/api/v1/procesos/get-process/${idProceso}/${version}`
-                const response = await fetch(url)
+                const URL =
+                    import.meta.env.VITE_APP_MODE === "desarrollo"
+                        ? import.meta.env.VITE_URL_DESARROLLO
+                        : import.meta.env.VITE_URL_PRODUCCION;
+                        
+                const response = await fetch(`${URL}/api/v1/procesos/get-process/${idProceso}/${version}`)
                 const data = await response.text()
                 setEmptyDiagram(data)
             } catch (error) {

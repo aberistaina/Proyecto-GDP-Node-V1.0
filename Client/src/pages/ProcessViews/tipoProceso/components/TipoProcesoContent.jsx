@@ -29,7 +29,12 @@ export const TipoProcesoContent = ( { openProcessModal, procesos, vista, setVist
     const [ subProcesos, setSubProcesos ] = useState([])
 
     const getSubprocess = async(id_bpmn) =>{
-        const response = await fetch(`http://localhost:3000/api/v1/procesos/get-subprocess-process/${id_bpmn}`);
+        const URL =
+                    import.meta.env.VITE_APP_MODE === "desarrollo"
+                        ? import.meta.env.VITE_URL_DESARROLLO
+                        : import.meta.env.VITE_URL_PRODUCCION;
+
+        const response = await fetch(`${URL}/api/v1/procesos/get-subprocess-process/${id_bpmn}`);
             const data = await response.json();
             setSubProcesos(data.data);
             console.log("DATA", data);

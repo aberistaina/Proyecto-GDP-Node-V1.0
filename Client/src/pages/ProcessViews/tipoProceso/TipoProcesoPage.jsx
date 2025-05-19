@@ -23,7 +23,11 @@ export const TipoProcesoPage = () => {
     useEffect(() => {
         const getProcessByNivel = async() =>{
             try {
-                const response = await fetch(`http://localhost:3000/api/v1/procesos/get-process-nivel/${idNivel}`);
+                const URL =
+                    import.meta.env.VITE_APP_MODE === "desarrollo"
+                        ? import.meta.env.VITE_URL_DESARROLLO
+                        : import.meta.env.VITE_URL_PRODUCCION;
+                const response = await fetch(`${URL}/api/v1/procesos/get-process-nivel/${idNivel}`);
                 const data = await response.json();
                 setProcesos(data.data)
             } catch (error) {
@@ -36,7 +40,12 @@ export const TipoProcesoPage = () => {
     useEffect(() => {
         const getNivel = async() =>{
             try {
-                const response = await fetch(`http://localhost:3000/api/v1/procesos/get-nivel/${idNivel}`);
+                const URL =
+                    import.meta.env.VITE_APP_MODE === "desarrollo"
+                        ? import.meta.env.VITE_URL_DESARROLLO
+                        : import.meta.env.VITE_URL_PRODUCCION;
+                        
+                const response = await fetch(`${URL}/api/v1/procesos/get-nivel/${idNivel}`);
                 const data = await response.json();
                 setNivel(data.data)
             } catch (error) {

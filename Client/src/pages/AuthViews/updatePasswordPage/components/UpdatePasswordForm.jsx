@@ -54,7 +54,12 @@ export const UpdatePasswordForm = () => {
         
             setIsLoading(true);
 
-            const data = await fetchHook("http://localhost:3000/api/v1/auth/", "POST", formUpdatePassword);
+            const URL =
+                import.meta.env.VITE_APP_MODE === "desarrollo"
+                    ? import.meta.env.VITE_URL_DESARROLLO
+                    : import.meta.env.VITE_URL_PRODUCCION;
+                    
+            const data = await fetchHook(`${URL}/api/v1/auth/`, "POST", formUpdatePassword);
             if (data.token) {
                 localStorage.setItem("token", data.token);
                 enqueueSnackbar("Sesión iniciada correctamente", { variant: "success" });

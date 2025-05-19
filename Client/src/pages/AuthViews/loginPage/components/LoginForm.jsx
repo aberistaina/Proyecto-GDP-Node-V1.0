@@ -58,7 +58,12 @@ export const LoginForm = () => {
                 
 
             }
-            const response = await fetch("http://localhost:3000/api/v1/auth/login", requestOptions);
+            const URL =
+                import.meta.env.VITE_APP_MODE === "desarrollo"
+                    ? import.meta.env.VITE_URL_DESARROLLO
+                    : import.meta.env.VITE_URL_PRODUCCION;
+
+            const response = await fetch(`${URL}/api/v1/auth/login`, requestOptions)
             const data = await response.json()
             console.log(data);
 

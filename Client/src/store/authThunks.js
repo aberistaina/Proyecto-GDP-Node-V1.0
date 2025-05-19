@@ -8,7 +8,12 @@ export const fetchUsuario = () => async (dispatch) => {
 
 
     try {
-        const response = await fetch("http://localhost:3000/api/v1/auth/me", {
+        const URL =
+            import.meta.env.VITE_APP_MODE === "desarrollo"
+            ? import.meta.env.VITE_URL_DESARROLLO
+            : import.meta.env.VITE_URL_PRODUCCION;
+
+        const response = await fetch(`${URL}/api/v1/auth/me`, {
             credentials: "include",
         });
 
@@ -23,7 +28,12 @@ export const fetchUsuario = () => async (dispatch) => {
 
 export const logoutUsuario = () => async (dispatch) => {
     try {
-        await fetch("http://localhost:3000/api/v1/auth/logout",{
+        const URL =
+            import.meta.env.VITE_APP_MODE === "desarrollo"
+            ? import.meta.env.VITE_URL_DESARROLLO
+            : import.meta.env.VITE_URL_PRODUCCION;
+
+        await fetch(`${URL}/api/v1/auth/logout`,{
             method: "POST",
             credentials: "include",
         });

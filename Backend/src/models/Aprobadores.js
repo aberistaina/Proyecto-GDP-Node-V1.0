@@ -31,8 +31,14 @@ export default class Aprobadores extends Model {
       allowNull: true,
       defaultValue: "pendiente"
     },
+    ciclo_aprobacion: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
   }, {
     tableName: 'aprobadores',
+    paranoid: true,
+    deletedAt: "fecha_rechazo",
     timestamps: true,
     createdAt: 'created_at',
     updatedAt: false,

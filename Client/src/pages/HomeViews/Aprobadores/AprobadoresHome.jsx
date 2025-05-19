@@ -3,7 +3,6 @@ import { DashboardResumen } from "./components/DashboardResumen"
 import { ListaProcesosPendientes } from "./components/ProcesosPendientes"
 import { UserProfile } from "./components/UserProfile"
 import { useSelector } from "react-redux";
-import { CiFlag1 } from "react-icons/ci";
 
 export const AprobadoresHome = () => {
     const user = useSelector((state) => state.auth.user);

@@ -1,7 +1,10 @@
 import { loginSuccess, logout, setLoading } from "./authSlice";
 
+
+
 export const fetchUsuario = () => async (dispatch) => {
     dispatch(setLoading(true));
+
 
 
     try {
@@ -26,6 +29,7 @@ export const logoutUsuario = () => async (dispatch) => {
         });
 
         dispatch(logout());
+        
     } catch (error) {
         console.error("Error al hacer logout:", error);
     }

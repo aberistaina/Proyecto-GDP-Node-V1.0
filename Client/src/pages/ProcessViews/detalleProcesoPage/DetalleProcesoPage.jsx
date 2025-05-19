@@ -50,7 +50,8 @@ export const DetalleProcesoPage = () => {
             <div className="flex justify-center h-screen mt-6">
                 <div className="w-[70%] ">
                     <HeaderDetalleProceso headerProceso={headerProceso} idProceso={idProceso} setOpenModalVersiones={setOpenModalVersiones} version={version}/>
-                    <ComentariosMejoras idProceso={idProceso} setOpenModal={setOpenModal} tabActiva={tabActiva} setTabActiva={setTabActiva}  />
+                    {(headerProceso.estadoVersion !== "borrador" && headerProceso.estadoVersion !== "enviado") &&
+                        <ComentariosMejoras idProceso={idProceso} setOpenModal={setOpenModal} tabActiva={tabActiva} setTabActiva={setTabActiva}  />}
                     <ResumenProceso resumenProceso={resumenProceso} />
                     <VisualizadorProceso idProceso={idProceso} version={version} />
                 </div>

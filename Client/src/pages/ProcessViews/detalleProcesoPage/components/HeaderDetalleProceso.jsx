@@ -1,5 +1,5 @@
 import { FaUserLarge } from "react-icons/fa6";
-import { FaRegCalendarAlt, FaPaperPlane } from "react-icons/fa";
+import { FaRegCalendarAlt, FaPaperPlane, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import { CiEdit } from "react-icons/ci";
 import { IoMdDownload } from "react-icons/io";
 import { MdOutlinePendingActions } from "react-icons/md";
@@ -10,13 +10,17 @@ import { RiFolderDownloadLine } from "react-icons/ri";
 import { useSnackbar } from "notistack";
 import { downloadFile } from "../../../../BpmnModule/utils/downloadFile";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+
 
 
 
 
 export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVersiones, version}) => {
     const { enqueueSnackbar } = useSnackbar();
+    const user = useSelector((state) => state.auth.user);
     const navigate = useNavigate()
+    console.log(user.usuario?.id_rol);
 
     const handleClick = async() =>{
         try {
@@ -74,6 +78,54 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
                 enqueueSnackbar(data.message, { variant: "error" });
             }
 
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const aprobarProceso = async() =>{
+        try {
+
+            const loggedUser = user.usuario?.id_usuario
+            const formData = new FormData()
+            formData.append("idProceso", idProceso)
+            formData.append("id_usuario", loggedUser)
+            formData.append("version", version)
+            const requestOptions = {
+                method: "POST",
+                body: formData ,
+
+            }
+            const URL =
+                import.meta.env.VITE_APP_MODE === "desarrollo"
+                ? import.meta.env.VITE_URL_DESARROLLO
+                : import.meta.env.VITE_URL_PRODUCCION;
+            const response = await fetch(`${URL}/api/v1/procesos/solicitar-aprobacion`, requestOptions)
+            const data = await response.json()
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const rechazarProceso = async() =>{
+        try {
+            
+            const loggedUser = user.usuario?.id_usuario
+            const formData = new FormData()
+            formData.append("idProceso", idProceso)
+            formData.append("id_usuario", loggedUser)
+            formData.append("version", version)
+            const requestOptions = {
+                method: "POST",
+                body: formData ,
+
+            }
+            const URL =
+                import.meta.env.VITE_APP_MODE === "desarrollo"
+                ? import.meta.env.VITE_URL_DESARROLLO
+                : import.meta.env.VITE_URL_PRODUCCION;
+            const response = await fetch(`${URL}/api/v1/procesos/solicitar-aprobacion`, requestOptions)
+            const data = await response.json()
         } catch (error) {
             console.log(error);
         }
@@ -143,7 +195,7 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
                     </div>
 
                     <div className="flex justify-end ms-4 px-5 gap-2 mt-4">
-                        {headerProceso.estadoVersion === "borrador" && (
+                        {headerProceso.estadoVersion === "borrador" && [1, 3, 5].includes(user.usuario?.id_rol) && (
                             <button
                             className="bg-[#6f42c1] hover:bg-[#8556d4] text-white text-xs py-2 w-42 px-4 rounded focus:outline-none focus:shadow-outline flex items-center transition duration-300 ease-in-out transform hover:scale-105"
                             onClick={solicitarAprobacion}
@@ -151,11 +203,30 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
                             <FaPaperPlane className="me-1" /> Solicitar Aprobación
                         </button>
                         )}
-                        <button className="bg-[#3b82f6] hover:bg-[#2563eb] text-white text-xs py-2 w-42 px-4 rounded focus:outline-none focus:shadow-outline flex items-center transition duration-300 ease-in-out transform hover:scale-105"
+
+                        {headerProceso.estadoVersion === "enviado" && [1, 2, 5].includes(user.usuario?.id_rol) && (
+                            <button
+                            className="bg-red-700 hover:bg-red-800 text-white text-xs py-2 w-42 px-4 rounded focus:outline-none focus:shadow-outline flex items-center transition duration-300 ease-in-out transform hover:scale-105"
+                            onClick={rechazarProceso}
+                        >
+                            <FaTimesCircle className="me-1" /> Rechazar
+                        </button>
+                        )}
+
+                        {headerProceso.estadoVersion === "enviado" && [1, 2, 5].includes(user.usuario?.id_rol) && (
+                            <button
+                            className="bg-blue-700 hover:bg-blue-800 text-white text-xs py-2 w-42 px-4 rounded focus:outline-none focus:shadow-outline flex items-center transition duration-300 ease-in-out transform hover:scale-105"
+                            onClick={aprobarProceso}
+                        >
+                            <FaCheckCircle className="me-1" /> Aprobar
+                        </button>
+                        )}
+
+                        {[1, 3, 5].includes(user.usuario?.id_rol) && headerProceso.estadoVersion !== "enviado" && <button className="bg-[#3b82f6] hover:bg-[#2563eb] text-white text-xs py-2 w-42 px-4 rounded focus:outline-none focus:shadow-outline flex items-center transition duration-300 ease-in-out transform hover:scale-105"
                         onClick={createOrEditVersion}
                         >
                             <CiEdit className="me-1" /> {headerProceso.estadoVersion === "borrador" ? "Editar Borrador" : "Nueva Versión"}
-                        </button>
+                        </button>}
                     </div>
 
                     

@@ -22,6 +22,7 @@ import { formatearFecha, formatShortTime } from "../utils/formatearFecha.js";
 import {
     createAssociation,
     createProcessIfNotExist,
+    getProximoCiclo
 } from "../services/Bpmn.services.js";
 import {
     getDataFileBpmnFromS3,
@@ -487,7 +488,7 @@ export const enviarAprobacion = async (req, res, next) => {
             },
         });
 
-        VersionProceso.update(
+        await VersionProceso.update(
             {
                 estado: "enviado",
             },
@@ -498,11 +499,29 @@ export const enviarAprobacion = async (req, res, next) => {
             }
         );
 
+        const nuevoCiclo = await getProximoCiclo(version);
+        const cicloActual = nuevoCiclo - 1
+
+        const cicloEnCurso = await Aprobadores.findOne({
+            where: {
+                id_version_proceso: version,
+                ciclo_aprobacion: cicloActual
+                }
+        });
+
+        if (cicloEnCurso) {
+            return res.status(400).json({
+            code: 400,
+            message: `Ya existe una solicitud de aprobación activa para este Proceso.`,
+            });
+        }
+
         for (const aprobador of aprobadores) {
             await Aprobadores.create({
                 id_usuario: aprobador.id_usuario,
                 id_version_proceso: version,
                 estado: "pendiente",
+                ciclo_aprobacion: nuevoCiclo
             });
         }
 
@@ -516,6 +535,167 @@ export const enviarAprobacion = async (req, res, next) => {
         next(error);
     }
 };
+
+export const aprobarProceso =async (req, res, next) =>{
+    try {
+        const transaction = await sequelize.transaction();
+        const { idProceso, id_usuario, version } = req.body
+
+        const solicitud = await Aprobadores.findOne({
+            where:{
+                id_usuario,
+                id_version_proceso: version
+            },
+            transaction
+        })
+
+        const proceso = await Procesos.findOne({
+            where:{
+                id_bpmn: idProceso
+            },
+            transaction
+        })
+
+        if(!proceso){
+            await transaction.rollback()
+            return res.status(400).json({
+            code: 400,
+            message: "No existe el proceso que está intentando aprobar",
+        });
+        }
+
+        if(!solicitud){
+            await transaction.rollback()
+            return res.status(400).json({
+            code: 400,
+            message: "No existe la solicitud que está intentando aprobar",
+        });
+        }
+
+        await solicitud.update({ estado: "aprobado" }, { transaction });
+
+        const solicitudes = await Aprobadores.findAll({
+            where: {
+                id_version_proceso: version
+            },
+            transaction
+        });
+
+        const hayPendientes = solicitudes.some((s) => s.estado === "pendiente");
+        const hayRechazadas = solicitudes.some((s) => s.estado === "rechazado");
+        const solicitudesAprobadas = solicitudes.every(s => s.estado === "aprobado");
+
+        if (solicitudesAprobadas) {
+            //Agregar logica aprobar
+        } else if(hayRechazadas && !hayPendientes) {
+            await Aprobadores.destroy({
+            where: {
+                id_version_proceso: version
+                },
+            transaction
+            });
+
+            const versionProceso = await VersionProceso.findOne({
+                where: {
+                    id_bpmn: idProceso,
+                    id_version_proceso: version
+                },transaction
+            })
+
+            await versionProceso.update({estado: "rechazado"}, {transaction})
+
+        }
+
+        await transaction.commit()
+        res.status(201).json({
+            code: 201,
+            message: "Proceso Aprobado",
+        });
+    } catch (error) {
+        await transaction.rollback()
+        logger.error("Controlador Enviar Aprobacion", error);
+        console.log(error);
+        next(error);
+    }
+}
+
+export const rechazarProceso =async (req, res, next) =>{
+    try {
+        const transaction = await sequelize.transaction();
+        const { idProceso, id_usuario, version } = req.body
+
+        const solicitud = await Aprobadores.findOne({
+            where:{
+                id_usuario,
+                id_version_proceso: version
+            },
+            transaction
+        })
+
+        const proceso = await Procesos.findOne({
+            where:{
+                id_bpmn: idProceso
+            },
+            transaction
+        })
+
+        if(!proceso){
+            await transaction.rollback()
+            return res.status(400).json({
+            code: 400,
+            message: "No existe el proceso que está intentando aprobar",
+        });
+        }
+
+        if(!solicitud){
+            await transaction.rollback()
+            return res.status(400).json({
+            code: 400,
+            message: "No existe la solicitud que está intentando aprobar",
+        });
+        }
+
+        await solicitud.update({ estado: "rechazado" }, { transaction });
+
+        const solicitudes = await Aprobadores.findAll({
+            where: {
+                id_version_proceso: version
+            },
+            transaction
+        });
+
+        const hayPendientes = solicitudes.some((s) => s.estado === "pendiente");
+
+        if(!hayPendientes) {
+            await Aprobadores.destroy({
+            where: {
+                id_version_proceso: version
+                },
+            transaction
+            });
+
+            const versionProceso = await VersionProceso.findOne({
+                where: {
+                    id_bpmn: idProceso,
+                    id_version_proceso: version
+                },transaction
+            })
+
+            await versionProceso.update({estado: "rechazado"}, {transaction})
+        }
+
+        await transaction.commit()
+        res.status(201).json({
+            code: 201,
+            message: "Proceso Rechazado ",
+        });
+    } catch (error) {
+        await transaction.rollback()
+        logger.error("Controlador Enviar Aprobacion", error);
+        console.log(error);
+        next(error);
+    }
+}
 
 export const getPendingProcess = async (req, res, next) => {
     try {

@@ -34,8 +34,10 @@ export const issueTokenMiddleware = async(req, res, next) =>{
             id_usuario: user.id_usuario,
             nombre: user.nombre,
             email: user.email,
-            rol: user.id_rol_role.nombre,
-            cargo: user.id_cargo_cargo.nombre,
+            rol: user.id_rol_role?.nombre,
+            id_rol: user.id_rol_role?.id_rol,
+            cargo: user.id_cargo_cargo?.nombre,
+            id_cargo: user.id_cargo_cargo?.id_cargo,
         }
 
         const validatePassword = await comparePassword(password, user.password_hash)

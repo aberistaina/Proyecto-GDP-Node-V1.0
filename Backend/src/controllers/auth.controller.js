@@ -179,9 +179,8 @@ export const getAuthenticatedUser = async (req, res, next) => {
             secure: false,
             sameSite: "strict",
         });
-        console.log("Token inválido o expirado");
         logger.error("Ha ocurrido un error en getAuthenticatedUser Controller", error);
-        return res.status(401).json({ message: "Token inválido o expirado" });
+        return res.status(401).json({ message: "Error de autenticación" });
     }
 };
 

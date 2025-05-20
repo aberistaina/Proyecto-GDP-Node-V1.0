@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSnackbar } from "notistack";
-import { useAdminData } from "../../../../context/AdminDataContext";
-import { getEntidadesData } from "../../../../utils/adminFetch";
+import { useAdminData } from "../../../../../context/AdminDataContext";
+import { getEntidadesData } from "../../../../../utils/adminFetch";
 
 
 export const EntidadesForm = ({ setIsOpenCreateUpdateModal }) => {

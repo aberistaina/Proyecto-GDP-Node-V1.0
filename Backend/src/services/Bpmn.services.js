@@ -1,4 +1,4 @@
-import { Procesos, IntermediaProcesos, Aprobadores } from "../models/models.js";
+import { Procesos, IntermediaProcesos, Aprobadores, VersionProceso } from "../models/models.js";
 import { ProcessError } from "../errors/TypeError.js";
 
 export const createProcessIfNotExist = async (
@@ -13,6 +13,7 @@ export const createProcessIfNotExist = async (
     transaction = null
 ) => {
     try {
+        console.log(idAprobadores);
         const proceso = await Procesos.findOne({
             where: { id_bpmn: idProceso },
         });
@@ -102,11 +103,39 @@ export const createAssociation = async (
 };
 
 export const getProximoCiclo = async (id_version_proceso) => {
-    const ultimo = await Aprobadores.findOne({
+    try {
+        const ultimo = await Aprobadores.findOne({
         where: { id_version_proceso },
         order: [["ciclo_aprobacion", "DESC"]],
         paranoid: false,
     });
 
     return ultimo ? ultimo.ciclo_aprobacion + 1 : 1;
+    } catch (error) {
+        console.log(error);
+    }
 };
+
+export const obtenerUltimaVersionProceso = async (idProceso, version) =>{
+    try {
+        const versionActual = await VersionProceso.findByPk(version);
+        const versionActualNumber = parseFloat(versionActual.nombre_version);
+
+        const versionesAnteriores = await VersionProceso.findAll({
+        where: {
+            id_bpmn: idProceso,
+        },
+        order: [["created_at", "DESC"]],
+        });
+        const versionesMenores = versionesAnteriores.filter(v =>
+            parseFloat(v.nombre_version) < versionActualNumber);
+        
+        console.log("Versiones anteriores",versionesAnteriores);
+        console.log("Versiones actual", versionActualNumber);
+
+        const versionAnterior = versionesMenores.length > 0 ? versionesMenores[0] : null
+        return versionAnterior
+    } catch (error) {
+        console.log(error);
+    }
+}

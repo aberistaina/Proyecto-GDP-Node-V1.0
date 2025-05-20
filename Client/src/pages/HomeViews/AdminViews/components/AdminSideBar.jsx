@@ -1,4 +1,4 @@
-import { useAdminData } from "../../../context/AdminDataContext";
+import { useAdminData } from "../../../../context/AdminDataContext";
 
 export const AdminSideBar = () => {
     const { setType, type } = useAdminData();

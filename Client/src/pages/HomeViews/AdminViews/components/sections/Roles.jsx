@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
-import { useAdminData } from "../../../../context/AdminDataContext";
-import { useConfirmAlert } from "../../../../context/ConfirmAlertProvider";
+import { useAdminData } from "../../../../../context/AdminDataContext";
+import { useConfirmAlert } from "../../../../../context/ConfirmAlertProvider";
 import { useSnackbar } from "notistack";
 import { CreateButton } from "./CreateButton";
-import {  handleUpdateClick, handleDeleteClick, getAllRoles } from "../../../../utils/adminFetch";
+import {  handleUpdateClick, handleDeleteClick, getAllRoles } from "../../../../../utils/adminFetch";
 
 export const Roles = ({setIsOpenCreateUpdateModal}) => {
 

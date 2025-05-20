@@ -26,7 +26,7 @@ export const VisualizadorProceso = ({idProceso, version}) => {
         getData()
     
     }, [idProceso])
-    
+
     return (
         <>
             <div 

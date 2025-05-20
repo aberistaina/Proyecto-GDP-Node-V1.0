@@ -11,16 +11,15 @@ import { useSnackbar } from "notistack";
 import { downloadFile } from "../../../../BpmnModule/utils/downloadFile";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { useState, useEffect } from "react";
 
-
-
-
-
-export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVersiones, version}) => {
+export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVersiones, version, getPendingProcess, estaAprobado}) => {
     const { enqueueSnackbar } = useSnackbar();
+    
+
     const user = useSelector((state) => state.auth.user);
     const navigate = useNavigate()
-    console.log(user.usuario?.id_rol);
+
 
     const handleClick = async() =>{
         try {
@@ -73,6 +72,7 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
 
             if (data.code === 201) {
                 enqueueSnackbar(data.message, { variant: "success" });
+                getPendingProcess()
 
             } else {
                 enqueueSnackbar(data.message, { variant: "error" });
@@ -100,8 +100,16 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
                 import.meta.env.VITE_APP_MODE === "desarrollo"
                 ? import.meta.env.VITE_URL_DESARROLLO
                 : import.meta.env.VITE_URL_PRODUCCION;
-            const response = await fetch(`${URL}/api/v1/procesos/solicitar-aprobacion`, requestOptions)
+            const response = await fetch(`${URL}/api/v1/procesos/aprobar-proceso`, requestOptions)
             const data = await response.json()
+
+            if(data.code ==200){
+                enqueueSnackbar(data.message, { variant: "success" });
+                getPendingProcess()
+            }else {
+                enqueueSnackbar(data.message, { variant: "error" });
+            }
+
         } catch (error) {
             console.log(error);
         }
@@ -124,22 +132,35 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
                 import.meta.env.VITE_APP_MODE === "desarrollo"
                 ? import.meta.env.VITE_URL_DESARROLLO
                 : import.meta.env.VITE_URL_PRODUCCION;
-            const response = await fetch(`${URL}/api/v1/procesos/solicitar-aprobacion`, requestOptions)
+            const response = await fetch(`${URL}/api/v1/procesos/rechazar-proceso`, requestOptions)
             const data = await response.json()
+            if(data.code ==200){
+                enqueueSnackbar(data.message, { variant: "success" });
+                getPendingProcess()
+            }else {
+                enqueueSnackbar(data.message, { variant: "error" });
+            }
         } catch (error) {
             console.log(error);
         }
     }
 
+    useEffect(() => {
+
+        if (!user) return
+        getPendingProcess()
+    }, [])
+    
+
     return (
-        <div className={`${headerProceso.estadoVersion == "borrador" ? "bg-yellow-100 "   :"bg-[#ececec]" } rounded-lg drop-shadow-lg py-5 mb-8 flex justify-evenly shadow-[6px_6px_4px_#c0c0c0]`}>
+        <div className={`${headerProceso.estadoVersion == "borrador" || headerProceso.estadoVersion == "enviado"   ? "bg-yellow-100 "   :"bg-[#ececec]" } rounded-lg drop-shadow-lg py-5 mb-8 flex justify-evenly shadow-[6px_6px_4px_#c0c0c0]`}>
             <div className="flex justify-between w-full mx-auto">
 
                 {/* Lado izquierdo */}
                 {/*Agregar etiquetas de Nombre creador y fecha aprovación*/ }
                 <div className="w-3/4 pr-4 border-r-2 border-r-[#adadad]">
                     <div className="flex items-center px-8">
-                        <IoMdDownload onClick={handleClick} title="Descargar Proceso" className="text-4xl rounded-full bg-[#48752c] p-1 hover:bg-[#294618] cursor-pointer" fill="#ffffff" />
+                        <IoMdDownload onClick={handleClick} title="Descargar Proceso" className="text-4xl rounded-full bg-[#48752c] p-1 hover:bg-[#294618] cursor-pointer transition duration-300 ease-in-out transform hover:scale-105" fill="#ffffff" />
                         <h1 className="text-3xl font-bold px-2">
                             {headerProceso.nombre}
                         </h1>
@@ -204,7 +225,7 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
                         </button>
                         )}
 
-                        {headerProceso.estadoVersion === "enviado" && [1, 2, 5].includes(user.usuario?.id_rol) && (
+                        {headerProceso.estadoVersion === "enviado" && [1, 2, 5].includes(user.usuario?.id_rol) && estaAprobado && (
                             <button
                             className="bg-red-700 hover:bg-red-800 text-white text-xs py-2 w-42 px-4 rounded focus:outline-none focus:shadow-outline flex items-center transition duration-300 ease-in-out transform hover:scale-105"
                             onClick={rechazarProceso}
@@ -213,7 +234,7 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
                         </button>
                         )}
 
-                        {headerProceso.estadoVersion === "enviado" && [1, 2, 5].includes(user.usuario?.id_rol) && (
+                        {headerProceso.estadoVersion === "enviado" && [1, 2, 5].includes(user.usuario?.id_rol) && estaAprobado && (
                             <button
                             className="bg-blue-700 hover:bg-blue-800 text-white text-xs py-2 w-42 px-4 rounded focus:outline-none focus:shadow-outline flex items-center transition duration-300 ease-in-out transform hover:scale-105"
                             onClick={aprobarProceso}

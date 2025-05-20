@@ -1,8 +1,19 @@
 import PulseLoader from "react-spinners/PulseLoader";
-
+import { useNavigate } from "react-router-dom";
 
 export const ListaProcesosPendientes = ({ procesosPendientes, isLoading }) => {
     
+    const navigate = useNavigate()
+
+    const handleClick = (idProceso, version) =>{
+        try {
+                navigate(`/process-details/${idProceso}/${version}`)
+    
+            
+        } catch (error) {
+            console.log(error);
+        }
+    }
 
     if (!isLoading) return <PulseLoader color="#10644C" size={15} />
     if (procesosPendientes.length === 0) return <p>No Hay Procsos Pendientes Para Aprobar</p>;
@@ -31,14 +42,15 @@ export const ListaProcesosPendientes = ({ procesosPendientes, isLoading }) => {
                                 </span>
                             </p>
                         </div>
-                        <button className="bg-[#6f42c1] hover:bg-[#8556d4] text-white text-sm px-3 py-1 rounded-full transition-all">
+                        <button className="bg-[#6f42c1] hover:bg-[#8556d4] text-white text-sm px-3 py-1 rounded-full transition-all"
+                        onClick={() => handleClick(proceso.idBpmn, proceso.idVersionProceso )}>
                             Revisar
                         </button>
                     </li>
                 ))}
             </ul>
         </div>
-             
+
         </> 
     );
 };

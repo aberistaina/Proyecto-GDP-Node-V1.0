@@ -1,5 +1,5 @@
 import { useSelector } from "react-redux";
-import { AdminDashboard } from "../AdminViews/AdminDashboard";
+import { AdminDashboard } from "./AdminViews/AdminDashboard";
 import { AprobadoresHome } from "./Aprobadores/AprobadoresHome";
 
 
@@ -12,10 +12,10 @@ export const HomePage = () => {
         switch (id_rol) {
             case 1:
                 return <AdminDashboard />
-            case 2:
-                return 
-            case 3: 
+            case 2: 
                 return <AprobadoresHome />
+            case 3: 
+                return 
             case 4:
                 return <AprobadoresHome />
             case 5:

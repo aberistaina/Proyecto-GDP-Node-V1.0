@@ -16,7 +16,8 @@ import { ConfirmAlertProvider } from "./context/ConfirmAlertProvider";
 import { BpmnDesignerModule } from "./BpmnModule/BpmnDesigner/BpmnDesignerModule";
 import { DetalleProcesoPage } from "./pages/ProcessViews/detalleProcesoPage/DetalleProcesoPage";
 import { AprobadoresHome } from "./pages/HomeViews/Aprobadores/AprobadoresHome";
-import { AdminDashboard } from "./pages/AdminViews/AdminDashboard";
+import { AdminDashboard } from "./pages/HomeViews/AdminViews/AdminDashboard";
+import { UnauthorizedPage } from "./pages/Unauthorized/UnauthorizedPage";
 
 function App() {
 
@@ -40,35 +41,36 @@ function App() {
                     <Route element={<ProtectedRoute roles={[5]} />}>
                         <Route element={<Layout />}>
                             <Route path="/admin" element={<AdminDashboard />} />
-                            <Route path="/bpmnModeler" element={<BpmnDesignerModule />} />
+                            
                         </Route>
                     </Route>
 
 
                     {/* RUTAS ADMINISTRADOR */}
-                    <Route element={<ProtectedRoute roles={[1]} />}>
+                    <Route element={<ProtectedRoute roles={[1, 5]} />}>
                         <Route element={<Layout />}>
                             <Route path="/admin" element={<AdminDashboard />} />
                         </Route>
                     </Route>
 
                     {/* RUTAS APROBADOR */}
-                    <Route element={<ProtectedRoute roles={[2]} />}>
+                    <Route element={<ProtectedRoute roles={[1, 2, 5]} />}>
                         <Route element={<Layout />}>
                             <Route path="/aprobador" element={<AprobadoresHome />} />
                         </Route>
                     </Route>
 
                     {/* RUTAS DISEÑADOR */}
-                    <Route element={<ProtectedRoute roles={[3]} />}>
+                    <Route element={<ProtectedRoute roles={[1, 3, 5]} />}>
                         <Route element={<Layout />}>
                             <Route path="/new-version/:idProceso/:version" element={<BpmnDesignerModule />} />
+                            <Route path="/bpmnModeler" element={<BpmnDesignerModule />} />
                         </Route>
                     </Route>
 
                     {/* RUTAS COMPARTIDAS */}
 
-                    <Route element={<ProtectedRoute roles={[1, 2, 3, 4]} />}>
+                    <Route element={<ProtectedRoute roles={[1, 2, 3, 4, 5]} />}>
                         <Route element={<Layout />}>
                             <Route path="/" element={<HomePage />} />
                             <Route path="/tipo-proceso/:idNivel" element={<TipoProcesoPage />}/>
@@ -90,6 +92,7 @@ function App() {
                     {/* RUTA TEST BPMN */}
                     
                     {/*TODAS LAS DEMÁS REDIRIGEN AL LOGIN*/}
+                    <Route path="/unauthorized" element={<UnauthorizedPage />} />
                     <Route path="*" element={<Navigate to="/login" />} />
                 </Routes>
             </ConfirmAlertProvider>

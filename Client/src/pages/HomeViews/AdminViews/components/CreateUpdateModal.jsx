@@ -1,6 +1,6 @@
 import { UserForm } from "./sections/UserForm"
 import { EntidadesForm } from "./sections/EntidadesForm"
-import { useAdminData } from "../../../context/AdminDataContext";
+import { useAdminData } from "../../../../context/AdminDataContext";
 
 
 export const CreateUpdateModal = ({setIsOpenCreateUpdateModal, }) => {

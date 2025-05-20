@@ -4,7 +4,7 @@ import { AdminHeader } from "./components/AdminHeader";
 import { AdminCards } from "./components/AdminCards";
 import { AdminSections } from "./components/AdminSections";
 import { CreateUpdateModal } from "./components/CreateUpdateModal";
-import { AdminDataProvider } from "../../context/AdminDataProvider";
+import { AdminDataProvider } from "../../../context/AdminDataProvider";
 
 
 export const AdminDashboard = () => {

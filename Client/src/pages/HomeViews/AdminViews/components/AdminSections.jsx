@@ -2,7 +2,7 @@ import { Usuarios } from "./sections/Usuarios";
 import { Roles } from "./sections/Roles";
 import { Cargos } from "./sections/Cargos";
 import { Niveles } from "./sections/Niveles";
-import { useAdminData } from "../../../context/AdminDataContext";
+import { useAdminData } from "../../../../context/AdminDataContext";
 
 
 

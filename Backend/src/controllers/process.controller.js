@@ -22,7 +22,8 @@ import { formatearFecha, formatShortTime } from "../utils/formatearFecha.js";
 import {
     createAssociation,
     createProcessIfNotExist,
-    getProximoCiclo
+    getProximoCiclo,
+    obtenerUltimaVersionProceso
 } from "../services/Bpmn.services.js";
 import {
     getDataFileBpmnFromS3,
@@ -32,6 +33,7 @@ import {
 } from "../services/s3Client.services.js";
 import { moveFile } from "../utils/uploadFile.js";
 import { sequelize } from "../database/database.js";
+import { createLogger } from "winston";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -187,13 +189,13 @@ export const uploadProcess = async (req, res, next) => {
         //Variables momentáneas
         const estado = "activo";
         //variables momentáneas
+        const id_aprobadores_cargo = "3"
 
         const archivosArray = Array.isArray(archivos) ? archivos : [archivos];
         const datosArchivos = [];
 
         for (const archivo of archivosArray) {
             const datoArchivo = await extraerDatosBpmn(archivo);
-            console.log(datoArchivo);
             /* const nombreArchivo = formatFileName(archivo.name.split(".")[0]) */
 
             const nombreProceso = datoArchivo.name;
@@ -204,7 +206,7 @@ export const uploadProcess = async (req, res, next) => {
             const nuevoProceso = await createProcessIfNotExist(
                 id_creador,
                 idProceso,
-                id_aprobador,
+                id_aprobadores_cargo,
                 id_nivel,
                 nombreProceso,
                 null,
@@ -226,7 +228,7 @@ export const uploadProcess = async (req, res, next) => {
                     {
                         id_proceso: nuevoProceso.id_proceso,
                         id_creador,
-                        id_aprobador,
+                        id_aprobadores_cargo,
                         nombre_version: "1.0",
                         estado: "aprobado",
                         id_bpmn: idProceso,
@@ -243,7 +245,7 @@ export const uploadProcess = async (req, res, next) => {
                     await createProcessIfNotExist(
                         id_creador,
                         calledElement,
-                        id_aprobador,
+                        id_aprobadores_cargo,
                         id_nivel,
                         "pendiente",
                         null,
@@ -296,18 +298,16 @@ export const saveProcessChanges = async (req, res, next) => {
             nombre,
             descripcion,
             nivel,
-            estado,
             esMacroproceso,
         } = req.body;
 
+        
         if (!req.files || Object.keys(req.files).length === 0) {
             return res.status(400).json({
                 code: 400,
                 message: "No se ha subido ningún archivo.",
             });
         }
-
-        const { idProceso } = await extraerDatosBpmn(archivo);
 
         await createProcessIfNotExist(
             id_creador,
@@ -338,9 +338,10 @@ export const saveProcessChanges = async (req, res, next) => {
                 id_creador,
                 id_proceso: proceso.id_proceso,
                 id_bpmn: idProceso,
-                nombre_version: 1.0,
-                version: 1,
+                nombre_version: "1.0",
             });
+        }else{
+
         }
 
         await uploadFileToS3(
@@ -488,16 +489,10 @@ export const enviarAprobacion = async (req, res, next) => {
             },
         });
 
-        await VersionProceso.update(
-            {
-                estado: "enviado",
-            },
-            {
-                where: {
-                    id_version_proceso: version,
-                },
-            }
-        );
+        const versionProceso = await VersionProceso.findByPk(version)
+
+        await versionProceso.update(
+            {estado: "enviado",})
 
         const nuevoCiclo = await getProximoCiclo(version);
         const cicloActual = nuevoCiclo - 1
@@ -537,10 +532,11 @@ export const enviarAprobacion = async (req, res, next) => {
 };
 
 export const aprobarProceso =async (req, res, next) =>{
+    const transaction = await sequelize.transaction();
     try {
-        const transaction = await sequelize.transaction();
+        
         const { idProceso, id_usuario, version } = req.body
-
+        
         const solicitud = await Aprobadores.findOne({
             where:{
                 id_usuario,
@@ -586,7 +582,23 @@ export const aprobarProceso =async (req, res, next) =>{
         const solicitudesAprobadas = solicitudes.every(s => s.estado === "aprobado");
 
         if (solicitudesAprobadas) {
-            //Agregar logica aprobar
+            const versionBorrador = await VersionProceso.findByPk(version)
+            const nombreVersionBorradorAnterior = (parseFloat(versionBorrador.nombre_version) - 0.1).toFixed(1)
+            const versionAnterior = await VersionProceso.findOne({
+                where:{
+                    id_bpmn : idProceso,
+                    nombre_version: nombreVersionBorradorAnterior
+                }
+            })
+
+            await versionAnterior.update({
+                estado: "inactivo"
+            }, { transaction })
+
+            await versionBorrador.update({
+                estado: "aprobado"
+            }, { transaction })
+
         } else if(hayRechazadas && !hayPendientes) {
             await Aprobadores.destroy({
             where: {
@@ -607,8 +619,8 @@ export const aprobarProceso =async (req, res, next) =>{
         }
 
         await transaction.commit()
-        res.status(201).json({
-            code: 201,
+        res.status(200).json({
+            code: 200,
             message: "Proceso Aprobado",
         });
     } catch (error) {
@@ -685,8 +697,8 @@ export const rechazarProceso =async (req, res, next) =>{
         }
 
         await transaction.commit()
-        res.status(201).json({
-            code: 201,
+        res.status(200).json({
+            code: 200,
             message: "Proceso Rechazado ",
         });
     } catch (error) {
@@ -704,6 +716,7 @@ export const getPendingProcess = async (req, res, next) => {
         const aprobacionesPendientes = await Aprobadores.findAll({
             where: {
                 id_usuario: idUsuario,
+                estado: "pendiente"
             },
             include: [
                 {
@@ -1148,19 +1161,21 @@ export const createNewProcessVersion = async (req, res, next) => {
             where: { id_bpmn: idProceso },
         });
 
-        const versionProcesoActual = await VersionProceso.findOne({
+        const borradorAcutal = await VersionProceso.findOne({
             where: {
                 id_version_proceso: version,
+                id_bpmn: idProceso,
+                estado: "borrador"
             },
         });
 
-        if (versionProcesoActual) {
+        if (borradorAcutal) {
             await uploadFileToS3(
                 "test-bpmn",
                 `${idProceso}.bpmn`,
                 archivo.data,
                 "application/xml",
-                versionProcesoActual.nombre_version,
+                borradorAcutal.nombre_version,
                 "borrador"
             );
             return res.status(201).json({
@@ -1169,18 +1184,15 @@ export const createNewProcessVersion = async (req, res, next) => {
             });
         }
 
-        const versionActual = Number(versionProcesoActual.nombre_version);
-        const nuevaVersion = versionActual + 0.1;
-        const nuevaVersionString =
-            versionProcesoActual.estado === "borrador"
-                ? versionProcesoActual.nombre_version
-                : String(nuevaVersion);
+        
+        const ultimaVersion = await VersionProceso.findByPk(version)
+        const nuevaVersion = (parseFloat(ultimaVersion.nombre_version) + 0.1).toFixed(1)
 
         await VersionProceso.create({
             id_proceso: proceso.id_proceso,
             id_creador,
-            id_aprobador: versionProcesoActual.id_aprobador,
-            nombre_version: nuevaVersionString,
+            id_aprobador: ultimaVersion.id_aprobador,
+            nombre_version: nuevaVersion,
             estado: "borrador",
             id_bpmn: idProceso,
         });
@@ -1190,7 +1202,7 @@ export const createNewProcessVersion = async (req, res, next) => {
             `${idProceso}.bpmn`,
             archivo.data,
             "application/xml",
-            nuevaVersionString,
+            nuevaVersion,
             "borrador"
         );
 

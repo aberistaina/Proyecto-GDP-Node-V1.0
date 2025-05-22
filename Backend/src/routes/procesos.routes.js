@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { connectSubprocess, getAllProcess, getSubprocessesOfProcess, readActualProcessVersion, readProcessVersion, getProcessSummary, saveProcessChanges, saveSubProcessChanges, uploadProcess, createCommentary, getCommentaries, createOppotunity, getOpportunities, getNiveles, getProcessByNivel, getNivelById, downloadProcess, getProcessVersions, createNewProcessVersion, getPendingProcess, enviarAprobacion, aprobarProceso, rechazarProceso } from "../controllers/process.controller.js";
+import { connectSubprocess, getAllProcess, getSubprocessesOfProcess, readActualProcessVersion, readProcessVersion, getProcessSummary, saveNewProcessChanges, saveSubProcessChanges, uploadProcess, createCommentary, getCommentaries, createOppotunity, getOpportunities, getNiveles, getProcessByNivel, getNivelById, downloadProcess, getProcessVersions, createNewProcessVersion, getPendingProcess, enviarAprobacion, aprobarProceso, rechazarProceso, getPendingDraft } from "../controllers/process.controller.js";
 
 
 const router = Router()
@@ -17,10 +17,11 @@ router.get("/get-nivel/:idNivel", getNivelById)
 router.get("/get-versiones/:idProceso", getProcessVersions)
 router.get("/download-process/:idProceso", downloadProcess)
 router.get("/get-pending-process/:idUsuario", getPendingProcess)
+router.get("/get-pending-draft/:idUsuario", getPendingDraft)
 
 router.post("/connect-subprocess", connectSubprocess)
 router.post("/upload-process", uploadProcess)
-router.post("/save-process-changes", saveProcessChanges)
+router.post("/save-process-changes", saveNewProcessChanges)
 router.post("/save-new-version-changes", createNewProcessVersion)
 router.post("/save-subprocess-changes", saveSubProcessChanges)
 router.post("/comentarios/agregar", createCommentary)

@@ -1,16 +1,18 @@
 import { useState, useEffect } from "react";
 import { useSnackbar } from "notistack";
 import { useNavigate } from "react-router-dom"
+import { validarDatosProceso } from "../../../../utils/validators";
 
-export const ModalSubproceso = ({ isOpen, closeModal, idNivel }) => {
+export const ModalCrearProceso = ({ isOpen, closeModal }) => {
     const { enqueueSnackbar } = useSnackbar();
     const [aprobadores, setAprobadores] = useState([]);
+    const [niveles, setNiveles] = useState([]);
     const [formProceso, setFormProceso] = useState({
         nombre: "",
         descripcion: "",
         aprobadores: "",
         macroproceso: "",
-        nivel: idNivel
+        nivel: ""
     });
     const navigate = useNavigate()
 
@@ -22,9 +24,16 @@ export const ModalSubproceso = ({ isOpen, closeModal, idNivel }) => {
     };
 
     const handleSubmit = (e) => {
-        e.preventDefault();
-        sessionStorage.setItem("datos", JSON.stringify(formProceso));
-        navigate("/bpmnModeler")
+        try {
+            validarDatosProceso(formProceso)
+            e.preventDefault();
+            console.log(formProceso);
+            sessionStorage.setItem("datos", JSON.stringify(formProceso));
+            navigate("/bpmnModeler")
+        } catch (error) {
+            enqueueSnackbar(error.message, { variant: "error" })
+            console.log(error);
+        }
     };
 
     useEffect(() => {
@@ -39,12 +48,30 @@ export const ModalSubproceso = ({ isOpen, closeModal, idNivel }) => {
                 );
                 const data = await response.json();
                 setAprobadores(data.data);
-                console.log(data.data);
             } catch (error) {
                 console.log(error);
             }
         };
         getAprobadores();
+    }, []);
+
+    useEffect(() => {
+        const getNiveles = async () => {
+            try {
+                const URL =
+                    import.meta.env.VITE_APP_MODE === "desarrollo"
+                        ? import.meta.env.VITE_URL_DESARROLLO
+                        : import.meta.env.VITE_URL_PRODUCCION;
+                const response = await fetch(
+                    `${URL}/api/v1/procesos/get-niveles`
+                );
+                const data = await response.json();
+                setNiveles(data.data);
+            } catch (error) {
+                console.log(error);
+            }
+        };
+        getNiveles();
     }, []);
 
     return (
@@ -57,6 +84,7 @@ export const ModalSubproceso = ({ isOpen, closeModal, idNivel }) => {
                             Crear Proceso
                         </h2>
                         <form onSubmit={handleSubmit}>
+                            
                             <div className="mb-4 ">
                                 <label
                                     htmlFor="nombre"
@@ -79,6 +107,30 @@ export const ModalSubproceso = ({ isOpen, closeModal, idNivel }) => {
 
                             <div className="mb-4">
                                 <label className="block text-sm font-medium mb-1">
+                                    Nivel
+                                </label>
+                                <select
+                                    className="w-full border rounded px-3 py-2"
+                                    name="nivel"
+                                    value={formProceso.nivel}
+                                    onChange={handleChange}
+                                >
+                                    <option value="">
+                                        Seleccionar Nivel
+                                    </option>
+                                    {niveles.map((nivel) => (
+                                        <option
+                                            key={nivel.id_nivel}
+                                            value={nivel.id_nivel}
+                                        >
+                                            {nivel.nombre}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium mb-1">
                                     Aprobadores
                                 </label>
                                 <select
@@ -88,12 +140,12 @@ export const ModalSubproceso = ({ isOpen, closeModal, idNivel }) => {
                                     onChange={handleChange}
                                 >
                                     <option value="">
-                                        Selecciona un aprobador
+                                        Seleccionar Aprobadores
                                     </option>
                                     {aprobadores.map((aprobador) => (
                                         <option
-                                            key={aprobador.id_aprobador}
-                                            value={aprobador.id_aprobador}
+                                            key={aprobador.id_cargo}
+                                            value={aprobador.id_cargo}
                                         >
                                             {aprobador.nombre}
                                         </option>

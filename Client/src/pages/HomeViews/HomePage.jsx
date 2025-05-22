@@ -1,6 +1,7 @@
 import { useSelector } from "react-redux";
 import { AdminDashboard } from "./AdminViews/AdminDashboard";
 import { AprobadoresHome } from "./Aprobadores/AprobadoresHome";
+import { ModeladoresHome } from "./Modeladores/ModeladoresHome";
 
 
 export const HomePage = () => {
@@ -15,7 +16,7 @@ export const HomePage = () => {
             case 2: 
                 return <AprobadoresHome />
             case 3: 
-                return 
+                return < ModeladoresHome />
             case 4:
                 return <AprobadoresHome />
             case 5:

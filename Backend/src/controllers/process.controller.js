@@ -289,7 +289,7 @@ export const uploadProcess = async (req, res, next) => {
 };
 
 //Guardar cambios cuando se trabaja en el modelador o crear un nuevo proceso si este no existe
-export const saveProcessChanges = async (req, res, next) => {
+export const saveNewProcessChanges = async (req, res, next) => {
     try {
         const { archivo } = req.files;
         const {
@@ -300,6 +300,9 @@ export const saveProcessChanges = async (req, res, next) => {
             nivel,
             esMacroproceso,
         } = req.body;
+
+        const datoArchivo = await extraerDatosBpmn(archivo);
+        const idProceso = datoArchivo.idProceso
 
         
         if (!req.files || Object.keys(req.files).length === 0) {
@@ -327,30 +330,22 @@ export const saveProcessChanges = async (req, res, next) => {
             },
         });
 
-        const versionProceso = await VersionProceso.findOne({
-            where: {
-                id_bpmn: idProceso,
-            },
-        });
-
-        if (!versionProceso) {
             await VersionProceso.create({
                 id_creador,
                 id_proceso: proceso.id_proceso,
                 id_bpmn: idProceso,
                 nombre_version: "1.0",
-            });
-        }else{
+            })
 
-        }
-
-        await uploadFileToS3(
-            "test-bpmn",
-            `${idProceso}.bpmn`,
-            archivo.data,
-            "application/xml"
-        );
-
+            await uploadFileToS3(
+                "test-bpmn",
+                `${idProceso}.bpmn`,
+                archivo.data,
+                "application/xml",
+                "1.0",
+                "borrador"
+            );
+        
         res.status(201).json({
             code: 201,
             message: "Proceso Guardado Correctamente",
@@ -756,6 +751,50 @@ export const getPendingProcess = async (req, res, next) => {
         });
     } catch (error) {
         logger.error("Controlador getPendingProcess", error);
+        console.log(error);
+        next(error);
+    }
+};
+
+export const getPendingDraft = async (req, res, next) => {
+    try {
+        const { idUsuario } = req.params;
+
+        const borradoresActivos = await VersionProceso.findAll({
+            where: {
+                id_creador: idUsuario
+            },
+            include: [
+                {
+                    model: Procesos,
+                    as: "id_proceso_proceso", 
+                    attributes: ["id_bpmn", "nombre", "descripcion", "id_aprobadores_cargo"], 
+                },
+            ],
+        });
+        
+
+        const resultadosMapeados = borradoresActivos.map(item => ({
+            idVersionProceso: item.id_version_proceso,
+            idProceso: item.id_proceso,
+            idAprobador: item.id_proceso_proceso?.id_aprobadores_cargo,
+            nombre_version: item.nombre_version,
+            observacion: item.observacion_version,
+            estado: item.estado,
+            idBpmn: item.id_bpmn,
+            fechaCreacion:formatShortTime(item.created_at),
+            nombreProceso: item.id_proceso_proceso?.nombre,
+            descripcionProceso: item.id_proceso_proceso?.descripcion
+        }));
+
+        res.status(200).json({
+            code: 200,
+            message:
+                "Borradores Activos obtenidos correctamtente",
+            data: resultadosMapeados,
+        });
+    } catch (error) {
+        logger.error("Controlador getPendingDraft", error);
         console.log(error);
         next(error);
     }

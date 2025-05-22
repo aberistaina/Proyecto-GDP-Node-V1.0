@@ -13,7 +13,6 @@ export const createProcessIfNotExist = async (
     transaction = null
 ) => {
     try {
-        console.log(idAprobadores);
         const proceso = await Procesos.findOne({
             where: { id_bpmn: idProceso },
         });
@@ -25,7 +24,7 @@ export const createProcessIfNotExist = async (
                     id_nivel: idNivel,
                     nombre: nombre,
                     descripcion: descripcion,
-                    estado: estado,
+                    estado: "borrador",
                     id_bpmn: idProceso,
                     macroproceso: macroproceso === "true",
                 },

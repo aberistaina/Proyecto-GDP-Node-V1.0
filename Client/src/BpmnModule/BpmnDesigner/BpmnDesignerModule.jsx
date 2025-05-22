@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import { useConfirmAlert } from "../../context/ConfirmAlertProvider";
 import { ModalSaveChanges } from "./components/ModalSaveChanges";
+import { BpmnDesignerButtons } from "./components/BpmnDesignerButtons";
 
 export const BpmnDesignerModule = () => {
     const [showModal, setShowModal] = useState(false);
@@ -84,16 +85,17 @@ export const BpmnDesignerModule = () => {
             <BpmnProvider>
                 <div className="h-full w-full flex flex-col items-center justify-start ">
                     <div className="w-[80%] space-y-8 mt-10 mb-10">
-                        <ProcessSelector
+                        {/* <ProcessSelector
                             setIdProcessSocket={setIdProcessSocket}
                             setShowModal={setShowModal}
-                        />
+                        /> */}
+                        <BpmnDesignerButtons setShowModalSaveChanges={setShowModalSaveChanges} />
                         <CustomMenuContextual modo="designer" />
                         <div className="flex space-x-3">
                             <BpmnModeler />
                             <PropertiesPanel />
                         </div>
-                        <ModelerButtons modo="designer" setShowModalSaveChanges={setShowModalSaveChanges} />
+                        {/* <ModelerButtons modo="designer" setShowModalSaveChanges={setShowModalSaveChanges} /> */}
                         <MenuContextListener />
 
                         {/* Modal para Guardar cambios proceso */}

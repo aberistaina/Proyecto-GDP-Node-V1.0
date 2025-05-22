@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { TipoProcesoTable } from "./TipoProcesoTable";
-import { Botones } from "./Botones";
+import { Botones } from "../../../HomeViews/Modeladores/components/Botones";
 import { TipoProcesoNavegacion } from "./TipoProcesoNavegacion";
 
 

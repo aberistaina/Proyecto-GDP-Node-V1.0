@@ -104,6 +104,8 @@ export const BpmnDesignerModule = () => {
                             setShowModalSaveChanges={setShowModalSaveChanges}
                             />
                         )}
+                        
+                        {/* <ProcessSelector setShowModal={setShowModal} setIdProcessSocket={setShowModal} modo="designer" /> */}
 
                         {/* Modal para subir un proceso */}
                         {showModal && (

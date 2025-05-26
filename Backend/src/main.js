@@ -41,8 +41,12 @@ app.use(fileUpload());
 app.use(cookieParser());
 
 
+const origins = [
+  "http://localhost:5173",
+  "https://test.backspace.cl/",
+];
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: origins,
     credentials: true
   }));
 

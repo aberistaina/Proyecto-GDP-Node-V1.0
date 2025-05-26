@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { FaRegCalendarAlt } from "react-icons/fa";
 
 
-export default function Comentarios({idProceso}) {
+export default function Comentarios({idProceso, version}) {
     const [comentarios, setComentarios ] = useState([])
 
     useEffect(() => {
@@ -12,7 +12,7 @@ export default function Comentarios({idProceso}) {
                 import.meta.env.VITE_APP_MODE === "desarrollo"
                     ? import.meta.env.VITE_URL_DESARROLLO
                     : import.meta.env.VITE_URL_PRODUCCION;
-                const response = await fetch(`${URL}/api/v1/procesos/comentarios/getAll/${idProceso}`)
+                const response = await fetch(`${URL}/api/v1/procesos/comentarios/getAll/${idProceso}/${version}`)
                 const data = await response.json()
                 setComentarios(data.data)
             } catch (error) {

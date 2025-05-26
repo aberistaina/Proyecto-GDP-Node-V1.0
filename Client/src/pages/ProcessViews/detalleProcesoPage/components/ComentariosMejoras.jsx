@@ -3,7 +3,7 @@ import { ButtonMejorasComentarios } from "./ButtonMejorasComentarios";
 import Comentarios from "./Comentarios";
 import { Oportunidades } from "./Oportunidades";
 
-export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabActiva}) => {
+export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabActiva, version}) => {
   
 
   return (
@@ -46,14 +46,14 @@ export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabAc
       {tabActiva === "oportunidades" && (
         <div>
           {/* Oportunidades */}
-          <Oportunidades idProceso={idProceso}/>
+          <Oportunidades idProceso={idProceso} version={version}/>
         </div>
       )}
 
       {tabActiva === "comentarios" && (
         <div>
           {/* Comentarios */}
-            <Comentarios idProceso={idProceso}/>
+            <Comentarios idProceso={idProceso} version={version}/>
         </div>
       )}
     </div>

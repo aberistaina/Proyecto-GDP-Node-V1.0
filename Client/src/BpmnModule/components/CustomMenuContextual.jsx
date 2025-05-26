@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate} from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useBpmnContext } from "../context/useBpmnContext";
 import { useConfirmAlert } from "../../context/ConfirmAlertProvider";
@@ -6,106 +6,134 @@ import { fetchHook } from "../../hooks/fetchHook";
 import { useSnackbar } from "notistack";
 import { useParams } from "react-router-dom";
 import { exportDiagramXml } from "../utils/bpmnUtils";
+import { useSelector } from "react-redux";
+import { createDiagram } from "../utils/bpmnUtils";
+
 
 export const CustomMenuContextual = ({modo}) => {
     const [subProcess, setSubProcess] = useState([]);
+    const user = useSelector((state) => state.auth.user);
     const { enqueueSnackbar } = useSnackbar();
     const navigate = useNavigate();
     const { openMenuContextual, setEmptyDiagram, bpmnModelerRef } = useBpmnContext();
     const { alert, confirm } = useConfirmAlert();
     const { x, y, subProcessId, processID, callActivity } = openMenuContextual;
-    const { idProcesoPadre } = useParams();
+    const { idProceso, version } = useParams();
 
     const guardarCambios = async() =>{
             try {
                 const URL = import.meta.env.VITE_APP_MODE === "desarrollo" ? import.meta.env.VITE_URL_DESARROLLO : import.meta.env.VITE_URL_PRODUCCION;
     
                 const xmlContent = await exportDiagramXml(bpmnModelerRef);
-            
-                const blob = new Blob([xmlContent], { type: "application/xml" });
+                const blob = new Blob([xmlContent], { type: "application/xml" })
+                console.log("USUARIOOOO", user);
+                const loggedUser = user.usuario?.id_usuario
+
                 const formData = new FormData();
-                formData.append("archivo", blob, `proceso.bpmn`);
+                formData.append("archivo", blob, `process.bpmn`);
+                formData.append("id_creador", loggedUser);
+                const datosProceso =  JSON.parse(sessionStorage.getItem("datos"));
     
                 let data = null
-                if(idProcesoPadre){
-                    formData.append("idProcesoPadre", idProcesoPadre)
-                    formData.append("callActivity", callActivity)
-                    data = await fetchHook(`${URL}/api/v1/procesos/save-subprocess-changes`, "POST", formData, null)
-                }else{
+                if(!idProceso && !version){
+                    formData.append("nombre", datosProceso.nombre)
+                    formData.append("descripcion", datosProceso.descripcion)
+                    formData.append("aprobadores", datosProceso.aprobadores);
+                    formData.append("nivel", datosProceso.nivel)
+                    formData.append("esMacroproceso", datosProceso.macroproceso);
                     data = await fetchHook(`${URL}/api/v1/procesos/save-process-changes`, "POST", formData, null)
+                }else if(idProceso && version){
+                    formData.append("idProceso", idProceso)
+                    formData.append("version", version)
+                    data = await fetchHook(`${URL}/api/v1/procesos/save-new-version-changes`, "POST", formData, null)
                 }
                 
                 if(data.code == 201){
                     enqueueSnackbar(data.message, { variant: "success" });
                 }else{
                     enqueueSnackbar(data.message, { variant: "error" });
-                }
+                } 
                 } catch (error) {
                     console.log(error)
                 }
         }
 
-        const goToProcess = async() => {
-            if (!subProcessId && modo === "viewer") {
-                alert("No existe ningún subproceso vinculado");
-            } else if(subProcess && modo === "viewer") {
-                navigate(`/subproceso/${subProcessId}`);
-            }else if(idProcesoPadre && modo === "designer"){
-                const confirmacion = await confirm("Se van a guardar los cambios antes de continuar",
-                    {
-                        title: "Alerta",
-                        confirmText: "Sí, Deseo continuar",
-                        cancelText: "Cancelar"
-                    });
-                if(confirmacion){
-                    guardarCambios()
-                    navigate(`/subproceso/${callActivity}/${processID}`)
-                }else{
-                    return
-                }
+    const goToProcess = async() => {
+        if (!subProcessId && modo === "viewer") {
+            alert("No existe ningún subproceso vinculado");
+        } else if(subProcess && modo === "viewer") {
+            navigate(`/subproceso/${subProcessId}`);
+        }else if(idProceso && modo === "designer"){
+            const confirmacion = await confirm("Se van a guardar los cambios antes de continuar",
+                {
+                    title: "Alerta",
+                    confirmText: "Sí, Deseo continuar",
+                    cancelText: "Cancelar"
+                });
+            if(confirmacion){
+                guardarCambios()
+                navigate(`/subproceso/${callActivity}/${processID}`)
             }else{
-                const confirmacion = await confirm("Se van a guardar los cambios antes de continuar",
-                    {
-                        title: "Alerta",
-                        confirmText: "Sí, Deseo continuar",
-                        cancelText: "Cancelar"
-                    });
-                if(confirmacion){
-                    guardarCambios()
-                    window.open(`/subproceso/${callActivity}/${processID}`, "_blank")
-                }else{
-                    return
-                }
-                
+                return
             }
-        };
+        }else{
+            const confirmacion = await confirm("Se van a guardar los cambios antes de continuar",
+                {
+                    title: "Alerta",
+                    confirmText: "Sí, Deseo continuar",
+                    cancelText: "Cancelar"
+                });
+            if(confirmacion){
+                guardarCambios()
+                window.open(`/subproceso/${callActivity}/${processID}`, "_blank")
+            }else{
+                return
+            }
+            
+        }
+    };
+
     const insertarSubproceso = async (idSubproceso) => {
         try {
+            const data = JSON.parse(sessionStorage.getItem("datos"));
+            const loggedUser = user.usuario?.id_usuario
             const formData = new FormData();
+            if(data){
+                formData.append("nombre", data.nombre)
+                formData.append("descripcion", data.descripcion)
+                formData.append("aprobadores", data.aprobadores);
+                formData.append("nivel", data.nivel)
+                formData.append("esMacroproceso", data.macroproceso);
+                formData.append("id_creador", loggedUser);
+            }
+            
             formData.append("idProceso", processID);
-            formData.append("idSubProceso", idSubproceso);
+            formData.append("calledElement", idSubproceso);
             formData.append("callActivity", callActivity);
 
-            await guardarCambios()
+            version ? formData.append("version", version) : null;
+            const xmlContent = await exportDiagramXml(bpmnModelerRef);
+            const blob = new Blob([xmlContent], { type: "application/xml" })
+            formData.append("archivo", blob, `process.bpmn`);
 
             const URL =
                 import.meta.env.VITE_APP_MODE === "desarrollo"
                     ? import.meta.env.VITE_URL_DESARROLLO
                     : import.meta.env.VITE_URL_PRODUCCION;
 
-            const data = await fetchHook(
+            const response = await fetchHook(
                 `${URL}/api/v1/procesos/connect-subprocess`,
                 "POST",
                 formData,
                 null
             );
-
-            const newData = await fetchHook(`${URL}/api/v1/procesos/${processID}`, "GET", null, null);
-            if (data.code == 200) {
-                enqueueSnackbar(data.message, { variant: "success" });
-                setEmptyDiagram(newData.xml);
+            
+            if (!response.ok) {
+                createDiagram(bpmnModelerRef, response.xml);
+                enqueueSnackbar("Proceso vinculado correctamente", { variant: "success" });
+                
             } else {
-                enqueueSnackbar(data.message, { variant: "error" });
+                enqueueSnackbar(response.message, { variant: "error" });
             }
         } catch (error) {
             console.log(error);
@@ -138,12 +166,12 @@ export const CustomMenuContextual = ({modo}) => {
             id="menu-contextual"
             style={{ top: y, left: x }}
         >
-            <li
+            {modo === "designer" && <li
                 className="px-4 py-2 hover:bg-gray-100 whitespace-nowrap cursor-pointer"
                 onClick={goToProcess}
             >
                 Ir al Subproceso
-            </li>
+            </li>}
 
             {/* Submenú */}
             <li className="relative group px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center justify-between">
@@ -165,15 +193,15 @@ export const CustomMenuContextual = ({modo}) => {
                 <ul className="absolute top-0 left-full mt-[-1px] min-w-[160px] hidden group-hover:flex flex-col bg-white border border-gray-300 shadow-md rounded z-50">
                     {subProcess.length > 0 ? (
                         subProcess.map((subproceso) => {
-                            if (subproceso.idProceso !== subProcessId) {
+                            if (subproceso.id_proceso !== subProcessId && !subproceso.macroproceso) {
                                 return (
                                     <li
-                                        key={subproceso.idProceso}
+                                        key={subproceso.id_proceso}
                                         className="px-4 py-2 hover:bg-gray-100 whitespace-nowrap cursor-pointer"
-                                        id={subproceso.idProceso}
+                                        id={subproceso.id_proceso}
                                         onClick={() =>
                                             insertarSubproceso(
-                                                subproceso.idProceso
+                                                subproceso.id_bpmn
                                             )
                                         }
                                     >

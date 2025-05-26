@@ -11,7 +11,7 @@ export const ModalCrearProceso = ({ isOpen, closeModal }) => {
         nombre: "",
         descripcion: "",
         aprobadores: "",
-        macroproceso: "",
+        macroproceso: false,
         nivel: ""
     });
     const navigate = useNavigate()

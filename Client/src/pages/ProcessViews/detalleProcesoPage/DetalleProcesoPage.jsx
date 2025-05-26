@@ -60,7 +60,6 @@ export const DetalleProcesoPage = () => {
                     }
                     const estado = estadoProcesoActual.estadoAprobacion === "pendiente";
                     setEstaAprobado(estado);
-                    console.log("ESTADO:", estado);
                 } catch (error) {
                     console.log(error);
                 }
@@ -98,9 +97,10 @@ export const DetalleProcesoPage = () => {
                                     setOpenModal={setOpenModal}
                                     tabActiva={tabActiva}
                                     setTabActiva={setTabActiva}
+                                    version={version}
                                 />
                             )}
-                        <ResumenProceso resumenProceso={resumenProceso} />
+                        <ResumenProceso resumenProceso={resumenProceso}/>
                         <VisualizadorProceso
                             idProceso={idProceso}
                             version={version}

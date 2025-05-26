@@ -105,68 +105,63 @@ export const readProcessVersion = async (req, res, next) => {
 };
 
 export const connectSubprocess = async (req, res, next) => {
+    const transaction = await sequelize.transaction();
     try {
-        const { idProceso, idSubProceso, callActivity } = req.body;
+        const { idProceso, calledElement, callActivity, aprobadores, nivel, nombre, descripcion, esMacroproceso, id_creador } = req.body;
+        console.log(req.body);
+        const { archivo } = req.files;
+        const archivoTransformado = archivo.data.toString("utf8");
 
-        const rutaRelativaProcesoPadre = path.join(
-            "upload",
-            `${idProceso}.bpmn`
-        );
-        const rutaAbsolutaProcesoPadre = path.join(
-            __dirname,
-            "../",
-            rutaRelativaProcesoPadre
-        );
 
-        const subProceso = await Procesos.findByPk(idSubProceso, { raw: true });
-        const subProcesoName = subProceso.nombre;
+        const procesoPadre = await Procesos.findOne({where: {id_bpmn: idProceso}}, { transaction })
 
-        const referenciaExistente = await CallActivity.findOne({
-            raw: true,
-            where: {
-                idProceso,
-                callActivity,
-            },
-        });
-        if (referenciaExistente) {
-            await CallActivity.update(
-                {
-                    idSubProceso,
-                },
-                {
-                    where: {
-                        callActivity,
-                    },
-                }
-            );
-            changeCallElement(
-                rutaAbsolutaProcesoPadre,
-                callActivity,
-                idSubProceso,
-                subProcesoName
-            );
-            return res.status(200).json({
-                code: 200,
-                message: "Subproceso vinculado correctamente",
-            });
-        } else {
-            await CallActivity.create({
-                idProceso,
-                idSubProceso,
-                callActivity,
-            });
-            changeCallElement(
-                rutaAbsolutaProcesoPadre,
-                callActivity,
-                idSubProceso,
-                subProcesoName
-            );
-            return res.status(200).json({
-                code: 200,
-                message: "Subproceso vinculado correctamente",
-            });
+        if (!procesoPadre) {
+            await Procesos.create({
+                id_creador: id_creador,
+                id_aprobadores_cargo: aprobadores,
+                id_nivel: nivel,
+                nombre: nombre,
+                descripcion: descripcion,
+                estado: "borrador",
+                id_bpmn: idProceso,
+                macroproceso: esMacroproceso,
+            }, { transaction })
         }
+
+        const subproceso = await Procesos.findOne({where: {id_bpmn: calledElement}}, { transaction })
+        const nombreSubproceso = subproceso.nombre
+
+        const referenciaExistente = await IntermediaProcesos.findOne({
+            where: {
+                id_bpmn_padre: idProceso,
+                call_activity: callActivity,
+            },
+        }, { transaction });
+        const archivoModificado = await changeCallElement(
+                archivoTransformado,
+                callActivity,
+                calledElement,
+                nombreSubproceso
+            );
+
+        if (referenciaExistente) {
+            await referenciaExistente.update({id_bpmn: calledElement,}, { transaction });
+            res.setHeader("Content-Type", "application/xml");
+            res.status(200).send(archivoModificado)
+        }else {
+            await IntermediaProcesos.create({
+                id_bpmn_padre: idProceso,
+                call_activity: callActivity,
+                id_bpmn: calledElement,
+            }, { transaction });
+
+            res.setHeader("Content-Type", "application/xml");
+            res.status(200).send(archivoModificado);
+        }
+        await transaction.commit();
+        
     } catch (error) {
+        await transaction.rollback();
         logger.error("Controlador updateSubproceso", error);
         console.log(error);
         next(error);
@@ -276,6 +271,7 @@ export const uploadProcess = async (req, res, next) => {
         }
 
         await transaction.commit();
+        
         res.status(201).json({
             code: 201,
             message: "Procesos cargado correctamente",
@@ -291,6 +287,7 @@ export const uploadProcess = async (req, res, next) => {
 //Guardar cambios cuando se trabaja en el modelador o crear un nuevo proceso si este no existe
 export const saveNewProcessChanges = async (req, res, next) => {
     try {
+
         const { archivo } = req.files;
         const {
             id_creador,
@@ -858,7 +855,7 @@ export const getProcessSummary = async (req, res, next) => {
                     attributes: ["nombre"],
                 },
             ],
-        });
+        })
 
         const subprocesos = await IntermediaProcesos.findAll({
             where: {
@@ -869,6 +866,13 @@ export const getProcessSummary = async (req, res, next) => {
                     model: Procesos,
                     as: "id_bpmn_proceso",
                     attributes: ["id_bpmn", "nombre"],
+                    include: [
+                    {
+                        model: VersionProceso,
+                        as: "version_procesos",
+                        order: [["created_at", "DESC"]]
+                    },
+            ],
                 },
             ],
         });
@@ -876,6 +880,7 @@ export const getProcessSummary = async (req, res, next) => {
         const subprocesosMap = subprocesos.map((subproceso) => ({
             id: subproceso.id_bpmn_proceso?.id_bpmn,
             nombre: subproceso.id_bpmn_proceso?.nombre,
+            version: subproceso.id_bpmn_proceso?.version_procesos?.[0]?.id_version_proceso
         }));
 
         const resumenProceso = {
@@ -915,15 +920,13 @@ export const getProcessSummary = async (req, res, next) => {
 //Funcion que crea los comentarios de la versión de un proceso
 export const createCommentary = async (req, res, next) => {
     try {
-        const { idProceso, comentario, versionProceso, id_usuario } = req.body;
-
-        const versionMock = "1"; // Cambiar por la version real del proceso
+        const { idProceso, comentario, version, id_usuario } = req.body;
 
         await ComentariosVersionProceso.create({
             id_usuario,
             id_bpmn: idProceso,
             comentario,
-            id_version_proceso: versionMock,
+            id_version_proceso: version,
         });
 
         res.status(201).json({
@@ -940,9 +943,9 @@ export const createCommentary = async (req, res, next) => {
 //Función que obtiene los comentarios de la versión un proceso
 export const getCommentaries = async (req, res, next) => {
     try {
-        const { idProceso, idVersionProceso } = req.params;
+        const { idProceso, version } = req.params;
 
-        const versionMockup = "1"; // Cambiar por la version real del proceso
+
 
         let comentarios = await ComentariosVersionProceso.findAll({
             include: [
@@ -954,7 +957,7 @@ export const getCommentaries = async (req, res, next) => {
             ],
             where: {
                 id_bpmn: idProceso,
-                id_version_proceso: versionMockup,
+                id_version_proceso: version,
             },
         });
 
@@ -986,15 +989,15 @@ export const createOppotunity = async (req, res, next) => {
             req.body;
         const archivos = req.files?.archivos || null;
 
-        console.log(req.body);
 
-        /*  await OportunidadesMejora.create({
+
+        await OportunidadesMejora.create({
             id_usuario,
             id_bpmn: idProceso,
             asunto,
             descripcion,
             id_version_proceso: version
-        }) */
+        })
         res.status(201).json({
             code: 201,
             message: "Oportunidad creada correctamente",
@@ -1009,9 +1012,7 @@ export const createOppotunity = async (req, res, next) => {
 //Funcion que obtiene las oportunidades de la versión de un proceso
 export const getOpportunities = async (req, res, next) => {
     try {
-        const { idProceso, idVersionProceso } = req.params;
-
-        const versionMockup = "1"; // Cambiar por la version real del proceso
+        const { idProceso, version } = req.params;
 
         let oportunidades = await OportunidadesMejora.findAll({
             include: [
@@ -1023,7 +1024,7 @@ export const getOpportunities = async (req, res, next) => {
             ],
             where: {
                 id_bpmn: idProceso,
-                id_version_proceso: versionMockup,
+                id_version_proceso: version,
             },
         });
 
@@ -1223,7 +1224,6 @@ export const createNewProcessVersion = async (req, res, next) => {
             });
         }
 
-        
         const ultimaVersion = await VersionProceso.findByPk(version)
         const nuevaVersion = (parseFloat(ultimaVersion.nombre_version) + 0.1).toFixed(1)
 

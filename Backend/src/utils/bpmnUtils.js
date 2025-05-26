@@ -1,5 +1,7 @@
 import logger from "./logger.js";
 import fs from "fs/promises";
+import * as cheerio from "cheerio"
+
 
 const extaerIdProceso = (xmlString) => {
     if (xmlString.includes("bizagi")) {
@@ -54,17 +56,16 @@ const extraerDescripcionProceso = (xmlString) => {
     return match ? match[1].trim() : null;
 };
 
-export const changeCallElement = async (
-    archivoBpmn,
+/* export const changeCallElement = async (
+    xmlContent,
     callActivity,
     calledElement,
-    name = ""
+    name
 ) => {
     try {
-        // 1. Leer el archivo
-        const xmlContent = await fs.readFile(archivoBpmn, "utf-8");
 
-        // 2. Buscar y reemplazar SOLO el callActivity específico (con o sin bpmn:)
+        console.log(name);
+        //Buscar y reemplazar SOLO el callActivity específico (con o sin bpmn:)
         const updatedXml = xmlContent.replace(
             new RegExp(
                 `(<(?:bpmn:)?callActivity\\s+[^>]*?id="${callActivity}")([^>]*?)(name=")[^"]*(")([^>]*?)(calledElement=")[^"]*(")([^>]*?>)`,
@@ -73,17 +74,37 @@ export const changeCallElement = async (
             `$1$2$3${name}$4$5$6${calledElement}$7$8`
         );
 
-        // 3. Guardar los cambios en el mismo archivo
-        await fs.writeFile(archivoBpmn, updatedXml, "utf-8");
-
-        console.log(
-            `✅ CallActivity "${callActivity}" actualizado con calledElement="${calledElement}"`
-        );
+        return updatedXml;
     } catch (error) {
         console.error(`❌ Error al modificar el archivo: ${error.message}`);
         throw error;
     }
+}; */
+
+export const changeCallElement = async (xmlContent, callActivity, calledElement, name) => {
+  try {
+    const $ = cheerio.load(xmlContent, {
+      xmlMode: true,
+    });
+
+    // Buscar callActivity sin prefijo (porque en tu XML es <callActivity>)
+    const call = $(`[id="${callActivity}"]`).filter((i, el) => el.tagName.endsWith("callActivity"));
+
+
+    if (call.length === 0) {
+      throw new Error(`No se encontró el callActivity con ID: ${callActivity}`);
+    }
+
+    call.attr("name", name);
+    call.attr("calledElement", calledElement);
+
+    return $.xml();
+  } catch (error) {
+    console.error(`❌ Error al modificar el archivo: ${error.message}`);
+    throw error;
+  }
 };
+
 
 export const extraerDatosBpmn = async (archivo) => {
     try {

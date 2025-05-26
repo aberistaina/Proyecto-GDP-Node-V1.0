@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { FaRegCalendarAlt } from "react-icons/fa";
 
-export const Oportunidades = ({idProceso}) => {
+export const Oportunidades = ({idProceso, version}) => {
     const [ oportunidades, SetOportunidades ] = useState([])
 
     useEffect(() => {
@@ -11,7 +11,7 @@ export const Oportunidades = ({idProceso}) => {
                 import.meta.env.VITE_APP_MODE === "desarrollo"
                     ? import.meta.env.VITE_URL_DESARROLLO
                     : import.meta.env.VITE_URL_PRODUCCION;
-                const response = await fetch(`${URL}/api/v1/procesos/oportunidades/getAll/${idProceso}`)
+                const response = await fetch(`${URL}/api/v1/procesos/oportunidades/getAll/${idProceso}/${version}`)
                 const data = await response.json()
                 console.log(data)
                 SetOportunidades(data.data)

@@ -42,7 +42,7 @@ export const ModeladoresHome = () => {
     }, [usuario]);
 
     return (
-        <div className="relative p-6 space-y-8 min-h-screen bg-[#f9fafb]">
+        <div className="p-6 space-y-8 min-h-screen">
             {usuario && <UserProfile usuario={usuario} />}
             <DashboardResumen borradoresActivos={borradoresActivos} />
             <BotonNuevoProceso setIsOpen={setIsOpen}/>

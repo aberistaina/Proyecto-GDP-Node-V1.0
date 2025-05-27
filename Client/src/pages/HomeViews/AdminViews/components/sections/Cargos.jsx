@@ -15,12 +15,11 @@ export const Cargos = ({setIsOpenCreateUpdateModal}) => {
 
 
   return (
-    <>          
-                
+    <>         
                 <div className="flex flex-col justify-center items-center">
-                    <div className="w-[50%]">
-                        <CreateButton  setIsOpenCreateUpdateModal={setIsOpenCreateUpdateModal}  />
-                    </div>
+                    <div className="w-[50%] ms-52 ">
+                    <CreateButton setIsOpenCreateUpdateModal={setIsOpenCreateUpdateModal}  />
+                </div>
                     <table className="w-[50%] divide-y divide-gray-200 shadow-md rounded-lg overflow-hidden mb-6 p-4">
                         <thead className="bg-gray-100">
                             <tr>
@@ -79,6 +78,6 @@ export const Cargos = ({setIsOpenCreateUpdateModal}) => {
                         </tbody>
                     </table>
                 </div>
-            </>
+    </>
   )
 }

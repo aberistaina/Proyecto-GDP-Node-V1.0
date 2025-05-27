@@ -20,7 +20,7 @@ export const HomePage = () => {
             case 4:
                 return <AprobadoresHome />
             case 5:
-                return
+                return <AdminDashboard />
             default:
                 return null;
         }

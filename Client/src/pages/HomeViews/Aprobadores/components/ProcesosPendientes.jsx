@@ -1,5 +1,6 @@
 import PulseLoader from "react-spinners/PulseLoader";
 import { useNavigate } from "react-router-dom";
+import { GrOverview } from "react-icons/gr";
 
 export const ListaProcesosPendientes = ({ procesosPendientes, isLoading }) => {
     
@@ -42,9 +43,9 @@ export const ListaProcesosPendientes = ({ procesosPendientes, isLoading }) => {
                                 </span>
                             </p>
                         </div>
-                        <button className="bg-[#6f42c1] hover:bg-[#8556d4] text-white text-sm px-3 py-1 rounded-full transition-all"
+                        <button className="bg-[#6f42c1] hover:bg-[#8556d4] flex items-center text-white text-sm px-3 py-1 rounded-full transition duration-200 ease-in-out transform hover:scale-105"
                         onClick={() => handleClick(proceso.idBpmn, proceso.idVersionProceso )}>
-                            Revisar
+                            <GrOverview className="text-lg me-2" /> Revisar
                         </button>
                     </li>
                 ))}

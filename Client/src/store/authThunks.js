@@ -5,8 +5,6 @@ import { loginSuccess, logout, setLoading } from "./authSlice";
 export const fetchUsuario = () => async (dispatch) => {
     dispatch(setLoading(true));
 
-
-
     try {
         const URL =
             import.meta.env.VITE_APP_MODE === "desarrollo"
@@ -33,12 +31,13 @@ export const logoutUsuario = () => async (dispatch) => {
             ? import.meta.env.VITE_URL_DESARROLLO
             : import.meta.env.VITE_URL_PRODUCCION;
 
-        await fetch(`${URL}/api/v1/auth/logout`,{
-            method: "POST",
-            credentials: "include",
-        });
+        const response = await fetch(`${URL}/api/v1/auth/logout`,{
+                    method: "POST",
+                    credentials: "include",
+                });
 
         dispatch(logout());
+        return response;
         
     } catch (error) {
         console.error("Error al hacer logout:", error);

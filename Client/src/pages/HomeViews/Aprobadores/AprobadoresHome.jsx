@@ -35,7 +35,7 @@ export const AprobadoresHome = () => {
     
     
   return (
-    <div className="relative p-6 space-y-8 min-h-screen bg-[#f9fafb]">
+    <div className="p-6 space-y-8 min-h-screen">
       {usuario && <UserProfile usuario={usuario} />}
       <DashboardResumen procesosPendientes={procesosPendientes} />
       <ListaProcesosPendientes procesosPendientes={procesosPendientes} isLoading={isLoading} />

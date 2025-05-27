@@ -1,10 +1,13 @@
-export const AdminHeader = () => {
+export const AdminHeader = ({usuario}) => {
   return (
-    <div className="flex justify-between items-center">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">👋 Bienvenido Administrador</h1>
-        <p className="text-sm text-gray-500">Desde aquí puedes gestionar toda la plataforma.</p>
-      </div>
-    </div>
+    <div className="flex items-center gap-3">
+            
+            <div>
+                <p className="text-2xl px-7">Bienvenido, <span className="font-semibold">{usuario.nombre}</span></p>
+                
+                <p className="text-xs text-gray-500 px-7">{usuario.cargo}</p>
+                <p className="text-xs text-gray-500 px-7">{usuario.rol}</p>
+            </div>
+        </div>
   );
 };

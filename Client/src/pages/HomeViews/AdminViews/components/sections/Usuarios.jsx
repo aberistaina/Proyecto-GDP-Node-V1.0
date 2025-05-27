@@ -59,7 +59,7 @@ export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
         
         <div className="flex flex-col justify-center items-center">
             <div className="flex justify-end w-full">
-                <div className="w-[50%] me-32 ">
+                <div className=" ">
                     <CreateButton  setIsOpenCreateUpdateModal={setIsOpenCreateUpdateModal}  />
                 </div>
             </div>

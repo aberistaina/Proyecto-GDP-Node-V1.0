@@ -18,6 +18,9 @@ import { DetalleProcesoPage } from "./pages/ProcessViews/detalleProcesoPage/Deta
 import { AprobadoresHome } from "./pages/HomeViews/Aprobadores/AprobadoresHome";
 import { AdminDashboard } from "./pages/HomeViews/AdminViews/AdminDashboard";
 import { UnauthorizedPage } from "./pages/Unauthorized/UnauthorizedPage";
+import { VisualizadorProceso } from "./pages/ProcessViews/detalleProcesoPage/components/VisualizadorProceso";
+import { ViewerProcessPage } from "./pages/ProcessViews/detalleProcesoPage/components/viewer/ViewerProcessPage";
+import { BpmnViewerModule2 } from "./BpmnModule/BpmnViewer2/BpmnViewerModule2";
 
 function App() {
 
@@ -76,6 +79,7 @@ function App() {
                             <Route path="/tipo-proceso/:idNivel" element={<TipoProcesoPage />}/>
                             <Route path="/process-details/:idProceso" element={<DetalleProcesoPage />} />
                             <Route path="/process-details/:idProceso/:version" element={<DetalleProcesoPage />} />
+                            <Route path="/viewer-process/:idProceso/:version" element={<ViewerProcessPage />} />
                         </Route>
                     </Route>
 
@@ -85,7 +89,7 @@ function App() {
                     <Route element={<Layout />}>
                         <Route path="/bpmn" element={<BpmnViewerModule />} />
                         <Route path="/bpmnModeler" element={<BpmnDesignerModule />} />
-                        <Route path="/subproceso/:idSubproceso" element={<BpmnViewerModule />} />
+                        
                         <Route path="/subproceso/:callActivity/:idProcesoPadre" element={<BpmnDesignerModule />} />
                         
                     </Route>

@@ -2,16 +2,19 @@
 export const UserProfile = ({ usuario }) => {
     return (
         <div className="flex items-center gap-3">
-            <img
-            src={`https://robohash.org/${usuario.nombre}`}
-            alt="Avatar usuario"
-            className="w-28 h-28 object-cover rounded-full border border-gray-300 shadow"
-            />
+            <div className="">
+                <img
+                src={`https://robohash.org/${usuario.nombre}`}
+                alt="Avatar usuario"
+                className="w-20 h-20 object-cover rounded-full shadow-[0_0_70px_35px_white]" 
+                />
+            </div>
+            
             <div>
-                <p>👋 Bienvenido, <strong>{usuario.nombre}</strong></p>
-                <p className="text-xs text-gray-500 px-7">{usuario.email}</p>
+                <p className="text-2xl px-7">Bienvenido, <span className="font-semibold">{usuario.nombre}</span></p>
+                
                 <p className="text-xs text-gray-500 px-7">{usuario.cargo}</p>
-                <p className="text-xs text-gray-500 px-7">Rol: {usuario.rol}</p>
+                <p className="text-xs text-gray-500 px-7">{usuario.rol}</p>
             </div>
         </div>
     );

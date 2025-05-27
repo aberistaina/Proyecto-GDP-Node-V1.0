@@ -2,7 +2,7 @@ import { useRef, useEffect } from "react";
 import { useBpmnContext } from "../context/useBpmnContext";
 import { RiResetLeftFill } from "react-icons/ri";
 
-export const CanvasContainer = ({ height = "h-[555px]" }) => {
+export const CanvasContainer = ({ height = "h-[555px]", border }) => {
     const { containerRef, bpmnModelerRef } = useBpmnContext();
 
     useEffect(() => {
@@ -31,7 +31,9 @@ export const CanvasContainer = ({ height = "h-[555px]" }) => {
     return (
         <div
             ref={containerRef}
-            className={`w-full ${height} bg-white rounded-lg shadow-md relative`}
+            className={`w-full ${height} bg-white rounded-lg relative ${border ? "shadow-md border border-black" : "shadow-lg"}`}
+
+
         >
             <div className="absolute bottom-4 right-4 z-10 bg-white/80 backdrop-blur-md border border-gray-300 rounded-xl shadow-lg p-2 flex flex-col gap-2">
                 <button

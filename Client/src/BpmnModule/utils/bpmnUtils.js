@@ -15,14 +15,17 @@ export const exportDiagramXml = async (bpmnModelerRef) => {
 };
 export const cleanXml = (xmlString) => {
     return xmlString.replace(
-      /<documentation>([\s\S]*?)<\/documentation>/gi,
-      (_, contenido) => {
-        const decoded = new DOMParser().parseFromString(contenido, "text/html").body.textContent;
-        const textoPlano = decoded.replace(/<[^>]*>/g, "").trim();
-        return `<documentation>${textoPlano}</documentation>`;
-      }
+        /<documentation>([\s\S]*?)<\/documentation>/gi,
+        (_, contenido) => {
+            const decoded = new DOMParser().parseFromString(
+                contenido,
+                "text/html"
+            ).body.textContent;
+            const textoPlano = decoded.replace(/<[^>]*>/g, "").trim();
+            return `<documentation>${textoPlano}</documentation>`;
+        }
     );
-  };
+};
 
 // Función para Importar un diagrama en Bpmn
 export const importDiagram = (event, bpmnModelerRef) => {
@@ -32,7 +35,7 @@ export const importDiagram = (event, bpmnModelerRef) => {
     const reader = new FileReader();
     reader.onload = async (e) => {
         const xml = e.target.result;
-        const cleanedXml = cleanXml(xml)
+        const cleanedXml = cleanXml(xml);
         try {
             await bpmnModelerRef.current.importXML(cleanedXml);
             console.log("Diagrama importado correctamente");
@@ -61,10 +64,15 @@ export const createDiagram = async (bpmnModelerRef, diagrama) => {
             return;
         }
         const { warnings } = await modeler.importXML(diagrama);
+        
         const canvas = modeler.get("canvas");
+        
         const viewbox = canvas.viewbox();
-        canvas.zoom("fit-viewport");
-        canvas.scroll({ dx: viewbox.width / 3, dy: 0 });
+
+        canvas.zoom();
+        canvas.scroll({ dx: viewbox.width / 10, dy: 0 });
+
+        
     } catch (err) {
         console.error("Error al crear el diagrama:", err);
     }

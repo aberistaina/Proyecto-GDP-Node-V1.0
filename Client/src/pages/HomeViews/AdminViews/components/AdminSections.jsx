@@ -10,7 +10,7 @@ export const AdminSections = ({ setIsOpenCreateUpdateModal}) => {
     const { type } = useAdminData();
 
   return (
-    <section className="bg-white p-6 rounded-lg shadow">
+    <section className="p-6">
       {type === "usuarios" && <Usuarios  setIsOpenCreateUpdateModal={setIsOpenCreateUpdateModal} />}
       {type === "rol" && <Roles setIsOpenCreateUpdateModal={setIsOpenCreateUpdateModal} />}
       {type === "cargo" && <Cargos setIsOpenCreateUpdateModal={setIsOpenCreateUpdateModal} />}

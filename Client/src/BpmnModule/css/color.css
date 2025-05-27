@@ -89,3 +89,11 @@
     stroke: #a31515 !important;
     fill-rule: evenodd;
 }
+
+.cursor-pointer .djs-container {
+  cursor: pointer !important;
+}
+
+.cursor-default .djs-container {
+  cursor: default !important;
+}

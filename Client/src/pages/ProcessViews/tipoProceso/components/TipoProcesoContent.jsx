@@ -2,6 +2,7 @@ import { useState } from "react";
 import { TipoProcesoTable } from "./TipoProcesoTable";
 import { Botones } from "../../../HomeViews/Modeladores/components/Botones";
 import { TipoProcesoNavegacion } from "./TipoProcesoNavegacion";
+import { CadenaValor } from "./CadenaValor";
 
 
 
@@ -59,6 +60,7 @@ export const TipoProcesoContent = ( { openProcessModal, procesos, vista, setVist
 
     return (
         <div className="bg-[#ececec] rounded-lg drop-shadow-lg h-36 pt-4">
+            <CadenaValor />
             <div className="flex justify-between px-8 py-2 mb-4">
                 <TipoProcesoNavegacion vista={vista} setVista={setVista} procesoSeleccionado={procesoSeleccionado} getSubprocess={getSubprocess} macroProcesoSeleccionado={macroProcesoSeleccionado} />
                 <Botones openProcessModal={openProcessModal} />

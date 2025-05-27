@@ -22,6 +22,11 @@ export const DetalleProcesoPage = () => {
     const [openModal, setOpenModal] = useState(false);
     const [openModalVersiones, setOpenModalVersiones] = useState(false);
     const [estaAprobado, setEstaAprobado ] = useState()
+    const [mostrarModal, setMostrarModal] = useState(false);
+
+
+
+
 
     const getData = async () => {
         try {
@@ -81,7 +86,7 @@ export const DetalleProcesoPage = () => {
                 </div>
             ) : (
                 <div className="flex justify-center h-screen mt-6">
-                    <div className="w-[70%] ">
+                    <div className="w-[95%] ">
                         <HeaderDetalleProceso
                             headerProceso={headerProceso}
                             idProceso={idProceso}
@@ -105,6 +110,7 @@ export const DetalleProcesoPage = () => {
                             idProceso={idProceso}
                             version={version}
                         />
+                        
                     </div>
                     {openModal && (
                         <ModalMejorasComentarios

@@ -24,7 +24,7 @@
     "xml2js": "^0.6.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9",
+    "nodemon": "^3.1.10",
     "sequelize-auto": "^0.8.8"
   },
   "name": "backend",

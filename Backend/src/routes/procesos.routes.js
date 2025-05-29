@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { connectSubprocess, getAllProcess, getSubprocessesOfProcess, readActualProcessVersion, readProcessVersion, getProcessSummary, saveNewProcessChanges, saveSubProcessChanges, uploadProcess, createCommentary, getCommentaries, createOppotunity, getOpportunities, getNiveles, getProcessByNivel, getNivelById, downloadProcess, getProcessVersions, createNewProcessVersion, getPendingProcess, enviarAprobacion, aprobarProceso, rechazarProceso, getPendingDraft } from "../controllers/process.controller.js";
+import { connectSubprocess, getAllProcess, getSubprocessesOfProcess, readActualProcessVersion, readProcessVersion, getProcessSummary, saveNewProcessChanges, saveSubProcessChanges, uploadProcess, createCommentary, getCommentaries, createOppotunity, getOpportunities, getNiveles, getProcessByNivel, getNivelById, downloadProcess, getProcessVersions, createNewProcessVersion, getPendingProcess, enviarAprobacion, aprobarProceso, rechazarProceso, getPendingDraft, getBitacoraMessages } from "../controllers/process.controller.js";
 
 
 const router = Router()
@@ -18,6 +18,7 @@ router.get("/get-versiones/:idProceso", getProcessVersions)
 router.get("/download-process/:idProceso", downloadProcess)
 router.get("/get-pending-process/:idUsuario", getPendingProcess)
 router.get("/get-pending-draft/:idUsuario", getPendingDraft)
+router.get("/get-bitacora-aprobaciones/:version", getBitacoraMessages)
 
 router.post("/connect-subprocess", connectSubprocess)
 router.post("/upload-process", uploadProcess)

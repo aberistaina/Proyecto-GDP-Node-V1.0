@@ -57,8 +57,8 @@ export const TipoProcesoPage = () => {
         <>
             {user ? (
                 <div>
-                    <TipoProcesoHeader titulo={nivel.nombre} />
-                    <CadenaValor allProcess={allProcess} />
+                    <TipoProcesoHeader titulo={nivel.nombre} allProcess={allProcess} />
+                    
                 </div>
             ) : (
                 <p>Cargando...</p>

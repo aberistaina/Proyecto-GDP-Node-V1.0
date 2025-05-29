@@ -4,7 +4,7 @@ import { IoMdCloseCircle } from "react-icons/io";
 import { useSnackbar } from "notistack";
 import { useSelector } from "react-redux";
 
-export default function ModalMejorasComentarios({ menu, setOpenModal, idProceso,version }) {
+export default function ModalMejorasComentarios({ menu, setOpenModal, idProceso,version, getAllComentaries, getAllOpportunities }) {
     const { enqueueSnackbar } = useSnackbar();
     const [comentario, setComentario] = useState("");
     const [asunto, setAsunto ] = useState("")
@@ -60,6 +60,11 @@ export default function ModalMejorasComentarios({ menu, setOpenModal, idProceso,
             if (data.code === 201) {
                 enqueueSnackbar(data.message, { variant: "success" });
                 setOpenModal(false)
+                if( menu === "comentarios") {
+                    getAllComentaries()
+                }else {
+                    getAllOpportunities()
+                }
 
             } else {
                 enqueueSnackbar(data.message, { variant: "error" });

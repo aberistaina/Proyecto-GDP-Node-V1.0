@@ -4,3 +4,5 @@ consultas.sql
 Creacion de tablas.sql
 GDP-DB.drawio
 Proyecto GDP.docx
+docker-compose.override.yml
+.dockerignore

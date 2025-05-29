@@ -13,8 +13,10 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 
-export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVersiones, version, getPendingProcess, estaAprobado}) => {
+export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVersiones, version, getPendingProcess, estaAprobado, versiones, getData}) => {
     const { enqueueSnackbar } = useSnackbar();
+    const [isLastVersion, setIsLastVersion] = useState(false);
+
     
 
     const user = useSelector((state) => state.auth.user);
@@ -72,7 +74,7 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
 
             if (data.code === 201) {
                 enqueueSnackbar(data.message, { variant: "success" });
-                getPendingProcess()
+                getData()
 
             } else {
                 enqueueSnackbar(data.message, { variant: "error" });
@@ -145,9 +147,25 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
         }
     }
 
-    useEffect(() => {
+    const calcularSiEsUltimaVersion = () => {
+        if (!version || !versiones || versiones.length === 0) {
+            setIsLastVersion(false);
+            return;
+        }
 
+        const versionActual = parseFloat(headerProceso.version);
+        const maxVersion = Math.max(
+            ...versiones.map((v) => parseFloat(v.nombre_version))
+        );
+
+        setIsLastVersion(versionActual === maxVersion);
+        };
+
+
+    useEffect(() => {
+        console.log(versiones);
         if (!user) return
+        calcularSiEsUltimaVersion()
         getPendingProcess()
     }, [])
     
@@ -243,7 +261,7 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
                         </button>
                         )}
 
-                        {[1, 3, 5].includes(user.usuario?.id_rol) && headerProceso.estadoVersion !== "enviado" && <button className="bg-[#3b82f6] hover:bg-[#2563eb] text-white text-xs py-2 w-42 px-4 rounded focus:outline-none focus:shadow-outline flex items-center transition duration-300 ease-in-out transform hover:scale-105"
+                        {[1, 3, 5].includes(user.usuario?.id_rol) && headerProceso.estadoVersion !== "enviado" && isLastVersion && <button className="bg-[#3b82f6] hover:bg-[#2563eb] text-white text-xs py-2 w-42 px-4 rounded focus:outline-none focus:shadow-outline flex items-center transition duration-300 ease-in-out transform hover:scale-105"
                         onClick={createOrEditVersion}
                         >
                             <CiEdit className="me-1" /> {headerProceso.estadoVersion === "borrador" ? "Editar Borrador" : "Nueva Versión"}

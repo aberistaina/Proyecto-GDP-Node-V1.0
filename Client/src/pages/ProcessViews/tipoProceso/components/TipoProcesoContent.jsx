@@ -59,7 +59,7 @@ export const TipoProcesoContent = ( { openProcessModal, procesos, vista, setVist
     };
 
     return (
-        <div className="bg-[#ececec] rounded-lg drop-shadow-lg h-36 pt-4">
+        <div className="bg-[#ECECE] rounded-lg drop-shadow-lg h-36 pt-4">
             <CadenaValor />
             <div className="flex justify-between px-8 py-2 mb-4">
                 <TipoProcesoNavegacion vista={vista} setVista={setVista} procesoSeleccionado={procesoSeleccionado} getSubprocess={getSubprocess} macroProcesoSeleccionado={macroProcesoSeleccionado} />

@@ -10,6 +10,7 @@ import {
     OportunidadesMejora,
     Niveles,
     Cargo,
+    BitacoraAprobaciones
 } from "../models/models.js";
 import logger from "../utils/logger.js";
 import {
@@ -959,6 +960,7 @@ export const getCommentaries = async (req, res, next) => {
                 id_bpmn: idProceso,
                 id_version_proceso: version,
             },
+            order: [["created_at", "DESC"]],
         });
 
         const comentariosMap = comentarios.map((comentario) => {
@@ -1026,6 +1028,7 @@ export const getOpportunities = async (req, res, next) => {
                 id_bpmn: idProceso,
                 id_version_proceso: version,
             },
+            order: [["created_at", "DESC"]]
         });
 
         const oportunidadesMap = oportunidades.map((oportunidad) => {
@@ -1201,6 +1204,13 @@ export const createNewProcessVersion = async (req, res, next) => {
             where: { id_bpmn: idProceso },
         });
 
+        const versionBase = await VersionProceso.findByPk(version);
+        if (!versionBase) {
+            return res.status(404).json({ code: 404, message: "Versión base no encontrada" });
+        }
+
+
+
         const borradorAcutal = await VersionProceso.findOne({
             where: {
                 id_version_proceso: version,
@@ -1227,6 +1237,34 @@ export const createNewProcessVersion = async (req, res, next) => {
         const ultimaVersion = await VersionProceso.findByPk(version)
         const nuevaVersion = (parseFloat(ultimaVersion.nombre_version) + 0.1).toFixed(1)
 
+        const versionSuperior = await VersionProceso.findOne({
+            where: {
+                id_bpmn: idProceso,
+                nombre_version: nuevaVersion,
+            },
+        });
+
+        const borrador = await VersionProceso.findOne({
+            where: {
+                id_bpmn: idProceso,
+                estado: "borrador"
+            },
+        });
+
+        if (versionSuperior && borrador) {
+            return res.status(409).json({
+                code: 409,
+                message: `Ya existe un borrador para esta versión.`,
+            });
+        }
+
+        if (versionSuperior) {
+            return res.status(409).json({
+                code: 409,
+                message: `Ya existe una versión posterior (${nuevaVersion}). debes crear una nueva versión a partir de la última versión aprobada.`,
+            });
+        }
+
         await VersionProceso.create({
             id_proceso: proceso.id_proceso,
             id_creador,
@@ -1251,6 +1289,74 @@ export const createNewProcessVersion = async (req, res, next) => {
         });
     } catch (error) {
         logger.error("Controlador createNewProcessVersion", error);
+        console.log(error);
+        next(error);
+    }
+};
+
+export const createNewBitacoraMessage = async (req, res, next) => {
+    try {
+        const { comentario, version, id_usuario } = req.body;
+
+        const aprobador = await Aprobadores.findOne({
+            where: {
+                id_version_proceso: version,
+                id_usuario: id_usuario,
+            },
+        });
+
+        const idAprobador = aprobador ? aprobador.id_aprobador : null;
+
+        await Bitacora.create({
+            id_version_proceso: version,
+            id_aprobador: idAprobador,
+            comentario,
+        });
+        res.status(201).json({
+        code: 201,
+        message: "mensaje creado con éxito",
+        });
+    } catch (error) {
+        logger.error("Controlador createNewBitacoraMessage", error);
+        console.log(error);
+        next(error);
+        
+    }
+}
+
+export const getBitacoraMessages = async (req, res, next) => {
+    try {
+        const { version } = req.params;
+
+        const mensajes = await Bitacora.findAll({
+            raw:true,
+            where: {
+                id_version_proceso: version,
+            },
+            include: [
+                {
+                    model: Aprobadores,
+                    as: "id_aprobador_aprobadore",
+                },
+            ],
+            order: [["created_at", "DESC"]],
+        });
+
+        console.log(mensajes);
+
+        const mensajesMap = mensajes.map((mensaje) => ({
+            ...mensaje.toJSON(),
+            nombre_creador: mensaje.id_usuario_usuario?.nombre,
+            created_at: formatShortTime(mensaje.created_at),
+        }));
+
+        res.status(200).json({
+            code: 200,
+            message: "Mensajes obtenidos correctamente",
+            data: mensajesMap,
+        });
+    } catch (error) {
+        logger.error("Controlador getBitacoraMessages", error);
         console.log(error);
         next(error);
     }

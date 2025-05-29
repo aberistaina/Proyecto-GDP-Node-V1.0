@@ -7,7 +7,6 @@ import { ModeladoresHome } from "./Modeladores/ModeladoresHome";
 export const HomePage = () => {
     const user = useSelector((state) => state.auth.user);
     const id_rol = user?.usuario?.id_rol
-    console.log(id_rol);
 
     const renderPage = () =>{
         switch (id_rol) {

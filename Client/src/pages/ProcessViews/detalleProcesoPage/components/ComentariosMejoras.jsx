@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ButtonMejorasComentarios } from "./ButtonMejorasComentarios";
 import Comentarios from "./Comentarios";
 import { Oportunidades } from "./Oportunidades";
+import ModalMejorasComentarios from "./ModalMejorasComentarios";
 
-export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabActiva, version}) => {
+export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabActiva, version, comentarios, oportunidades, getAllComentaries, getAllOpportunities}) => {
+    
+   
   
 
   return (
@@ -35,7 +38,7 @@ export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabAc
         <div>
         {tabActiva === "oportunidades" || tabActiva === "comentarios" 
         ? 
-        <ButtonMejorasComentarios menu={tabActiva} idProceso={idProceso} setOpenModal={setOpenModal}/>
+        <ButtonMejorasComentarios menu={tabActiva} idProceso={idProceso} setOpenModal={setOpenModal} />
         :
         null
             }
@@ -46,14 +49,14 @@ export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabAc
       {tabActiva === "oportunidades" && (
         <div>
           {/* Oportunidades */}
-          <Oportunidades idProceso={idProceso} version={version}/>
+          <Oportunidades idProceso={idProceso} version={version} oportunidades={oportunidades} getAllOpportunities={getAllOpportunities} />
         </div>
       )}
 
       {tabActiva === "comentarios" && (
         <div>
           {/* Comentarios */}
-            <Comentarios idProceso={idProceso} version={version}/>
+            <Comentarios idProceso={idProceso} version={version} comentarios={comentarios} getAllComentaries={getAllComentaries} />
         </div>
       )}
     </div>

@@ -1,9 +1,13 @@
-
-export const TipoProcesoHeader = ({ titulo }) => {
+import { CadenaValor } from "./CadenaValor";
+export const TipoProcesoHeader = ({ titulo, allProcess }) => {
     return (
-        <div className="bg-[#ececec] rounded-lg drop-shadow-lg h-20 pt-4 mb-8">
+        <div className="bg-gradient-to-r from-[#FAF0FF] to-[#F3FAFF] shadow-lg rounded-2xl pt-4 mb-8">
             <div>
-                <h1 className="text-4xl font-bold px-8 mb-6">{titulo}</h1>
+                <h1 className="text-4xl px-8 mb-6">{titulo}</h1>
+                
+            </div>
+            <div>
+                <CadenaValor allProcess={allProcess}  />
             </div>
         </div>
     );

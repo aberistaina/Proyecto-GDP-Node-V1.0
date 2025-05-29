@@ -3,9 +3,9 @@ import { FaRegCalendarAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 
-export default function ModalVersiones({  setOpenModalVersiones, idProceso }) {
+export default function ModalVersiones({  setOpenModalVersiones, idProceso, versiones }) {
 
-    const [versiones, setVeriones ] = useState([])
+    
     
     const navigate = useNavigate()
 
@@ -19,26 +19,7 @@ export default function ModalVersiones({  setOpenModalVersiones, idProceso }) {
         }
     }
 
-    useEffect(() => {
-        const getAllVersions = async() =>{
-        try {
-            const URL =
-                import.meta.env.VITE_APP_MODE === "desarrollo"
-                    ? import.meta.env.VITE_URL_DESARROLLO
-                    : import.meta.env.VITE_URL_PRODUCCION;
-
-            const response = await fetch(`${URL}/api/v1/procesos/get-versiones/${idProceso}`);
-            const data = await response.json();
-            console.log(data);
-            setVeriones(data.data)
-
-        } catch (error) {
-            console.log(error);
-        }
-    }
-    getAllVersions()
     
-    }, [])
     
 
     return (

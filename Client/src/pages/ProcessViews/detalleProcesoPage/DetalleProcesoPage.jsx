@@ -23,9 +23,39 @@ export const DetalleProcesoPage = () => {
     const [openModalVersiones, setOpenModalVersiones] = useState(false);
     const [estaAprobado, setEstaAprobado ] = useState()
     const [mostrarModal, setMostrarModal] = useState(false);
+    const [comentarios, setComentarios ] = useState([])
+    const [ oportunidades, SetOportunidades ] = useState([])
+    const [versiones, setVeriones ] = useState([])
 
+const getAllComentaries = async() =>{
+            try {
+                const URL =
+                import.meta.env.VITE_APP_MODE === "desarrollo"
+                    ? import.meta.env.VITE_URL_DESARROLLO
+                    : import.meta.env.VITE_URL_PRODUCCION;
+                const response = await fetch(`${URL}/api/v1/procesos/comentarios/getAll/${idProceso}/${version}`)
+                const data = await response.json()
+                setComentarios(data.data)
+            } catch (error) {
+                console.log(error);
+            }
+        }
 
-
+        const getAllOpportunities = async () => {
+            try {
+                const URL =
+                import.meta.env.VITE_APP_MODE === "desarrollo"
+                    ? import.meta.env.VITE_URL_DESARROLLO
+                    : import.meta.env.VITE_URL_PRODUCCION;
+                const response = await fetch(`${URL}/api/v1/procesos/oportunidades/getAll/${idProceso}/${version}`)
+                const data = await response.json()
+                console.log(data)
+                SetOportunidades(data.data)
+            } catch (error) {
+                console.log(error)
+            }
+            
+        }
 
 
     const getData = async () => {
@@ -68,7 +98,8 @@ export const DetalleProcesoPage = () => {
                 } catch (error) {
                     console.log(error);
                 }
-            }
+    }
+
     useEffect(() => {
         setIsLoading(false);
         const fetchData = async () => {
@@ -77,6 +108,27 @@ export const DetalleProcesoPage = () => {
         };
         fetchData();
     }, [version]);
+
+    useEffect(() => {
+        const getAllVersions = async() =>{
+        try {
+            const URL =
+                import.meta.env.VITE_APP_MODE === "desarrollo"
+                    ? import.meta.env.VITE_URL_DESARROLLO
+                    : import.meta.env.VITE_URL_PRODUCCION;
+
+            const response = await fetch(`${URL}/api/v1/procesos/get-versiones/${idProceso}`);
+            const data = await response.json();
+            console.log(data);
+            setVeriones(data.data)
+
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    getAllVersions()
+    
+    }, [])
     
     return (
         <BpmnProvider>
@@ -94,6 +146,8 @@ export const DetalleProcesoPage = () => {
                             version={version}
                             getPendingProcess={getPendingProcess}
                             estaAprobado={estaAprobado}
+                            versiones={versiones}
+                            getData={getData}
                         />
                         {headerProceso.estadoVersion !== "borrador" &&
                             headerProceso.estadoVersion !== "enviado" && (
@@ -103,6 +157,11 @@ export const DetalleProcesoPage = () => {
                                     tabActiva={tabActiva}
                                     setTabActiva={setTabActiva}
                                     version={version}
+                                    comentarios={comentarios}
+                                    getAllComentaries={getAllComentaries}
+                                    oportunidades={oportunidades}
+                                    getAllOpportunities={getAllOpportunities}
+                                    
                                 />
                             )}
                         <ResumenProceso resumenProceso={resumenProceso}/>
@@ -118,12 +177,15 @@ export const DetalleProcesoPage = () => {
                             menu={tabActiva}
                             idProceso={idProceso}
                             version={version}
+                            getAllComentaries={getAllComentaries}
+                            getAllOpportunities={getAllOpportunities}
                         />
                     )}
                     {openModalVersiones && (
                         <ModalVersiones
                             setOpenModalVersiones={setOpenModalVersiones}
                             idProceso={idProceso}
+                            versiones={versiones}
                         />
                     )}
                 </div>

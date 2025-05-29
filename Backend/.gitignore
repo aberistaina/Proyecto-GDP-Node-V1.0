@@ -1,3 +1,5 @@
 node_modules
 src/logs
 .env
+.dockerignore
+Dockerfile

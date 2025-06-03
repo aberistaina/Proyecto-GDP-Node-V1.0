@@ -18,11 +18,6 @@ export default class CustomOverrideProvider {
                 gruposPermitidos.includes(group.id)
             );
             return gruposFiltrados.map((group) => {
-                console.log("INICIO DE GRUPO");
-                console.log("-----------------------------");
-                console.log(group);
-                console.log("FIN DE GRUPO", );
-                console.log("-----------------------------");
                 // Filtrar grupo "general"
                  if (group.id === "general" && Array.isArray(group.entries)) {
                     const filteredEntries = group.entries.filter((entry) => {

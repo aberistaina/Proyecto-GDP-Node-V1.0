@@ -33,10 +33,6 @@ export default class ArchivosVersionProceso extends Model {
     s3_key: {
       type: DataTypes.STRING(512),
       allowNull: false
-    },
-    s3_bucket: {
-      type: DataTypes.STRING(255),
-      allowNull: false
     }
   }, {
     tableName: 'archivos_version_proceso',

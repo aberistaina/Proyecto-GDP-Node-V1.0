@@ -1,4 +1,6 @@
-export const LateralPanel = ({ elementoSeleccionado, onClose }) => {
+
+//Popup que se levanta en el visualizador al hacer click en algún elemento, muestra la descripción de este
+export const PopupDescripcion = ({ elementoSeleccionado, onClose }) => {
     if (!elementoSeleccionado) return null;
     const limpiarHtml = (html) => {
         const doc = new DOMParser().parseFromString(html, "text/html");

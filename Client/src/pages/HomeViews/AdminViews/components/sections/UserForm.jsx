@@ -94,7 +94,6 @@ export const UserForm = ({ setIsOpenCreateUpdateModal }) => {
 
                 const response = await fetch(`${URL}/api/v1/admin/get-user/${id}`)
                 const data = await response.json()
-                console.log(data.data);
                 setFormUser(data.data)
                 
             } catch (error) {

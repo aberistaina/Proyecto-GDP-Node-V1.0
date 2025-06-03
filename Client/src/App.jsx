@@ -18,9 +18,8 @@ import { DetalleProcesoPage } from "./pages/ProcessViews/detalleProcesoPage/Deta
 import { AprobadoresHome } from "./pages/HomeViews/Aprobadores/AprobadoresHome";
 import { AdminDashboard } from "./pages/HomeViews/AdminViews/AdminDashboard";
 import { UnauthorizedPage } from "./pages/Unauthorized/UnauthorizedPage";
-import { VisualizadorProceso } from "./pages/ProcessViews/detalleProcesoPage/components/VisualizadorProceso";
 import { ViewerProcessPage } from "./pages/ProcessViews/detalleProcesoPage/components/viewer/ViewerProcessPage";
-import { BpmnViewerModule2 } from "./BpmnModule/BpmnViewer2/BpmnViewerModule2";
+
 
 function App() {
 

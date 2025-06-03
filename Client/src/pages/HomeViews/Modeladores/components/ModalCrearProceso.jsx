@@ -27,7 +27,6 @@ export const ModalCrearProceso = ({ isOpen, closeModal }) => {
         try {
             validarDatosProceso(formProceso)
             e.preventDefault();
-            console.log(formProceso);
             sessionStorage.setItem("datos", JSON.stringify(formProceso));
             navigate("/bpmnModeler")
         } catch (error) {

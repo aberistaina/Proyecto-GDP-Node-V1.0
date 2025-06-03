@@ -18,7 +18,8 @@ export const {
   Roles, 
   Usuarios, 
   VersionProceso,
-  Token
+  Token,
+  Administracion
 } = models;
 
 export default models;

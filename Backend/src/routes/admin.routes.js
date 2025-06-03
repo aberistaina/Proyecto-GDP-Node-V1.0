@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import { issueTokenMiddleware, verifyTokenMiddleware } from "../middlewares/login.middleware.js";
-import { createCargo, createNivel, createRol, createUser, deleteCargo, deleteNivel, deleteRol, deleteUser, getAllCargos, getAllNiveles, getAllRoles, getAllUsers, getCardData, getCargoById, getEntidades, getNivelById, getRolById, getUserById, updateCargo, updateNivel, updateRol, updateUser } from "../controllers/admin.controller.js";
+import { createCargo, createNivel, createRol, createUser, deleteCargo, deleteNivel, deleteRol, deleteUser, getAdminDataConfig, getAllCargos, getAllNiveles, getAllRoles, getAllUsers, getCardData, getCargoById, getEntidades, getNivelById, getRolById, getUserById, setAdminConfig, updateCargo, updateNivel, updateRol, updateUser } from "../controllers/admin.controller.js";
 
 
 const router = Router()
@@ -31,6 +31,9 @@ router.delete("/delete-user/:id", deleteUser)
 router.delete("/delete-cargo/:id", deleteCargo)
 router.delete("/delete-rol/:id", deleteRol)
 router.delete("/delete-nivel/:id", deleteNivel)
+
+router.get("/get-config", getAdminDataConfig)
+router.post("/set-config", setAdminConfig)
 
 
 export default router

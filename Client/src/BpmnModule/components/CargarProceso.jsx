@@ -1,5 +1,7 @@
 import { BiRefresh } from "react-icons/bi";
 
+//ACTUALMENTE SIN USO
+//Componente que sirve para cargar procesos
 export const CargarProceso = ({selectedProcess, setSelectedProcess, process, handleSubmit  }) => {
     
   return (

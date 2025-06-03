@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { GoPerson } from "react-icons/go";
 import { logoutUsuario } from "../store/authThunks";
-import { closeSnackbar, useSnackbar } from "notistack";
+import { useSnackbar } from "notistack";
 import { useDispatch } from "react-redux";
 
 export const NavBar = () => {
@@ -13,7 +13,6 @@ export const NavBar = () => {
     const cerrarSesion = async() => {
         try {
             const response = await dispatch(logoutUsuario())
-            console.log(response);
             if (response.ok) {
                 enqueueSnackbar("Sesión cerrada correctamente", { variant: "success" });
             } else {

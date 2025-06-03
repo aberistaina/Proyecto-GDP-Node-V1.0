@@ -1,6 +1,8 @@
 import ActiveDirectory from "activedirectory2";
 import { createToken } from "../services/auth.services.js";
 
+
+
 const configAD = {
     url: "ldap://ldap.forumsys.com:389",
     baseDN: "dc=example,dc=com",

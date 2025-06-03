@@ -15,7 +15,6 @@ export const ViewerProcess = ({idProceso, version}) => {
                             
                     const response = await fetch(`${URL}/api/v1/procesos/get-process/${idProceso}/${version}`)
                     const data = await response.text()
-                    console.log(data);
                     setEmptyDiagram(data)
                 } catch (error) {
                     console.log(error);

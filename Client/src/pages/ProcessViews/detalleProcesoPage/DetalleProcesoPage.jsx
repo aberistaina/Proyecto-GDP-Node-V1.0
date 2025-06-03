@@ -9,6 +9,7 @@ import { ComentariosMejoras } from "./components/ComentariosMejoras";
 import ModalMejorasComentarios from "./components/ModalMejorasComentarios";
 import ModalVersiones from "./components/ModalVersiones";
 import PulseLoader from "react-spinners/PulseLoader";
+import { BitacoraProcesoPage } from "../bitacoraProceso/BitacoraProcesoPage";
 
 //agregar comentarios (todos) y oportunidades
 export const DetalleProcesoPage = () => {
@@ -18,14 +19,14 @@ export const DetalleProcesoPage = () => {
     const [resumenProceso, setResumenProceso] = useState({});
     const [headerProceso, setHeaderProceso] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [tabActiva, setTabActiva] = useState("");
+    const [tabActiva, setTabActiva] = useState("oportunidades");
     const [openModal, setOpenModal] = useState(false);
     const [openModalVersiones, setOpenModalVersiones] = useState(false);
     const [estaAprobado, setEstaAprobado ] = useState()
-    const [mostrarModal, setMostrarModal] = useState(false);
     const [comentarios, setComentarios ] = useState([])
     const [ oportunidades, SetOportunidades ] = useState([])
     const [versiones, setVeriones ] = useState([])
+    const [comentarioBitacora, setComentarioBitacora] = useState("");
 
 const getAllComentaries = async() =>{
             try {
@@ -49,12 +50,26 @@ const getAllComentaries = async() =>{
                     : import.meta.env.VITE_URL_PRODUCCION;
                 const response = await fetch(`${URL}/api/v1/procesos/oportunidades/getAll/${idProceso}/${version}`)
                 const data = await response.json()
-                console.log(data)
                 SetOportunidades(data.data)
             } catch (error) {
                 console.log(error)
             }
             
+        }
+
+        const getComentariosBitacora = async () => {
+            try {
+                const URL =
+                import.meta.env.VITE_APP_MODE === "desarrollo"
+                    ? import.meta.env.VITE_URL_DESARROLLO
+                    : import.meta.env.VITE_URL_PRODUCCION;
+                const response = await fetch(`${URL}/api/v1/procesos/get-bitacora-aprobaciones/${version}`)
+                const data = await response.json()
+                setComentarioBitacora(data.data)
+                console.log(data);
+            } catch (error) {
+                console.log(error)
+            }
         }
 
 
@@ -119,7 +134,6 @@ const getAllComentaries = async() =>{
 
             const response = await fetch(`${URL}/api/v1/procesos/get-versiones/${idProceso}`);
             const data = await response.json();
-            console.log(data);
             setVeriones(data.data)
 
         } catch (error) {
@@ -137,7 +151,7 @@ const getAllComentaries = async() =>{
                     <PulseLoader color="#10644C" size={15} />
                 </div>
             ) : (
-                <div className="flex justify-center h-screen mt-6">
+                <div className="flex justify-center h-screen my-6">
                     <div className="w-[95%] ">
                         <HeaderDetalleProceso
                             headerProceso={headerProceso}
@@ -149,7 +163,14 @@ const getAllComentaries = async() =>{
                             versiones={versiones}
                             getData={getData}
                         />
-                        {headerProceso.estadoVersion !== "borrador" &&
+                        <ResumenProceso resumenProceso={resumenProceso}/>
+                        <VisualizadorProceso
+                            idProceso={idProceso}
+                            version={version}
+                        />
+                        
+                        <div className="pb-10">
+                            {headerProceso.estadoVersion !== "borrador" &&
                             headerProceso.estadoVersion !== "enviado" && (
                                 <ComentariosMejoras
                                     idProceso={idProceso}
@@ -161,14 +182,13 @@ const getAllComentaries = async() =>{
                                     getAllComentaries={getAllComentaries}
                                     oportunidades={oportunidades}
                                     getAllOpportunities={getAllOpportunities}
+                                    getComentariosBitacora={getComentariosBitacora}
+                                    comentarioBitacora={comentarioBitacora}
                                     
                                 />
                             )}
-                        <ResumenProceso resumenProceso={resumenProceso}/>
-                        <VisualizadorProceso
-                            idProceso={idProceso}
-                            version={version}
-                        />
+                        </div>
+                        
                         
                     </div>
                     {openModal && (
@@ -179,6 +199,7 @@ const getAllComentaries = async() =>{
                             version={version}
                             getAllComentaries={getAllComentaries}
                             getAllOpportunities={getAllOpportunities}
+                            getComentariosBitacora={getComentariosBitacora}
                         />
                     )}
                     {openModalVersiones && (

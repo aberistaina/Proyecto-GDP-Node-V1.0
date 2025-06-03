@@ -25,10 +25,6 @@ export default class ArchivosOportunidadesMejora extends Model {
     s3_key: {
       type: DataTypes.STRING(512),
       allowNull: true
-    },
-    s3_bucket: {
-      type: DataTypes.STRING(255),
-      allowNull: true
     }
   }, {
     tableName: 'archivos_oportunidades_mejora',

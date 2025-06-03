@@ -1,3 +1,5 @@
+/*Colores de los elementos del modelador BPMN*/
+
 /* Start Event */
 .marker-start-event .djs-visual > :nth-child(1),
 .marker-start-event .djs-visual > circle,
@@ -78,22 +80,9 @@
     box-shadow: 0 0 4px rgba(0, 0, 0, 0.2) !important;
 }
 
+
 /* Quitar branding y breadcrumbs */
 .bjs-powered-by,
 .bjs-breadcrumbs {
     display: none;
-}
-
-.icon-end-event{
-    fill: #a31515 !important;
-    stroke: #a31515 !important;
-    fill-rule: evenodd;
-}
-
-.cursor-pointer .djs-container {
-  cursor: pointer !important;
-}
-
-.cursor-default .djs-container {
-  cursor: default !important;
 }

@@ -9,6 +9,9 @@ import { AuthenticationError } from "../errors/TypeError.js";
 import { normalizeEmail } from "../utils/normalize.js";
 import logger from "../utils/logger.js";
 import { sendEmail } from "../services/email.services.js";
+import { getAdminConfig } from "../services/admin.services.js";
+
+const { token_expiracion_password } = await getAdminConfig()
 
 export const createUser = async (req, res, next) => {
     try {
@@ -70,7 +73,7 @@ export const forgotPassword = async (req, res, next) => {
         //Verifica si el usuario no existe en la base de datos, si existe lo almacena en la variable user
         const user = await userNotExist(email);
 
-        const token = createToken(email, "30m");
+        const token = createToken(email, token_expiracion_password);
 
         await Token.create({
             id_usuario: user.id_usuario,

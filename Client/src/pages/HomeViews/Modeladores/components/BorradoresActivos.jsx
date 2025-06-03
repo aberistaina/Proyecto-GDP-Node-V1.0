@@ -5,7 +5,6 @@ import { GrOverview } from "react-icons/gr";
 export const BorradoresActivos = ({ borradoresActivos, isLoading }) => {
     
     const navigate = useNavigate()
-    console.log(borradoresActivos);
 
     const handleClick = (idProceso, version) =>{
         try {

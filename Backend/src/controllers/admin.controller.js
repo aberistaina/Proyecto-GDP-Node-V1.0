@@ -1,27 +1,39 @@
-import { Procesos, IntermediaProcesos, Usuarios, Aprobadores, ComentariosVersionProceso, VersionProceso,OportunidadesMejora, Niveles, Cargo, Roles } from "../models/models.js";
-import crypto from 'crypto'
-import { formatShortTime } from "../utils/formatearFecha.js"
+import {
+    Procesos,
+    IntermediaProcesos,
+    Usuarios,
+    Aprobadores,
+    ComentariosVersionProceso,
+    VersionProceso,
+    OportunidadesMejora,
+    Niveles,
+    Cargo,
+    Roles,
+    Administracion,
+} from "../models/models.js";
+import crypto from "crypto";
+import { formatShortTime } from "../utils/formatearFecha.js";
 import logger from "../utils/logger.js";
 import { userIfExist } from "../services/validateUserData.js";
 import { hashPassword } from "../services/auth.services.js";
-
+import { getAdminConfig } from "../services/admin.services.js";
 
 //CRUD Usuarios
-export const getAllUsers = async(req, res, next)=>{
+export const getAllUsers = async (req, res, next) => {
     try {
         const usuarios = await Usuarios.findAll({
-            attributes:{exclude: ["password_hash"]},
-            include:[
+            attributes: { exclude: ["password_hash"] },
+            include: [
                 {
                     model: Cargo,
-                    as: 'id_cargo_cargo',
+                    as: "id_cargo_cargo",
                 },
                 {
                     model: Roles,
-                    as: 'id_rol_role',
-                }
+                    as: "id_rol_role",
+                },
             ],
-        })
+        });
 
         const usuariosMap = usuarios.map((usuario) => {
             const data = usuario.toJSON();
@@ -31,87 +43,81 @@ export const getAllUsers = async(req, res, next)=>{
                 email: data.email,
                 created_at: formatShortTime(data.created_at),
                 cargo: data.id_cargo_cargo?.nombre,
-                rol: data.id_rol_role?.nombre
+                rol: data.id_rol_role?.nombre,
             };
-            });
-
+        });
 
         res.status(200).json({
             code: 200,
             message: "Usuarios Encontrados con éxito",
-            data:usuariosMap
-
+            data: usuariosMap,
         });
     } catch (error) {
         logger.error("Controlador getAllUsers", error);
         console.log(error);
         next(error);
     }
-}
+};
 
-export const getUserById = async(req, res, next)=>{
+export const getUserById = async (req, res, next) => {
     try {
-        const { id } = req.params
+        const { id } = req.params;
         const usuario = await Usuarios.findOne({
-            attributes:{exclude: ["password_hash"]},
-            where:{
-                id_usuario: id
-            }
-            
-        })
-
-        if(!usuario){
-            res.status(400).json({
-            code: 400,
-            message: "No existe este usuario en la base de datos",
+            attributes: { exclude: ["password_hash"] },
+            where: {
+                id_usuario: id,
+            },
         });
-        }
 
+        if (!usuario) {
+            res.status(400).json({
+                code: 400,
+                message: "No existe este usuario en la base de datos",
+            });
+        }
 
         res.status(200).json({
             code: 200,
             message: "Usuario Encontrado con éxito",
-            data:usuario
-
+            data: usuario,
         });
     } catch (error) {
         logger.error("Controlador getUserById", error);
         console.log(error);
         next(error);
     }
-}
+};
 
-export const updateUser = async (req, res, next) =>{
+export const updateUser = async (req, res, next) => {
     try {
-        const { id_rol, id_cargo, id_jefe_directo, nombre, email } = req.body
-        const { id } = req.params
+        const { id_rol, id_cargo, id_jefe_directo, nombre, email } = req.body;
+        const { id } = req.params;
 
-        const usuario = await Usuarios.findByPk(id)
+        const usuario = await Usuarios.findByPk(id);
 
-        if(!usuario){
+        if (!usuario) {
             res.status(400).json({
-            code: 400,
-            message: "No existe este usuario en la base de datos",
-        });
+                code: 400,
+                message: "No existe este usuario en la base de datos",
+            });
         }
 
         const updateUser = {
             id_rol,
             id_cargo,
             nombre,
-            email
-        }
+            email,
+        };
 
         if (id_jefe_directo !== undefined && id_jefe_directo !== "") {
             updateUser.id_jefe_directo = id_jefe_directo;
-            }
-
-        await Usuarios.update(updateUser,{
-            where:{
-                id_usuario: id
-            }
         }
-    )
+
+        await Usuarios.update(updateUser, {
+            where: {
+                id_usuario: id,
+            },
+        });
 
         res.status(200).json({
             code: 200,
@@ -122,26 +128,26 @@ export const updateUser = async (req, res, next) =>{
         console.log(error);
         next(error);
     }
-}
+};
 
-export const deleteUser = async (req, res, next) =>{
+export const deleteUser = async (req, res, next) => {
     try {
-        const { id } = req.params
+        const { id } = req.params;
 
-        const user = await Usuarios.findOne({where:{id_usuario: id}})
+        const user = await Usuarios.findOne({ where: { id_usuario: id } });
 
-        if(!user){
+        if (!user) {
             res.status(400).json({
-            code: 400,
-            message: "No existe este usuario en la base de datos",
-        });
+                code: 400,
+                message: "No existe este usuario en la base de datos",
+            });
         }
 
         Usuarios.destroy({
-            where:{
-                id_usuario: id
-            }
-        })
+            where: {
+                id_usuario: id,
+            },
+        });
 
         res.status(200).json({
             code: 200,
@@ -152,16 +158,15 @@ export const deleteUser = async (req, res, next) =>{
         console.log(error);
         next(error);
     }
-}
+};
 
-export const createUser = async (req, res, next) =>{
+export const createUser = async (req, res, next) => {
+    const { nombre, email, id_rol, id_cargo, id_jefe_directo } = req.body;
 
-    const { nombre, email, id_rol, id_cargo, id_jefe_directo } = req.body
+    await userIfExist(email);
+    const password = crypto.randomBytes(16).toString("hex");
 
-    await userIfExist(email)
-    const password = crypto.randomBytes(16).toString('hex')
-
-    const hash = hashPassword(password)
+    const hash = hashPassword(password);
 
     await Usuarios.create({
         nombre,
@@ -169,8 +174,8 @@ export const createUser = async (req, res, next) =>{
         password_hash: hash,
         id_rol,
         id_cargo,
-        id_jefe_directo
-    })
+        id_jefe_directo,
+    });
     try {
         res.status(201).json({
             code: 201,
@@ -181,80 +186,77 @@ export const createUser = async (req, res, next) =>{
         console.log(error);
         next(error);
     }
-}
+};
 
 //CRUD Roles
-export const getAllRoles = async (req, res, next) =>{
+export const getAllRoles = async (req, res, next) => {
     try {
-        const roles = await Roles.findAll()
+        const roles = await Roles.findAll();
         res.status(200).json({
             code: 200,
             message: "Roles Encontrados con éxito",
-            data:roles
+            data: roles,
         });
     } catch (error) {
         logger.error("Controlador getAllRoles", error);
         console.log(error);
         next(error);
     }
-    
-}
+};
 
-export const getRolById = async(req, res, next)=>{
+export const getRolById = async (req, res, next) => {
     try {
-        const { id } = req.params
+        const { id } = req.params;
 
         const rol = await Roles.findOne({
-            where:{
-                id_rol: id
-            }
-            
-        })
-
-        if(!rol){
-            res.status(400).json({
-            code: 400,
-            message: "No existe este rol en la base de datos",
+            where: {
+                id_rol: id,
+            },
         });
-        }
 
+        if (!rol) {
+            res.status(400).json({
+                code: 400,
+                message: "No existe este rol en la base de datos",
+            });
+        }
 
         res.status(200).json({
             code: 200,
             message: "Rol Encontrado con éxito",
-            data:rol
-
+            data: rol,
         });
     } catch (error) {
         logger.error("Controlador getRolById", error);
         console.log(error);
         next(error);
     }
-}
+};
 
-export const updateRol = async (req, res, next) =>{
+export const updateRol = async (req, res, next) => {
     try {
+        const { nombre } = req.body;
+        const { id } = req.params;
 
-        const { nombre } = req.body
-        const { id } = req.params
+        const rol = await Roles.findByPk(id);
 
-        const rol = await Roles.findByPk(id)
-
-        if(!rol){
+        if (!rol) {
             res.status(400).json({
-            code: 400,
-            message: "No existe este rol en la base de datos",
-        });
+                code: 400,
+                message: "No existe este rol en la base de datos",
+            });
         }
 
-        await Roles.update({
-            nombre, 
-        },{
-            where:{
-                id_rol: id
+        await Roles.update(
+            {
+                nombre,
+            },
+            {
+                where: {
+                    id_rol: id,
+                },
             }
-        }
-    )
+        );
 
         res.status(200).json({
             code: 200,
@@ -265,26 +267,26 @@ export const updateRol = async (req, res, next) =>{
         console.log(error);
         next(error);
     }
-}
+};
 
-export const deleteRol = async (req, res, next) =>{
+export const deleteRol = async (req, res, next) => {
     try {
-        const { id } = req.params
+        const { id } = req.params;
 
-        const rol = await Roles.findByPk(id)
+        const rol = await Roles.findByPk(id);
 
-        if(!rol){
+        if (!rol) {
             res.status(400).json({
-            code: 400,
-            message: "No existe este rol en la base de datos",
-        });
+                code: 400,
+                message: "No existe este rol en la base de datos",
+            });
         }
 
         Roles.destroy({
-            where:{
-                id_rol: id
-            }
-        })
+            where: {
+                id_rol: id,
+            },
+        });
 
         res.status(200).json({
             code: 200,
@@ -295,24 +297,24 @@ export const deleteRol = async (req, res, next) =>{
         console.log(error);
         next(error);
     }
-}
+};
 
-export const createRol = async (req, res, next) =>{
+export const createRol = async (req, res, next) => {
     try {
-        const { nombre } = req.body
+        const { nombre } = req.body;
 
-        const roles = await Roles.findOne({where:{nombre}})
+        const roles = await Roles.findOne({ where: { nombre } });
 
-        if(roles){
+        if (roles) {
             res.status(400).json({
-            code: 400,
-            message: "Ya existe un Rol con este nombre",
-            })
+                code: 400,
+                message: "Ya existe un Rol con este nombre",
+            });
         }
 
         await Roles.create({
-            nombre
-        })
+            nombre,
+        });
 
         res.status(201).json({
             code: 201,
@@ -323,83 +325,79 @@ export const createRol = async (req, res, next) =>{
         console.log(error);
         next(error);
     }
-}
-
-
+};
 
 //CRUD Cargos
-export const getAllCargos = async (req, res, next) =>{
+export const getAllCargos = async (req, res, next) => {
     try {
-        const cargos = await Cargo.findAll()
+        const cargos = await Cargo.findAll();
         res.status(200).json({
             code: 200,
             message: "Cargos Encontrados con éxito",
-            data:cargos
+            data: cargos,
         });
     } catch (error) {
         logger.error("Controlador getAllCargos", error);
         console.log(error);
         next(error);
     }
-    
-}
+};
 
-export const getCargoById = async(req, res, next)=>{
+export const getCargoById = async (req, res, next) => {
     try {
-        const { id } = req.params
+        const { id } = req.params;
 
         const cargo = await Cargo.findOne({
-            where:{
-                id_cargo: id
-            }
-            
-        })
-
-        if(!cargo){
-            res.status(400).json({
-            code: 400,
-            message: "No existe este cargo en la base de datos",
+            where: {
+                id_cargo: id,
+            },
         });
-        }
 
+        if (!cargo) {
+            res.status(400).json({
+                code: 400,
+                message: "No existe este cargo en la base de datos",
+            });
+        }
 
         res.status(200).json({
             code: 200,
             message: "Cargo Encontrado con éxito",
-            data:cargo
-
+            data: cargo,
         });
     } catch (error) {
         logger.error("Controlador getCargoById", error);
         console.log(error);
         next(error);
     }
-}
+};
 
-export const updateCargo = async (req, res, next) =>{
+export const updateCargo = async (req, res, next) => {
     try {
         console.log(req.body);
-        const { nombre, descripcion } = req.body
-        const { id } = req.params
+        const { nombre, descripcion } = req.body;
+        const { id } = req.params;
 
-        const cargo = await Cargo.findByPk(id)
+        const cargo = await Cargo.findByPk(id);
 
-        if(!cargo){
+        if (!cargo) {
             res.status(400).json({
-            code: 400,
-            message: "No existe este cargo en la base de datos",
-        });
+                code: 400,
+                message: "No existe este cargo en la base de datos",
+            });
         }
 
-        await Cargo.update({
-            nombre,
-            descripcion 
-        },{
-            where:{
-                id_cargo: id
+        await Cargo.update(
+            {
+                nombre,
+                descripcion,
+            },
+            {
+                where: {
+                    id_cargo: id,
+                },
             }
-        }
-    )
+        );
         res.status(200).json({
             code: 200,
             message: "Cargo Actualizado Correctamente",
@@ -409,26 +407,26 @@ export const updateCargo = async (req, res, next) =>{
         console.log(error);
         next(error);
     }
-}
+};
 
-export const deleteCargo = async (req, res, next) =>{
+export const deleteCargo = async (req, res, next) => {
     try {
-        const { id } = req.params
+        const { id } = req.params;
 
-        const cargo = await Cargo.findByPk(id)
+        const cargo = await Cargo.findByPk(id);
 
-        if(!cargo){
+        if (!cargo) {
             res.status(400).json({
-            code: 400,
-            message: "No existe este cargo en la base de datos",
-        });
+                code: 400,
+                message: "No existe este cargo en la base de datos",
+            });
         }
 
         Cargo.destroy({
-            where:{
-                id_cargo: id
-            }
-        })
+            where: {
+                id_cargo: id,
+            },
+        });
 
         res.status(200).json({
             code: 200,
@@ -439,25 +437,25 @@ export const deleteCargo = async (req, res, next) =>{
         console.log(error);
         next(error);
     }
-}
+};
 
-export const createCargo = async (req, res, next) =>{
+export const createCargo = async (req, res, next) => {
     try {
-        const { nombre, descripcion } = req.body
+        const { nombre, descripcion } = req.body;
 
-        const cargo = await Cargo.findOne({where:{nombre}})
+        const cargo = await Cargo.findOne({ where: { nombre } });
 
-        if(cargo){
+        if (cargo) {
             res.status(400).json({
-            code: 400,
-            message: "Ya existe un Cargo con este nombre",
-            })
+                code: 400,
+                message: "Ya existe un Cargo con este nombre",
+            });
         }
 
         await Cargo.create({
             nombre,
-            descripcion
-        })
+            descripcion,
+        });
 
         res.status(201).json({
             code: 201,
@@ -468,81 +466,77 @@ export const createCargo = async (req, res, next) =>{
         console.log(error);
         next(error);
     }
-}
-
+};
 
 //CRUD Niveles
-export const getAllNiveles = async (req, res, next) =>{
+export const getAllNiveles = async (req, res, next) => {
     try {
-        const niveles = await Niveles.findAll()
+        const niveles = await Niveles.findAll();
         res.status(200).json({
             code: 200,
             message: "Niveles Encontrados con éxito",
-            data:niveles
+            data: niveles,
         });
     } catch (error) {
         logger.error("Controlador getAllNiveles", error);
         console.log(error);
         next(error);
     }
-    
-}
+};
 
-export const getNivelById = async(req, res, next)=>{
+export const getNivelById = async (req, res, next) => {
     try {
-        const { id } = req.params
+        const { id } = req.params;
 
         const nivel = await Niveles.findOne({
-            where:{
-                id_nivel: id
-            }
-            
-        })
-
-        if(!nivel){
-            res.status(400).json({
-            code: 400,
-            message: "No existe este nivel en la base de datos",
+            where: {
+                id_nivel: id,
+            },
         });
-        }
 
+        if (!nivel) {
+            res.status(400).json({
+                code: 400,
+                message: "No existe este nivel en la base de datos",
+            });
+        }
 
         res.status(200).json({
             code: 200,
             message: "Nivel Encontrado con éxito",
-            data:nivel
-
+            data: nivel,
         });
     } catch (error) {
         logger.error("Controlador getNivelById", error);
         console.log(error);
         next(error);
     }
-}
+};
 
-export const updateNivel = async (req, res, next) =>{
+export const updateNivel = async (req, res, next) => {
     try {
+        const { nombre } = req.body;
+        const { id } = req.params;
 
-        const { nombre } = req.body
-        const { id } = req.params
+        const nivel = await Niveles.findByPk(id);
 
-        const nivel = await Niveles.findByPk(id)
-
-        if(!nivel){
+        if (!nivel) {
             res.status(400).json({
-            code: 400,
-            message: "No existe este nivel en la base de datos",
-        });
+                code: 400,
+                message: "No existe este nivel en la base de datos",
+            });
         }
 
-        await Niveles.update({
-            nombre, 
-        },{
-            where:{
-                id_nivel: id
+        await Niveles.update(
+            {
+                nombre,
+            },
+            {
+                where: {
+                    id_nivel: id,
+                },
             }
-        }
-    )
+        );
         res.status(200).json({
             code: 200,
             message: "Nivel Modificado Correctamente",
@@ -552,27 +546,26 @@ export const updateNivel = async (req, res, next) =>{
         console.log(error);
         next(error);
     }
-}
+};
 
-export const deleteNivel = async (req, res, next) =>{
+export const deleteNivel = async (req, res, next) => {
     try {
+        const { id } = req.params;
 
-        const { id } = req.params
+        const nivel = await Niveles.findByPk(id);
 
-        const nivel = await Niveles.findByPk(id)
-
-        if(!nivel){
+        if (!nivel) {
             res.status(400).json({
-            code: 400,
-            message: "No existe este nivel en la base de datos",
-        });
+                code: 400,
+                message: "No existe este nivel en la base de datos",
+            });
         }
 
         Niveles.destroy({
-            where:{
-                id_nivel: id
-            }
-        })
+            where: {
+                id_nivel: id,
+            },
+        });
 
         res.status(200).json({
             code: 200,
@@ -583,24 +576,24 @@ export const deleteNivel = async (req, res, next) =>{
         console.log(error);
         next(error);
     }
-}
+};
 
-export const createNivel = async (req, res, next) =>{
+export const createNivel = async (req, res, next) => {
     try {
-        const { nombre } = req.body
+        const { nombre } = req.body;
 
-        const nivel = await Niveles.findOne({where:{nombre}})
+        const nivel = await Niveles.findOne({ where: { nombre } });
 
-        if(nivel){
+        if (nivel) {
             res.status(400).json({
-            code: 400,
-            message: "Ya existe un Nivel con este nombre",
-            })
+                code: 400,
+                message: "Ya existe un Nivel con este nombre",
+            });
         }
 
         await Niveles.create({
-            nombre
-        })
+            nombre,
+        });
 
         res.status(201).json({
             code: 201,
@@ -611,13 +604,36 @@ export const createNivel = async (req, res, next) =>{
         console.log(error);
         next(error);
     }
-}
-
+};
 
 //Options Admin
 
-export const defineTokenExpiration = async (req, res, next) =>{
+export const setAdminConfig = async (req, res, next) => {
     try {
+        const {
+            bucket,
+            procesos,
+            adjuntos,
+            imagenes,
+            documentacion,
+            tokenSesionValor,
+            tokenSesionUnidad,
+            tokenRecuperacionValor,
+            tokenRecuperacionUnidad,
+        } = req.body;
+
+        const data = {
+            token_expiracion_login: `${tokenSesionValor}${tokenSesionUnidad}`,
+            token_expiracion_password: `${tokenRecuperacionValor}${tokenRecuperacionUnidad}`,
+            s3_bucket:bucket,
+            s3_bucket_procesos: procesos,
+            s3_bucket_adjuntos: adjuntos,
+            s3_bucket_imagenes: imagenes,
+            s3_bucket_documentacion: documentacion,
+        };
+
+        await Administracion.update(data, { where: { id_administrador: 1 } });
+
         res.status(200).json({
             code: 200,
             message: "Usuarios Encontrados con éxito",
@@ -627,61 +643,89 @@ export const defineTokenExpiration = async (req, res, next) =>{
         console.log(error);
         next(error);
     }
-}
+};
+
+export const getAdminDataConfig = async (req, res, next) => {
+    try {
+        const adminConfig = await getAdminConfig();
+
+        const config = {
+            bucket: adminConfig.s3_bucket,
+            procesos: adminConfig.s3_bucket_procesos,
+            adjuntos: adminConfig.s3_bucket_adjuntos,
+            imagenes: adminConfig.s3_bucket_imagenes,
+            documentacion: adminConfig.s3_bucket_documentacion,
+            tokenSesionValor: adminConfig.token_expiracion_login.slice(0, -1),
+            tokenSesionUnidad: adminConfig.token_expiracion_login.slice(-1),
+            tokenRecuperacionValor: adminConfig.token_expiracion_password.slice(0, -1),
+            tokenRecuperacionUnidad: adminConfig.token_expiracion_password.slice(-1)
+        };
+
+        res.status(200).json({
+            code: 200,
+            message: "Usuarios Encontrados con éxito",
+            data: config,
+        });
+    } catch (error) {
+        logger.error("Controlador getAllProcess", error);
+        console.log(error);
+        next(error);
+    }
+};
 
 //Data Card Admin
-export const getCardData = async(req, res, next) =>{
+export const getCardData = async (req, res, next) => {
     try {
-        const niveles = await Niveles.findAll()
-        const cargos = await Cargo.findAll()
-        const roles = await Roles.findAll()
+        const niveles = await Niveles.findAll();
+        const cargos = await Cargo.findAll();
+        const roles = await Roles.findAll();
         const usuarios = await Usuarios.findAll({
-            attributes:{exclude: ["password_hash"]}
-        })
+            attributes: { exclude: ["password_hash"] },
+        });
 
         const cardsData = {
             usuarios: usuarios.length,
             cargos: cargos.length,
             roles: roles.length,
-            niveles:niveles.length
-        }
+            niveles: niveles.length,
+        };
 
         res.status(200).json({
             code: 200,
             message: "Roles Encontrados con éxito",
-            data:cardsData
+            data: cardsData,
         });
     } catch (error) {
-         logger.error("Controlador getAllProcess", error);
+        logger.error("Controlador getAllProcess", error);
         console.log(error);
         next(error);
     }
-}
+};
 
-export const getEntidades = async(req, res, next) =>{
+export const getEntidades = async (req, res, next) => {
     try {
-        const niveles = await Niveles.findAll()
-        const cargos = await Cargo.findAll()
-        const roles = await Roles.findAll()
+        const niveles = await Niveles.findAll();
+        const cargos = await Cargo.findAll();
+        const roles = await Roles.findAll();
         const usuarios = await Usuarios.findAll({
-            attributes:["id_usuario", "nombre"]
-        })
-        
+            attributes: ["id_usuario", "nombre"],
+        });
+
         const entidades = {
             cargos,
             roles,
             niveles,
-            usuarios
-        }
+            usuarios,
+        };
 
         res.status(200).json({
             code: 200,
             message: "Entidades Encontradas con éxito",
-            data:entidades
+            data: entidades,
         });
     } catch (error) {
         logger.error("Controlador getEntidades", error);
         console.log(error);
         next(error);
     }
-}
+};

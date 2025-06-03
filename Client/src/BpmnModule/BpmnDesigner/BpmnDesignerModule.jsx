@@ -3,8 +3,6 @@ import { CustomMenuContextual } from "../components/CustomMenuContextual";
 import { BpmnProvider } from "../context/BpmnProvider";
 import { MenuContextListener } from "../context/MenuContextListener";
 import { BpmnModeler } from "./components/BpmnModeler";
-import { ModelerButtons } from "../components/ModelerButtons";
-import { ProcessSelector } from "../components/ProcessSelector";
 import { PropertiesPanel } from "./components/PropertiesPanel";
 import { UploadProcessPage } from "../components/UploadProcess/UploadProcessPage";
 import { useNavigate } from "react-router-dom";
@@ -13,6 +11,7 @@ import { useConfirmAlert } from "../../context/ConfirmAlertProvider";
 import { ModalSaveChanges } from "./components/ModalSaveChanges";
 import { BpmnDesignerButtons } from "./components/BpmnDesignerButtons";
 
+//Modulo que contiene el modelador y todos sus componentes
 export const BpmnDesignerModule = () => {
     const [showModal, setShowModal] = useState(false);
     const [showModalSaveChanges, setShowModalSaveChanges] = useState(false);

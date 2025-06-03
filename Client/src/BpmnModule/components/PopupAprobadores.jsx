@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import opcionesDB from "../BpmnDesigner/data/cargos.json";
 
+
+//Popup con las propiedades extendidas "Informados, Consultados, Ejecutantes, Responsables"
 export default function PopupAprobadores({
     element,
     modeling,

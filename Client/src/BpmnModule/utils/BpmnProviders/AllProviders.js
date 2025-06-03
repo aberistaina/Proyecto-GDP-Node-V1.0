@@ -7,6 +7,7 @@ import CustomOverrideProvider from "./CustomOverrideProvider";
 
 
 
+
 export const customBpmnProviders = [
     CustomPropertiesProvider,
     {
@@ -21,10 +22,6 @@ export const customBpmnProviders = [
         __init__: ["customMarkerProvider"],
         customMarkerProvider: ["type", CustomMarkerProvider],
     },
-    /* {
-        __init__: ['customPropertiesProvider'],
-        customPropertiesProvider: ['type', CustomPropertiesProvider]
-    }, */
     {
         __init__: ['customOverrideProvider'],
         customOverrideProvider: ['type', CustomOverrideProvider]

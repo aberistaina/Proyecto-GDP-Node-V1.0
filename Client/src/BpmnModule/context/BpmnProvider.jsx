@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { BpmnContext } from "./BpmnContext";
 import { generateTemplate } from "../utils/templateXML";
 
+//Elementos del Contexto del modelador y visualizador BPMN
 export const BpmnProvider = ({ children }) => {
     const bpmnModelerRef = useRef(null);
     const containerRef = useRef(null);
@@ -10,6 +11,7 @@ export const BpmnProvider = ({ children }) => {
     const [emptyDiagram, setEmptyDiagram] = useState(template);
     const [refreshProcess, setRefreshProcess] = useState(false);
     const [ selectedProcess, setSelectedProcess ] = useState("");
+
 
     const [openMenuContextual, setOpenMenuContextual] = useState({
         state: false,
@@ -34,7 +36,7 @@ export const BpmnProvider = ({ children }) => {
                 refreshProcess,
                 setRefreshProcess,
                 selectedProcess,
-                setSelectedProcess
+                setSelectedProcess,
             }}
         >
             {children}

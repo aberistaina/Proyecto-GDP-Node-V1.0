@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { connectSubprocess, getAllProcess, getSubprocessesOfProcess, readActualProcessVersion, readProcessVersion, getProcessSummary, saveNewProcessChanges, saveSubProcessChanges, uploadProcess, createCommentary, getCommentaries, createOppotunity, getOpportunities, getNiveles, getProcessByNivel, getNivelById, downloadProcess, getProcessVersions, createNewProcessVersion, getPendingProcess, enviarAprobacion, aprobarProceso, rechazarProceso, getPendingDraft, getBitacoraMessages } from "../controllers/process.controller.js";
+import { connectSubprocess, getAllProcess, getSubprocessesOfProcess, readActualProcessVersion, readProcessVersion, getProcessSummary, saveNewProcessChanges, saveSubProcessChanges, uploadProcess, createCommentary, getCommentaries, createOppotunity, getOpportunities, getNiveles, getProcessByNivel, getNivelById, downloadProcess, getProcessVersions, createNewProcessVersion, getPendingProcess, enviarAprobacion, aprobarProceso, rechazarProceso, getPendingDraft, getBitacoraMessages, generarDocumentacion, createNewBitacoraMessage } from "../controllers/process.controller.js";
 
 
 const router = Router()
@@ -27,9 +27,11 @@ router.post("/save-new-version-changes", createNewProcessVersion)
 router.post("/save-subprocess-changes", saveSubProcessChanges)
 router.post("/comentarios/agregar", createCommentary)
 router.post("/oportunidades/agregar", createOppotunity)
+router.post("/bitacora/agregar", createNewBitacoraMessage)
 router.post("/solicitar-aprobacion", enviarAprobacion)
 router.post("/aprobar-proceso", aprobarProceso)
 router.post("/rechazar-proceso", rechazarProceso)
+router.post("/generar-documentacion", generarDocumentacion)
 
 
 

@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { TipoProcesoHeader } from "./components/TipoProcesoHeader";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { ProcesosContainer } from "./test-navegacion/ProcesosContainer";
-import { CadenaValor } from "./components/CadenaValor";
+import { ProcesosContainer } from "./components/ProcesosContainer";
 
 export const TipoProcesoPage = () => {
     
@@ -63,11 +62,7 @@ export const TipoProcesoPage = () => {
             ) : (
                 <p>Cargando...</p>
             )}
-            {/* <TipoProcesoContent openProcessModal={openProcessModal} procesos={procesos} vista={vista} setVista={setVista} /> */}
             <ProcesosContainer />
-            
-            
-            
         </>
     );
 };

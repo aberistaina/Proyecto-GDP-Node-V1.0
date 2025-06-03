@@ -12,6 +12,7 @@ import { downloadFile } from "../../../../BpmnModule/utils/downloadFile";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
+import { useBpmnContext } from "../../../../BpmnModule/context/useBpmnContext";
 
 export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVersiones, version, getPendingProcess, estaAprobado, versiones, getData}) => {
     const { enqueueSnackbar } = useSnackbar();
@@ -163,11 +164,11 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
 
 
     useEffect(() => {
-        console.log(versiones);
         if (!user) return
         calcularSiEsUltimaVersion()
         getPendingProcess()
     }, [])
+    
     
 
     return (

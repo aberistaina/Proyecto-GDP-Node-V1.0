@@ -2,6 +2,8 @@ import { RiResetLeftFill } from "react-icons/ri";
 import { useBpmnContext } from "../../context/useBpmnContext";
 import { FaRegSave } from "react-icons/fa";
 
+
+//Botones para Guardar y Crear Nuevo Diagrama
 export const BpmnDesignerButtons = ({setShowModalSaveChanges}) => {
     const { setEmptyDiagram, template } = useBpmnContext();
 
@@ -11,6 +13,7 @@ export const BpmnDesignerButtons = ({setShowModalSaveChanges}) => {
 
     return (
         <div className="flex gap-2 justify-end">
+            {/* ELiminar Botón se puede prestar para malos entendidos */}
             <button
                 className="bg-red-600 hover:bg-red-800 text-white font-bold py-2 w-42  px-3 rounded focus:outline-none focus:shadow-outline transition duration-300 ease-in-out transform hover:scale-105 flex items-center"
                 onClick={resetDiagram}

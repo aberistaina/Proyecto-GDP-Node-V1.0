@@ -1,9 +1,15 @@
-import { useRef, useEffect } from "react";
+import { useEffect } from "react";
 import { useBpmnContext } from "../context/useBpmnContext";
 import { RiResetLeftFill } from "react-icons/ri";
+import { LuImageDown } from "react-icons/lu";
+import { guardarImagenFlujo } from "../utils/bpmnUtils";
+import { useParams } from "react-router-dom";
 
-export const CanvasContainer = ({ height = "h-[555px]", border }) => {
+
+//Componente que actúa como contenedor del modelo (Acá se renderiza el modelador o visualizador BPMN)
+export const CanvasContainer = ({ height = "h-[555px]", border, modo }) => {
     const { containerRef, bpmnModelerRef } = useBpmnContext();
+    const { idProceso } = useParams();
 
     useEffect(() => {
         if (!containerRef.current) {
@@ -57,6 +63,18 @@ export const CanvasContainer = ({ height = "h-[555px]", border }) => {
                 >
                     <RiResetLeftFill className="text-lg"/>
                 </button>
+
+                {modo === "visualizador" &&
+                <button
+                    className="w-9 h-9 flex items-center justify-center text-xs font-medium bg-gray-200 hover:bg-gray-300 rounded-lg transition"
+                    
+                    title="Descargar Imágen"
+                    onClick={() => guardarImagenFlujo(bpmnModelerRef.current, idProceso)}
+                >
+                    <LuImageDown className="text-lg"/>
+                </button>
+                
+                }
             </div>
         </div>
         

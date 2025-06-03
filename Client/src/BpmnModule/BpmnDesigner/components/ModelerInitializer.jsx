@@ -13,6 +13,7 @@ import { customBpmnProviders } from "../../utils/BpmnProviders/AllProviders"
 import CustomPropertiesProvider from "../../utils/BpmnProviders/CustomPropertiesProvider";
 import PopupAprobadores from "../../components/PopupAprobadores";
 
+//Iniciador del modelador junto con toda su configuración
 export const ModelerInitializer = () => {
     const [popupVisible, setPopupVisible] = useState(false);
     const [propertyName, setPropertyName] = useState("");

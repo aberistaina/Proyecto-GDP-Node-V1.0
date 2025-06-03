@@ -9,7 +9,7 @@ import { exportDiagramXml } from "../utils/bpmnUtils";
 import { useSelector } from "react-redux";
 import { createDiagram } from "../utils/bpmnUtils";
 
-
+//Componente que crea el menú contextual para vincular procesos con subprocesos
 export const CustomMenuContextual = ({modo}) => {
     const [subProcess, setSubProcess] = useState([]);
     const user = useSelector((state) => state.auth.user);

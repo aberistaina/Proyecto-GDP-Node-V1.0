@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { ProcesoNavegacion } from "./ProcesoNavegacion";
+import { ProcesoNavegacion } from "../components/ProcesoNavegacion";
 import { ProcesoTabla } from "./ProcesoTabla";
 import { useParams } from "react-router-dom";
-import { Busqueda } from "./Busqueda";
+import { Busqueda } from "../components/Busqueda";
 
 export const ProcesosContainer = () => {
     const [stack, setStack] = useState([]); // historial de navegación: nivel → proceso → subproceso → etc.
@@ -36,7 +36,6 @@ export const ProcesosContainer = () => {
                         (p) => p.macroproceso
                     );
                     setProcesos(macroprocesos);
-                    console.log("Macroprocesos:", macroprocesos);
                 } else {
                     // Cargar subprocesos del proceso actual
                     const res = await fetch(

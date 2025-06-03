@@ -1,6 +1,7 @@
 import _sequelize from "sequelize";
 const DataTypes = _sequelize.DataTypes;
 import _Aprobadores from  "./Aprobadores.js";
+import _Administracion from  "./Administracion.js";
 import _ArchivosComentariosVersionProceso from  "./ArchivosComentariosVersionProceso.js";
 import _ArchivosOportunidadesMejora from  "./ArchivosOportunidadesMejora.js";
 import _ArchivosVersionProceso from  "./ArchivosVersionProceso.js";
@@ -32,11 +33,8 @@ export default function initModels(sequelize) {
   const Token = _Token.init(sequelize, DataTypes);
   const Usuarios = _Usuarios.init(sequelize, DataTypes);
   const VersionProceso = _VersionProceso.init(sequelize, DataTypes);
+  const Administracion = _Administracion.init(sequelize, DataTypes);
 
-  Aprobadores.belongsToMany(VersionProceso, { as: 'id_version_proceso_version_procesos', through: BitacoraAprobaciones, foreignKey: "id_aprobador", otherKey: "id_version_proceso" });
-  VersionProceso.belongsToMany(Aprobadores, { as: 'id_aprobador_aprobadores', through: BitacoraAprobaciones, foreignKey: "id_version_proceso", otherKey: "id_aprobador" });
-  BitacoraAprobaciones.belongsTo(Aprobadores, { as: "id_aprobador_aprobadore", foreignKey: "id_aprobador"});
-  Aprobadores.hasMany(BitacoraAprobaciones, { as: "bitacora_aprobaciones", foreignKey: "id_aprobador"});
   VersionProceso.belongsTo(Aprobadores, { as: "id_aprobador_aprobadore", foreignKey: "id_aprobador"});
   Aprobadores.hasMany(VersionProceso, { as: "version_procesos", foreignKey: "id_aprobador"});
   Procesos.belongsTo(Cargo, { as: "id_aprobadores_cargo_cargo", foreignKey: "id_aprobadores_cargo"});
@@ -82,7 +80,7 @@ export default function initModels(sequelize) {
   OportunidadesMejora.belongsTo(VersionProceso, { as: "id_version_proceso_version_proceso", foreignKey: "id_version_proceso"});
   VersionProceso.hasMany(OportunidadesMejora, { as: "oportunidades_mejoras", foreignKey: "id_version_proceso"});
 
-  //Preguntar después no estaba hecha la asociacion pero sin en el modelo
+
   Aprobadores.belongsTo(VersionProceso, {
   as: "version_proceso",
   foreignKey: "id_version_proceso"
@@ -92,6 +90,17 @@ VersionProceso.hasMany(Aprobadores, {
   as: "aprobadores",
   foreignKey: "id_version_proceso"
 });
+
+BitacoraAprobaciones.belongsTo(Usuarios, {
+  as: "usuario",
+  foreignKey: "id_usuario"
+});
+
+Usuarios.hasMany(BitacoraAprobaciones, {
+  as: "bitacora_aprobaciones",
+  foreignKey: "id_usuario"
+});
+
 
 
   return {
@@ -110,5 +119,6 @@ VersionProceso.hasMany(Aprobadores, {
     Token,
     Usuarios,
     VersionProceso,
+    Administracion
   };
 }

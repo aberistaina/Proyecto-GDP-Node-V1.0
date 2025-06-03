@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import { fetchHook } from "../../../hooks/fetchHook";
 import { useNavigate } from "react-router-dom";
 
+//Componente con mensaje para guardar cambios en el flujo que se está trabajando
 export const ModalSaveChanges = ({ setShowModalSaveChanges }) => {
     const navigate = useNavigate()
     const user = useSelector((state) => state.auth.user);

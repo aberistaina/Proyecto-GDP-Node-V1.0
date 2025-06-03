@@ -1,24 +1,22 @@
-import { CustomMenuContextual } from "../components/CustomMenuContextual"
 import { BpmnProvider } from "../context/BpmnProvider"
-import { MenuContextListener } from "../context/MenuContextListener"
 import { BpmnViewer } from "./components/BpmnViewer"
-import { ModelerButtons } from "../components/ModelerButtons"
-import { ProcessSelector } from "../components/ProcessSelector"
+import { PopupDescripcion } from "./components/PopupDescripcion"
+import { useState } from "react"
 
 
 
-export const BpmnViewerModule = () => {
+
+//Módulo que contiene todos los componentes del visualizador
+export const BpmnViewerModule = ({height, border}) => {
+    const [elementoSeleccionado, setElementoSeleccionado] = useState(null);
     
     return (
         <>
             <BpmnProvider>
             <div className="h-full w-full flex flex-col items-center justify-start ">
-                <div className="w-[80%] space-y-8 mt-10">
-                    <ProcessSelector modo="viewer" />
-                    <CustomMenuContextual modo="viewer" />
-                    <BpmnViewer />
-                    <ModelerButtons modo="viewer" />
-                    <MenuContextListener />
+                <div className="w-[100%] h-full space-y-8 mt-10">   
+                    <BpmnViewer height={height} border={border} setElementoSeleccionado={setElementoSeleccionado} />
+                    <PopupDescripcion elementoSeleccionado={elementoSeleccionado} onClose={() => setElementoSeleccionado(null)} />
                 </div>
             </div>
             </BpmnProvider>

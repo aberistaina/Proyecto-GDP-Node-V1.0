@@ -13,7 +13,6 @@ export const AdminDashboard = () => {
     const [isOpenCreateUpdateModal, setIsOpenCreateUpdateModal] = useState(false)
     const user = useSelector((state) => state.auth.user);
     const usuario = user?.usuario;
-    console.log("MI ROL ES", usuario.id_rol);
 
     return (
         <AdminDataProvider>

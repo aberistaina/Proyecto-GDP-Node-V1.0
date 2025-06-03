@@ -21,6 +21,8 @@ export const getDataFileBpmnFromS3 = async (bucketName, fileName, version) => {
             Key: fileName,
         });
 
+        
+
         const { Body } = await s3Client.send(command);
 
         const streamToString = (stream) =>
@@ -75,10 +77,12 @@ export const getFileFromS3Version = async (bucketName, fileName, versionBuscada)
         const { Versions } = await s3Client.send(
             new ListObjectVersionsCommand({
                 Bucket: bucketName,
-                Prefix: fileName,
+                Prefix: `${fileName}`,
+                Delimiter: '/'
             })
         );
-        
+        console.log("Bucket", bucketName);
+        console.log("KEY", fileName);
         //Recorre todas las versiones y busca la que tenga la metadata "x-amz-meta-version" que necesitamos"
         for (const version of Versions) {
             const { Metadata } = await s3Client.send(

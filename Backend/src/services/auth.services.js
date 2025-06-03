@@ -15,6 +15,7 @@ export const comparePassword = async (password, hash) => {
 };
 
 export const createToken = (data, expiration) => {
+    console.log(expiration);
     const token = jwt.sign(
         {
             data,

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useBpmnContext } from "../context/useBpmnContext";
 
+//Elementos del Contexto del Menu Contextual para vincular procesos (Identifica el elemento al que se le hizo click para poder vincularlo con su subproceso solo si este es un tipo callactivity)
 export const MenuContextListener = ({ processID }) => {
     const { bpmnModelerRef, setOpenMenuContextual, emptyDiagram  } = useBpmnContext();
 

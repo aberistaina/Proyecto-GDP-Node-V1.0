@@ -65,7 +65,6 @@ export const LoginForm = () => {
 
             const response = await fetch(`${URL}/api/v1/auth/login`, requestOptions)
             const data = await response.json()
-            console.log(data);
 
             if (data.code === 200) {
                 enqueueSnackbar("Sesión iniciada correctamente", { variant: "success" });

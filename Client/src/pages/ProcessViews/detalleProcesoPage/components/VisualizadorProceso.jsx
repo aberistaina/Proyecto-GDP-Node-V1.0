@@ -1,10 +1,9 @@
 import { useEffect } from "react";
-import { BpmnViewer } from "../../../../BpmnModule/BpmnViewer/components/BpmnViewer";
 import { FaDiagramProject } from "react-icons/fa6";
 import { useBpmnContext } from "../../../../BpmnModule/context/useBpmnContext";
-import { BpmnViewerModule2 } from "../../../../BpmnModule/BpmnViewer2/BpmnViewerModule2";
+import { BpmnViewerModule } from "../../../../BpmnModule/BpmnViewer/BpmnViewerModule";
 import { SlSizeFullscreen } from "react-icons/sl";
-import { Link } from "react-router-dom";
+
 
 export const VisualizadorProceso = ({ idProceso, version, height }) => {
     const { setEmptyDiagram } = useBpmnContext();
@@ -20,7 +19,6 @@ export const VisualizadorProceso = ({ idProceso, version, height }) => {
                     `${URL}/api/v1/procesos/get-process/${idProceso}/${version}`
                 );
                 const data = await response.text();
-                console.log(data);
                 setEmptyDiagram(data);
             } catch (error) {
                 console.log(error);
@@ -32,7 +30,7 @@ export const VisualizadorProceso = ({ idProceso, version, height }) => {
     return (
         <>
             <div
-                className="bg-[#ececec] rounded-lg pb-8 pt-5 ps-8 pe-8 shadow-[6px_6px_4px_#c0c0c0] h-[50%]
+                className="bg-[#ececec] rounded-lg pb-4 pt-4 ps-8 pe-8 shadow-[6px_6px_4px_#c0c0c0] h-[80%]
             "
             >
                 <div className=" flex justify-between ">
@@ -53,8 +51,8 @@ export const VisualizadorProceso = ({ idProceso, version, height }) => {
                         </a>
                     </div>
                 </div>
-                <div className="h-[85%]">
-                    <BpmnViewerModule2 height={"h-full"} />
+                <div className="h-[90%]">
+                    <BpmnViewerModule height={"h-full"} />
                 </div>
             </div>
         </>

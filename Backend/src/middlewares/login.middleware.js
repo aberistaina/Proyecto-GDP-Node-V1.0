@@ -3,6 +3,10 @@ import logger from "../utils/logger.js";
 import { comparePassword, createToken, verifyToken, hashPassword } from "../services/auth.services.js";
 import { Usuarios, Roles, Cargo } from "../models/models.js";
 
+import { getAdminConfig } from "../services/admin.services.js";
+
+const { token_expiracion_login } = await getAdminConfig()
+
 
 export const issueTokenMiddleware = async(req, res, next) =>{
     try {
@@ -46,7 +50,7 @@ export const issueTokenMiddleware = async(req, res, next) =>{
             throw new UnauthorizedError("Email o contraseña incorrectos")
         }
 
-        const token = createToken(userMap, "1d")
+        const token = createToken(userMap, token_expiracion_login)
 
         req.token = token
         next()

@@ -5,7 +5,6 @@ export const exportDiagramXml = async (bpmnModelerRef) => {
             const { xml } = await bpmnModelerRef.current.saveXML({
                 format: true,
             });
-            console.log("Diagrama exportado como XML:", xml);
             return xml;
         }
     } catch (err) {
@@ -38,7 +37,6 @@ export const importDiagram = (event, bpmnModelerRef) => {
         const cleanedXml = cleanXml(xml);
         try {
             await bpmnModelerRef.current.importXML(cleanedXml);
-            console.log("Diagrama importado correctamente");
         } catch (err) {
             console.error("Error al importar el diagrama:", err);
         }
@@ -64,15 +62,13 @@ export const createDiagram = async (bpmnModelerRef, diagrama) => {
             return;
         }
         const { warnings } = await modeler.importXML(diagrama);
-        
+
         const canvas = modeler.get("canvas");
-        
+
         const viewbox = canvas.viewbox();
 
         canvas.zoom();
         canvas.scroll({ dx: viewbox.width / 10, dy: 0 });
-
-        
     } catch (err) {
         console.error("Error al crear el diagrama:", err);
     }
@@ -119,3 +115,105 @@ export const extraerIdSubproceso = async (xmlString) => {
 
     return null;
 };
+
+export const guardarImagenFlujo = async (
+  bpmnModeler,
+  idProceso = "imagen-flujo"
+) => {
+  if (!bpmnModeler) {
+    console.error(
+      "No se pudo generar la imágen, intente nuevamente más tarde"
+    );
+    return;
+  }
+
+  try {
+    // 1) Obtenemos el SVG (string) de bpmn-js
+    let { svg } = await bpmnModeler.saveSVG();
+
+    // ——— DEBUG: Mostrar los primeros 500 caracteres del SVG original ———
+    console.group("▶▶ SVG original (primeros 500 caracteres) ◀◀");
+    console.log(svg.slice(0, 500));
+    console.groupEnd();
+
+    // 2) Buscamos viewBox="minX minY vbWidth vbHeight"
+    const viewBoxMatch = svg.match(/viewBox="([^"]+)"/);
+
+    if (viewBoxMatch) {
+      // 3) Dividimos la cadena interna de viewBox en cuatro valores
+      const parts = viewBoxMatch[1].trim().split(/\s+/);
+      const minX = parts[0];
+      const minY = parts[1];
+      const vbWidth = parts[2];
+      const vbHeight = parts[3];
+
+      console.log(
+        `→ viewBox detectado: minX=${minX}, minY=${minY}, width=${vbWidth}, height=${vbHeight}`
+      );
+
+      // 4) Inyectamos el <rect> de fondo en coordenadas del viewBox
+      svg = svg.replace(
+        /<svg([^>]*)>/,
+        `<svg$1><rect x="${minX}" y="${minY}" width="${vbWidth}" height="${vbHeight}" fill="white" />`
+      );
+
+      console.info("✅ Se inyectó el <rect> de fondo según el viewBox.");
+    } else {
+      // 5) Si no encontramos viewBox, usamos fallback 100% x 100%
+      console.warn(
+        "⚠️ No se detectó viewBox. Se inyectará <rect width='100%' height='100%'> (puede quedar fuera)."
+      );
+      svg = svg.replace(
+        /<svg([^>]*)>/,
+        '<svg$1><rect x="0" y="0" width="100%" height="100%" fill="white" />'
+      );
+    }
+
+    // ——— DEBUG: Mostrar los primeros 500 caracteres del SVG modificado ———
+    console.group("▶▶ SVG modificado (primeros 500 caracteres) ◀◀");
+    console.log(svg.slice(0, 500));
+    console.groupEnd();
+
+    // 6) Convertimos el SVG en una imagen y la descargamos
+    const image = new Image();
+    const svgBlob = new Blob([svg], {
+      type: "image/svg+xml;charset=utf-8",
+    });
+    const url = URL.createObjectURL(svgBlob);
+
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = image.width;
+      canvas.height = image.height;
+      const context = canvas.getContext("2d");
+
+      // 7) Pintamos primero el fondo completo de blanco (por si algo falla)
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+
+      // 8) Luego dibujamos el SVG sobre ese fondo blanco
+      context.drawImage(image, 0, 0);
+      URL.revokeObjectURL(url);
+
+      canvas.toBlob((blob) => {
+        const pngUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = pngUrl;
+        a.download = `${idProceso}.png`;
+        a.click();
+        URL.revokeObjectURL(pngUrl);
+      });
+    };
+
+    image.onerror = (e) => {
+      console.error("Error cargando imagen del SVG", e);
+    };
+
+    image.src = url;
+  } catch (error) {
+    console.error("Error inesperado o al guardar SVG:", error);
+  }
+};
+
+
+

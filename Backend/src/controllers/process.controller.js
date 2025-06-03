@@ -1,5 +1,8 @@
 import * as path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs"; //Debug, luego borrar
+import BpmnModdle from "bpmn-moddle";
+import puppeteer from "puppeteer";
 import {
     Procesos,
     IntermediaProcesos,
@@ -10,7 +13,7 @@ import {
     OportunidadesMejora,
     Niveles,
     Cargo,
-    BitacoraAprobaciones
+    BitacoraAprobaciones,
 } from "../models/models.js";
 import logger from "../utils/logger.js";
 import {
@@ -24,7 +27,7 @@ import {
     createAssociation,
     createProcessIfNotExist,
     getProximoCiclo,
-    obtenerUltimaVersionProceso
+    obtenerUltimaVersionProceso,
 } from "../services/Bpmn.services.js";
 import {
     getDataFileBpmnFromS3,
@@ -34,9 +37,11 @@ import {
 } from "../services/s3Client.services.js";
 import { moveFile } from "../utils/uploadFile.js";
 import { sequelize } from "../database/database.js";
-import { createLogger } from "winston";
+import { documentacionTemplate } from "../utils/documentacionTemplate.js";
+import { getAdminConfig } from "../services/admin.services.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const {s3_bucket, s3_bucket_procesos} = await getAdminConfig()
 
 export const getAllProcess = async (req, res, next) => {
     try {
@@ -63,11 +68,12 @@ export const readActualProcessVersion = async (req, res, next) => {
 
         const versionActiva = procesoVersionActual.nombre_version;
 
+        
+
         const xmlContent = await getFileFromS3Version(
-            "test-bpmn",
+            s3_bucket,
             `${idProceso}.bpmn`,
             versionActiva,
-            "activo"
         );
 
         res.setHeader("Content-Type", "application/xml");
@@ -108,59 +114,85 @@ export const readProcessVersion = async (req, res, next) => {
 export const connectSubprocess = async (req, res, next) => {
     const transaction = await sequelize.transaction();
     try {
-        const { idProceso, calledElement, callActivity, aprobadores, nivel, nombre, descripcion, esMacroproceso, id_creador } = req.body;
+        const {
+            idProceso,
+            calledElement,
+            callActivity,
+            aprobadores,
+            nivel,
+            nombre,
+            descripcion,
+            esMacroproceso,
+            id_creador,
+        } = req.body;
         console.log(req.body);
         const { archivo } = req.files;
         const archivoTransformado = archivo.data.toString("utf8");
 
-
-        const procesoPadre = await Procesos.findOne({where: {id_bpmn: idProceso}}, { transaction })
+        const procesoPadre = await Procesos.findOne(
+            { where: { id_bpmn: idProceso } },
+            { transaction }
+        );
 
         if (!procesoPadre) {
-            await Procesos.create({
-                id_creador: id_creador,
-                id_aprobadores_cargo: aprobadores,
-                id_nivel: nivel,
-                nombre: nombre,
-                descripcion: descripcion,
-                estado: "borrador",
-                id_bpmn: idProceso,
-                macroproceso: esMacroproceso,
-            }, { transaction })
+            await Procesos.create(
+                {
+                    id_creador: id_creador,
+                    id_aprobadores_cargo: aprobadores,
+                    id_nivel: nivel,
+                    nombre: nombre,
+                    descripcion: descripcion,
+                    estado: "borrador",
+                    id_bpmn: idProceso,
+                    macroproceso: esMacroproceso,
+                },
+                { transaction }
+            );
         }
 
-        const subproceso = await Procesos.findOne({where: {id_bpmn: calledElement}}, { transaction })
-        const nombreSubproceso = subproceso.nombre
+        const subproceso = await Procesos.findOne(
+            { where: { id_bpmn: calledElement } },
+            { transaction }
+        );
+        const nombreSubproceso = subproceso.nombre;
 
-        const referenciaExistente = await IntermediaProcesos.findOne({
-            where: {
-                id_bpmn_padre: idProceso,
-                call_activity: callActivity,
+        const referenciaExistente = await IntermediaProcesos.findOne(
+            {
+                where: {
+                    id_bpmn_padre: idProceso,
+                    call_activity: callActivity,
+                },
             },
-        }, { transaction });
+            { transaction }
+        );
         const archivoModificado = await changeCallElement(
-                archivoTransformado,
-                callActivity,
-                calledElement,
-                nombreSubproceso
-            );
+            archivoTransformado,
+            callActivity,
+            calledElement,
+            nombreSubproceso
+        );
 
         if (referenciaExistente) {
-            await referenciaExistente.update({id_bpmn: calledElement,}, { transaction });
+            await referenciaExistente.update(
+                { id_bpmn: calledElement },
+                { transaction }
+            );
             res.setHeader("Content-Type", "application/xml");
-            res.status(200).send(archivoModificado)
-        }else {
-            await IntermediaProcesos.create({
-                id_bpmn_padre: idProceso,
-                call_activity: callActivity,
-                id_bpmn: calledElement,
-            }, { transaction });
+            res.status(200).send(archivoModificado);
+        } else {
+            await IntermediaProcesos.create(
+                {
+                    id_bpmn_padre: idProceso,
+                    call_activity: callActivity,
+                    id_bpmn: calledElement,
+                },
+                { transaction }
+            );
 
             res.setHeader("Content-Type", "application/xml");
             res.status(200).send(archivoModificado);
         }
         await transaction.commit();
-        
     } catch (error) {
         await transaction.rollback();
         logger.error("Controlador updateSubproceso", error);
@@ -185,7 +217,7 @@ export const uploadProcess = async (req, res, next) => {
         //Variables momentáneas
         const estado = "activo";
         //variables momentáneas
-        const id_aprobadores_cargo = "3"
+        const id_aprobadores_cargo = "3";
 
         const archivosArray = Array.isArray(archivos) ? archivos : [archivos];
         const datosArchivos = [];
@@ -272,7 +304,7 @@ export const uploadProcess = async (req, res, next) => {
         }
 
         await transaction.commit();
-        
+
         res.status(201).json({
             code: 201,
             message: "Procesos cargado correctamente",
@@ -288,7 +320,6 @@ export const uploadProcess = async (req, res, next) => {
 //Guardar cambios cuando se trabaja en el modelador o crear un nuevo proceso si este no existe
 export const saveNewProcessChanges = async (req, res, next) => {
     try {
-
         const { archivo } = req.files;
         const {
             id_creador,
@@ -300,9 +331,8 @@ export const saveNewProcessChanges = async (req, res, next) => {
         } = req.body;
 
         const datoArchivo = await extraerDatosBpmn(archivo);
-        const idProceso = datoArchivo.idProceso
+        const idProceso = datoArchivo.idProceso;
 
-        
         if (!req.files || Object.keys(req.files).length === 0) {
             return res.status(400).json({
                 code: 400,
@@ -328,22 +358,22 @@ export const saveNewProcessChanges = async (req, res, next) => {
             },
         });
 
-            await VersionProceso.create({
-                id_creador,
-                id_proceso: proceso.id_proceso,
-                id_bpmn: idProceso,
-                nombre_version: "1.0",
-            })
+        await VersionProceso.create({
+            id_creador,
+            id_proceso: proceso.id_proceso,
+            id_bpmn: idProceso,
+            nombre_version: "1.0",
+        });
 
-            await uploadFileToS3(
-                "test-bpmn",
-                `${idProceso}.bpmn`,
-                archivo.data,
-                "application/xml",
-                "1.0",
-                "borrador"
-            );
-        
+        await uploadFileToS3(
+            s3_bucket,
+            `${idProceso}.bpmn`,
+            archivo.data,
+            "application/xml",
+            "1.0",
+            "borrador"
+        );
+
         res.status(201).json({
             code: 201,
             message: "Proceso Guardado Correctamente",
@@ -482,25 +512,24 @@ export const enviarAprobacion = async (req, res, next) => {
             },
         });
 
-        const versionProceso = await VersionProceso.findByPk(version)
+        const versionProceso = await VersionProceso.findByPk(version);
 
-        await versionProceso.update(
-            {estado: "enviado",})
+        await versionProceso.update({ estado: "enviado" });
 
         const nuevoCiclo = await getProximoCiclo(version);
-        const cicloActual = nuevoCiclo - 1
+        const cicloActual = nuevoCiclo - 1;
 
         const cicloEnCurso = await Aprobadores.findOne({
             where: {
                 id_version_proceso: version,
-                ciclo_aprobacion: cicloActual
-                }
+                ciclo_aprobacion: cicloActual,
+            },
         });
 
         if (cicloEnCurso) {
             return res.status(400).json({
-            code: 400,
-            message: `Ya existe una solicitud de aprobación activa para este Proceso.`,
+                code: 400,
+                message: `Ya existe una solicitud de aprobación activa para este Proceso.`,
             });
         }
 
@@ -509,7 +538,7 @@ export const enviarAprobacion = async (req, res, next) => {
                 id_usuario: aprobador.id_usuario,
                 id_version_proceso: version,
                 estado: "pendiente",
-                ciclo_aprobacion: nuevoCiclo
+                ciclo_aprobacion: nuevoCiclo,
             });
         }
 
@@ -524,183 +553,198 @@ export const enviarAprobacion = async (req, res, next) => {
     }
 };
 
-export const aprobarProceso =async (req, res, next) =>{
+export const aprobarProceso = async (req, res, next) => {
     const transaction = await sequelize.transaction();
     try {
-        
-        const { idProceso, id_usuario, version } = req.body
-        
+        const { idProceso, id_usuario, version } = req.body;
+
         const solicitud = await Aprobadores.findOne({
-            where:{
+            where: {
                 id_usuario,
-                id_version_proceso: version
+                id_version_proceso: version,
             },
-            transaction
-        })
+            transaction,
+        });
 
         const proceso = await Procesos.findOne({
-            where:{
-                id_bpmn: idProceso
+            where: {
+                id_bpmn: idProceso,
             },
-            transaction
-        })
-
-        if(!proceso){
-            await transaction.rollback()
-            return res.status(400).json({
-            code: 400,
-            message: "No existe el proceso que está intentando aprobar",
+            transaction,
         });
+
+        if (!proceso) {
+            await transaction.rollback();
+            return res.status(400).json({
+                code: 400,
+                message: "No existe el proceso que está intentando aprobar",
+            });
         }
 
-        if(!solicitud){
-            await transaction.rollback()
+        if (!solicitud) {
+            await transaction.rollback();
             return res.status(400).json({
-            code: 400,
-            message: "No existe la solicitud que está intentando aprobar",
-        });
+                code: 400,
+                message: "No existe la solicitud que está intentando aprobar",
+            });
         }
 
         await solicitud.update({ estado: "aprobado" }, { transaction });
 
         const solicitudes = await Aprobadores.findAll({
             where: {
-                id_version_proceso: version
+                id_version_proceso: version,
             },
-            transaction
+            transaction,
         });
 
         const hayPendientes = solicitudes.some((s) => s.estado === "pendiente");
         const hayRechazadas = solicitudes.some((s) => s.estado === "rechazado");
-        const solicitudesAprobadas = solicitudes.every(s => s.estado === "aprobado");
+        const solicitudesAprobadas = solicitudes.every(
+            (s) => s.estado === "aprobado"
+        );
 
         if (solicitudesAprobadas) {
-            const versionBorrador = await VersionProceso.findByPk(version)
-            const nombreVersionBorradorAnterior = (parseFloat(versionBorrador.nombre_version) - 0.1).toFixed(1)
+            const versionBorrador = await VersionProceso.findByPk(version);
+            const nombreVersionBorradorAnterior = (
+                parseFloat(versionBorrador.nombre_version) - 0.1
+            ).toFixed(1);
             const versionAnterior = await VersionProceso.findOne({
-                where:{
-                    id_bpmn : idProceso,
-                    nombre_version: nombreVersionBorradorAnterior
-                }
-            })
-
-            await versionAnterior.update({
-                estado: "inactivo"
-            }, { transaction })
-
-            await versionBorrador.update({
-                estado: "aprobado"
-            }, { transaction })
-
-        } else if(hayRechazadas && !hayPendientes) {
-            await Aprobadores.destroy({
-            where: {
-                id_version_proceso: version
+                where: {
+                    id_bpmn: idProceso,
+                    nombre_version: nombreVersionBorradorAnterior,
                 },
-            transaction
+            });
+
+            await versionAnterior.update(
+                {
+                    estado: "inactivo",
+                },
+                { transaction }
+            );
+
+            await versionBorrador.update(
+                {
+                    estado: "aprobado",
+                },
+                { transaction }
+            );
+        } else if (hayRechazadas && !hayPendientes) {
+            await Aprobadores.destroy({
+                where: {
+                    id_version_proceso: version,
+                },
+                transaction,
             });
 
             const versionProceso = await VersionProceso.findOne({
                 where: {
                     id_bpmn: idProceso,
-                    id_version_proceso: version
-                },transaction
-            })
+                    id_version_proceso: version,
+                },
+                transaction,
+            });
 
-            await versionProceso.update({estado: "rechazado"}, {transaction})
-
+            await versionProceso.update(
+                { estado: "rechazado" },
+                { transaction }
+            );
         }
 
-        await transaction.commit()
+        await transaction.commit();
         res.status(200).json({
             code: 200,
             message: "Proceso Aprobado",
         });
     } catch (error) {
-        await transaction.rollback()
+        await transaction.rollback();
         logger.error("Controlador Enviar Aprobacion", error);
         console.log(error);
         next(error);
     }
-}
+};
 
-export const rechazarProceso =async (req, res, next) =>{
+export const rechazarProceso = async (req, res, next) => {
     try {
         const transaction = await sequelize.transaction();
-        const { idProceso, id_usuario, version } = req.body
+        const { idProceso, id_usuario, version } = req.body;
 
         const solicitud = await Aprobadores.findOne({
-            where:{
+            where: {
                 id_usuario,
-                id_version_proceso: version
+                id_version_proceso: version,
             },
-            transaction
-        })
+            transaction,
+        });
 
         const proceso = await Procesos.findOne({
-            where:{
-                id_bpmn: idProceso
+            where: {
+                id_bpmn: idProceso,
             },
-            transaction
-        })
-
-        if(!proceso){
-            await transaction.rollback()
-            return res.status(400).json({
-            code: 400,
-            message: "No existe el proceso que está intentando aprobar",
+            transaction,
         });
+
+        if (!proceso) {
+            await transaction.rollback();
+            return res.status(400).json({
+                code: 400,
+                message: "No existe el proceso que está intentando aprobar",
+            });
         }
 
-        if(!solicitud){
-            await transaction.rollback()
+        if (!solicitud) {
+            await transaction.rollback();
             return res.status(400).json({
-            code: 400,
-            message: "No existe la solicitud que está intentando aprobar",
-        });
+                code: 400,
+                message: "No existe la solicitud que está intentando aprobar",
+            });
         }
 
         await solicitud.update({ estado: "rechazado" }, { transaction });
 
         const solicitudes = await Aprobadores.findAll({
             where: {
-                id_version_proceso: version
+                id_version_proceso: version,
             },
-            transaction
+            transaction,
         });
 
         const hayPendientes = solicitudes.some((s) => s.estado === "pendiente");
 
-        if(!hayPendientes) {
+        if (!hayPendientes) {
             await Aprobadores.destroy({
-            where: {
-                id_version_proceso: version
+                where: {
+                    id_version_proceso: version,
                 },
-            transaction
+                transaction,
             });
 
             const versionProceso = await VersionProceso.findOne({
                 where: {
                     id_bpmn: idProceso,
-                    id_version_proceso: version
-                },transaction
-            })
+                    id_version_proceso: version,
+                },
+                transaction,
+            });
 
-            await versionProceso.update({estado: "rechazado"}, {transaction})
+            await versionProceso.update(
+                { estado: "rechazado" },
+                { transaction }
+            );
         }
 
-        await transaction.commit()
+        await transaction.commit();
         res.status(200).json({
             code: 200,
             message: "Proceso Rechazado ",
         });
     } catch (error) {
-        await transaction.rollback()
+        await transaction.rollback();
         logger.error("Controlador Enviar Aprobacion", error);
         console.log(error);
         next(error);
     }
-}
+};
 
 export const getPendingProcess = async (req, res, next) => {
     try {
@@ -709,24 +753,24 @@ export const getPendingProcess = async (req, res, next) => {
         const aprobacionesPendientes = await Aprobadores.findAll({
             where: {
                 id_usuario: idUsuario,
-                estado: "pendiente"
+                estado: "pendiente",
             },
             include: [
                 {
                     model: VersionProceso,
-                    as: "version_proceso", 
+                    as: "version_proceso",
                     include: [
                         {
                             model: Procesos,
-                            as: "id_proceso_proceso", 
-                            attributes: ["id_bpmn", "nombre", "descripcion"], 
+                            as: "id_proceso_proceso",
+                            attributes: ["id_bpmn", "nombre", "descripcion"],
                         },
                     ],
                 },
             ],
         });
 
-        const resultadosMapeados = aprobacionesPendientes.map(item => ({
+        const resultadosMapeados = aprobacionesPendientes.map((item) => ({
             idAprobador: item.id_aprobador,
             idUsuario: item.id_usuario,
             idVersionProceso: item.id_version_proceso,
@@ -738,7 +782,8 @@ export const getPendingProcess = async (req, res, next) => {
             idBpmn: item.version_proceso?.id_bpmn,
 
             nombreProceso: item.version_proceso?.id_proceso_proceso?.nombre,
-            descripcionProceso: item.version_proceso?.id_proceso_proceso?.descripcion
+            descripcionProceso:
+                item.version_proceso?.id_proceso_proceso?.descripcion,
         }));
 
         res.status(200).json({
@@ -760,19 +805,23 @@ export const getPendingDraft = async (req, res, next) => {
 
         const borradoresActivos = await VersionProceso.findAll({
             where: {
-                id_creador: idUsuario
+                id_creador: idUsuario,
             },
             include: [
                 {
                     model: Procesos,
-                    as: "id_proceso_proceso", 
-                    attributes: ["id_bpmn", "nombre", "descripcion", "id_aprobadores_cargo"], 
+                    as: "id_proceso_proceso",
+                    attributes: [
+                        "id_bpmn",
+                        "nombre",
+                        "descripcion",
+                        "id_aprobadores_cargo",
+                    ],
                 },
             ],
         });
-        
 
-        const resultadosMapeados = borradoresActivos.map(item => ({
+        const resultadosMapeados = borradoresActivos.map((item) => ({
             idVersionProceso: item.id_version_proceso,
             idProceso: item.id_proceso,
             idAprobador: item.id_proceso_proceso?.id_aprobadores_cargo,
@@ -780,15 +829,14 @@ export const getPendingDraft = async (req, res, next) => {
             observacion: item.observacion_version,
             estado: item.estado,
             idBpmn: item.id_bpmn,
-            fechaCreacion:formatShortTime(item.created_at),
+            fechaCreacion: formatShortTime(item.created_at),
             nombreProceso: item.id_proceso_proceso?.nombre,
-            descripcionProceso: item.id_proceso_proceso?.descripcion
+            descripcionProceso: item.id_proceso_proceso?.descripcion,
         }));
 
         res.status(200).json({
             code: 200,
-            message:
-                "Borradores Activos obtenidos correctamtente",
+            message: "Borradores Activos obtenidos correctamtente",
             data: resultadosMapeados,
         });
     } catch (error) {
@@ -856,7 +904,7 @@ export const getProcessSummary = async (req, res, next) => {
                     attributes: ["nombre"],
                 },
             ],
-        })
+        });
 
         const subprocesos = await IntermediaProcesos.findAll({
             where: {
@@ -868,12 +916,12 @@ export const getProcessSummary = async (req, res, next) => {
                     as: "id_bpmn_proceso",
                     attributes: ["id_bpmn", "nombre"],
                     include: [
-                    {
-                        model: VersionProceso,
-                        as: "version_procesos",
-                        order: [["created_at", "DESC"]]
-                    },
-            ],
+                        {
+                            model: VersionProceso,
+                            as: "version_procesos",
+                            order: [["created_at", "DESC"]],
+                        },
+                    ],
                 },
             ],
         });
@@ -881,7 +929,9 @@ export const getProcessSummary = async (req, res, next) => {
         const subprocesosMap = subprocesos.map((subproceso) => ({
             id: subproceso.id_bpmn_proceso?.id_bpmn,
             nombre: subproceso.id_bpmn_proceso?.nombre,
-            version: subproceso.id_bpmn_proceso?.version_procesos?.[0]?.id_version_proceso
+            version:
+                subproceso.id_bpmn_proceso?.version_procesos?.[0]
+                    ?.id_version_proceso,
         }));
 
         const resumenProceso = {
@@ -946,9 +996,7 @@ export const getCommentaries = async (req, res, next) => {
     try {
         const { idProceso, version } = req.params;
 
-
-
-        let comentarios = await ComentariosVersionProceso.findAll({
+        const comentarios = await ComentariosVersionProceso.findAll({
             include: [
                 {
                     model: Usuarios,
@@ -991,15 +1039,13 @@ export const createOppotunity = async (req, res, next) => {
             req.body;
         const archivos = req.files?.archivos || null;
 
-
-
         await OportunidadesMejora.create({
             id_usuario,
             id_bpmn: idProceso,
             asunto,
             descripcion,
-            id_version_proceso: version
-        })
+            id_version_proceso: version,
+        });
         res.status(201).json({
             code: 201,
             message: "Oportunidad creada correctamente",
@@ -1028,7 +1074,7 @@ export const getOpportunities = async (req, res, next) => {
                 id_bpmn: idProceso,
                 id_version_proceso: version,
             },
-            order: [["created_at", "DESC"]]
+            order: [["created_at", "DESC"]],
         });
 
         const oportunidadesMap = oportunidades.map((oportunidad) => {
@@ -1138,6 +1184,7 @@ export const getProcessByNivel = async (req, res, next) => {
     }
 };
 
+//Función Para descargar un proceso
 export const downloadProcess = async (req, res, next) => {
     try {
         const { idProceso } = req.params;
@@ -1165,6 +1212,7 @@ export const downloadProcess = async (req, res, next) => {
     }
 };
 
+//Función obtener las versiones de un proceso
 export const getProcessVersions = async (req, res, next) => {
     try {
         const { idProceso } = req.params;
@@ -1195,6 +1243,7 @@ export const getProcessVersions = async (req, res, next) => {
     }
 };
 
+//Función para crear una nueva versión de un proceso
 export const createNewProcessVersion = async (req, res, next) => {
     try {
         const { idProceso, version, id_creador } = req.body;
@@ -1206,16 +1255,16 @@ export const createNewProcessVersion = async (req, res, next) => {
 
         const versionBase = await VersionProceso.findByPk(version);
         if (!versionBase) {
-            return res.status(404).json({ code: 404, message: "Versión base no encontrada" });
+            return res
+                .status(404)
+                .json({ code: 404, message: "Versión base no encontrada" });
         }
-
-
 
         const borradorAcutal = await VersionProceso.findOne({
             where: {
                 id_version_proceso: version,
                 id_bpmn: idProceso,
-                estado: "borrador"
+                estado: "borrador",
             },
         });
 
@@ -1234,8 +1283,10 @@ export const createNewProcessVersion = async (req, res, next) => {
             });
         }
 
-        const ultimaVersion = await VersionProceso.findByPk(version)
-        const nuevaVersion = (parseFloat(ultimaVersion.nombre_version) + 0.1).toFixed(1)
+        const ultimaVersion = await VersionProceso.findByPk(version);
+        const nuevaVersion = (
+            parseFloat(ultimaVersion.nombre_version) + 0.1
+        ).toFixed(1);
 
         const versionSuperior = await VersionProceso.findOne({
             where: {
@@ -1247,7 +1298,7 @@ export const createNewProcessVersion = async (req, res, next) => {
         const borrador = await VersionProceso.findOne({
             where: {
                 id_bpmn: idProceso,
-                estado: "borrador"
+                estado: "borrador",
             },
         });
 
@@ -1294,67 +1345,120 @@ export const createNewProcessVersion = async (req, res, next) => {
     }
 };
 
+//Función para crear un nuevo comentario en la bitácora
 export const createNewBitacoraMessage = async (req, res, next) => {
     try {
         const { comentario, version, id_usuario } = req.body;
 
-        const aprobador = await Aprobadores.findOne({
-            where: {
-                id_version_proceso: version,
-                id_usuario: id_usuario,
-            },
-        });
-
-        const idAprobador = aprobador ? aprobador.id_aprobador : null;
-
-        await Bitacora.create({
+        await BitacoraAprobaciones.create({
             id_version_proceso: version,
-            id_aprobador: idAprobador,
+            id_usuario: id_usuario,
             comentario,
         });
         res.status(201).json({
-        code: 201,
-        message: "mensaje creado con éxito",
+            code: 201,
+            message: "Comentario creado con éxito",
         });
     } catch (error) {
         logger.error("Controlador createNewBitacoraMessage", error);
         console.log(error);
         next(error);
-        
     }
-}
+};
 
+//Función para crear obtener los comentario de la bitácora
 export const getBitacoraMessages = async (req, res, next) => {
     try {
         const { version } = req.params;
 
-        const mensajes = await Bitacora.findAll({
-            raw:true,
+        const comentarios = await BitacoraAprobaciones.findAll({
+            include: [
+                {
+                    model: Usuarios,
+                    as: "usuario",
+                    attributes: ["nombre"],
+                },
+            ],
             where: {
                 id_version_proceso: version,
             },
-            include: [
-                {
-                    model: Aprobadores,
-                    as: "id_aprobador_aprobadore",
-                },
-            ],
             order: [["created_at", "DESC"]],
         });
 
-        console.log(mensajes);
+        const comentariosMap = comentarios.map((comentario) => {
+            const data = comentario.toJSON();
+            return {
+                ...data,
+                nombre_creador: comentario.id_usuario_usuario?.nombre,
+                created_at: formatShortTime(data.created_at),
+            };
+        });
 
-        const mensajesMap = mensajes.map((mensaje) => ({
-            ...mensaje.toJSON(),
-            nombre_creador: mensaje.id_usuario_usuario?.nombre,
-            created_at: formatShortTime(mensaje.created_at),
-        }));
 
         res.status(200).json({
             code: 200,
-            message: "Mensajes obtenidos correctamente",
-            data: mensajesMap,
+            message: "Comentarios obtenidos correctamente",
+            data: comentariosMap,
         });
+    } catch (error) {
+        logger.error("Controlador getBitacoraMessages", error);
+        console.log(error);
+        next(error);
+    }
+};
+
+//Función para generar documentación (aún en desarrollo)
+export const generarDocumentacion = async (req, res, next) => {
+    try {
+        const { idProceso, version } = req.body;
+
+        const versionProceso = await VersionProceso.findOne({
+            where: {
+                id_bpmn: idProceso,
+                id_version_proceso: version,
+            },
+        });
+
+        const xmlContent = await getFileFromS3Version(
+            "test-bpmn",
+            `${idProceso}.bpmn`,
+            versionProceso.nombre_version
+        );
+
+        const moddle = new BpmnModdle();
+        /* const { archivo } = req.files */
+
+        const { rootElement } = await moddle.fromXML(xmlContent);
+        const procesos = rootElement.rootElements.filter(
+            (e) => e.$type === "bpmn:Process"
+        );
+
+        const template = documentacionTemplate(procesos);
+
+        const browser = await puppeteer.launch({ headless: "new" });
+        const page = await browser.newPage();
+        await page.setContent(template, { waitUntil: "load" });
+
+        const rutaRelativa = path.join("upload", `debug-${idProceso}.html`);
+        const rutaAbsoluta = path.join(__dirname, "../", rutaRelativa);
+        fs.writeFileSync(rutaAbsoluta, template);
+        const rutaRelativaPDF = path.join("upload", `debug-${idProceso}.pdf`);
+        const rutaAbsolutaPDF = path.join(__dirname, "../", rutaRelativaPDF);
+
+        const buffer = await page.pdf({
+            path: rutaAbsolutaPDF,
+            format: "A4",
+            printBackground: true,
+        });
+
+        await browser.close();
+
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename=documentacion_${idProceso}.pdf`
+        );
+        res.send(buffer);
     } catch (error) {
         logger.error("Controlador getBitacoraMessages", error);
         console.log(error);

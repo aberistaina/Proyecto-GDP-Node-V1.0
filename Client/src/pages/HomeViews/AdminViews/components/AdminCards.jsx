@@ -14,7 +14,6 @@ export const AdminCards = () => {
                 const response = await fetch(`${URL}/api/v1/admin/cards-data`);
                 const data = await response.json();
                 setData(data.data);
-                console.log(data);
             } catch (error) {
                 console.log(error);
             }

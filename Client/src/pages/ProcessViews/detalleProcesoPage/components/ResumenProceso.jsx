@@ -12,7 +12,6 @@ const colores = [
 ];
 export const ResumenProceso = ({ resumenProceso }) => {
 
-    console.log(resumenProceso);
     return (
 
         <div className="bg-[#ececec] rounded-lg drop-shadow-lg py-5 px-5 mb-8 shadow-[6px_6px_4px_#c0c0c0] z-40">

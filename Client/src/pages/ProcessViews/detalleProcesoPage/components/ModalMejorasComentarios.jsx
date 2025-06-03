@@ -4,10 +4,18 @@ import { IoMdCloseCircle } from "react-icons/io";
 import { useSnackbar } from "notistack";
 import { useSelector } from "react-redux";
 
-export default function ModalMejorasComentarios({ menu, setOpenModal, idProceso,version, getAllComentaries, getAllOpportunities }) {
+export default function ModalMejorasComentarios({
+    menu,
+    setOpenModal,
+    idProceso,
+    version,
+    getAllComentaries,
+    getAllOpportunities,
+    getComentariosBitacora
+}) {
     const { enqueueSnackbar } = useSnackbar();
     const [comentario, setComentario] = useState("");
-    const [asunto, setAsunto ] = useState("")
+    const [asunto, setAsunto] = useState("");
     const fileInputRef = useRef(null);
     const [files, setFiles] = useState([]);
     const user = useSelector((state) => state.auth.user);
@@ -32,26 +40,33 @@ export default function ModalMejorasComentarios({ menu, setOpenModal, idProceso,
             const path =
                 menu === "oportunidades"
                     ? "/api/v1/procesos/oportunidades/agregar"
+                    : menu === "bitacora"
+                    ? "/api/v1/procesos/bitacora/agregar"
                     : "/api/v1/procesos/comentarios/agregar";
+
             const URL =
                 import.meta.env.VITE_APP_MODE === "desarrollo"
                     ? import.meta.env.VITE_URL_DESARROLLO
                     : import.meta.env.VITE_URL_PRODUCCION;
 
-            const loggedUser = user.usuario?.id_usuario
-            
+            const loggedUser = user.usuario?.id_usuario;
 
             const formData = new FormData();
-            files.forEach((file) => formData.append("archivos", file));
-            formData.append(menu === "oportunidades" ? "descripcion" : "comentario", comentario);
-            formData.append("idProceso", idProceso)
-            formData.append("id_usuario", loggedUser)
-            formData.append("asunto", asunto)
-            formData.append("version", version)
+            if(menu === "comentarios" || menu === "oportunidades"){
+                files.forEach((file) => formData.append("archivos", file));
+            }
+            formData.append(
+                menu === "oportunidades" ? "descripcion" : "comentario",
+                comentario
+            );
+            formData.append("idProceso", idProceso);
+            formData.append("id_usuario", loggedUser);
+            formData.append("asunto", asunto);
+            formData.append("version", version);
 
             const requestOptions = {
                 method: "POST",
-                body: formData
+                body: formData,
             };
 
             const response = await fetch(`${URL}${path}`, requestOptions);
@@ -59,13 +74,14 @@ export default function ModalMejorasComentarios({ menu, setOpenModal, idProceso,
 
             if (data.code === 201) {
                 enqueueSnackbar(data.message, { variant: "success" });
-                setOpenModal(false)
-                if( menu === "comentarios") {
-                    getAllComentaries()
-                }else {
-                    getAllOpportunities()
+                setOpenModal(false);
+                if (menu === "comentarios") {
+                    getAllComentaries();
+                } else if((menu === "oportunidades")) {
+                    getAllOpportunities();
+                }else{
+                    getComentariosBitacora()
                 }
-
             } else {
                 enqueueSnackbar(data.message, { variant: "error" });
             }
@@ -85,15 +101,15 @@ export default function ModalMejorasComentarios({ menu, setOpenModal, idProceso,
 
                 {menu === "oportunidades" && (
                     <div className="border border-lime-400 rounded p-2 mb-4">
-                    <input
-                        className="w-full outline-none"
-                        type="text"
-                        placeholder="Escriba el asunto"
-                        value={asunto}
-                        name="asunto"
-                        onChange={(e) => setAsunto(e.target.value)}
-                    />
-                </div>
+                        <input
+                            className="w-full outline-none"
+                            type="text"
+                            placeholder="Escriba el asunto"
+                            value={asunto}
+                            name="asunto"
+                            onChange={(e) => setAsunto(e.target.value)}
+                        />
+                    </div>
                 )}
 
                 <div className="border border-lime-400 rounded p-2 mb-4">
@@ -109,23 +125,27 @@ export default function ModalMejorasComentarios({ menu, setOpenModal, idProceso,
                     />
                 </div>
 
-                <label className="block text-gray-700 font-semibold mb-1">
-                    Carga de archivo
-                </label>
-                <div className="flex items-center space-x-4 mb-6">
-                    <FaUpload />
-                    <input
-                        type="file"
-                        name="archivos"
-                        multiple
-                        ref={fileInputRef}
-                        onChange={handleFileChange}
-                        className="flex w-full px-4 py-2 border border-gray-400 rounded-lg shadow-sm"
-                    />
-                </div>
+                {(menu === "oportunidades" || menu === "comentarios") && (
+                    <div>
+                        <label className="block text-gray-700 font-semibold mb-1">
+                            Carga de archivo
+                        </label>
+                        <div className="flex items-center space-x-4 mb-6">
+                            <FaUpload />
+                            <input
+                                type="file"
+                                name="archivos"
+                                multiple
+                                ref={fileInputRef}
+                                onChange={handleFileChange}
+                                className="flex w-full px-4 py-2 border border-gray-400 rounded-lg shadow-sm"
+                            />
+                        </div>
+                    </div>
+                )}
 
                 <div className="mb-4">
-                {files.length > 0 && (
+                    {files.length > 0 && (
                         <ul className="bg-gray-100 border p-2 rounded-lg space-y-2 max-h-40 overflow-auto">
                             {files.map((file, index) => (
                                 <li
@@ -156,9 +176,9 @@ export default function ModalMejorasComentarios({ menu, setOpenModal, idProceso,
                     >
                         Cancelar
                     </button>
-                    <button className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded"
-                    onClick={handleClick}
-                    
+                    <button
+                        className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded"
+                        onClick={handleClick}
                     >
                         Guardar
                     </button>

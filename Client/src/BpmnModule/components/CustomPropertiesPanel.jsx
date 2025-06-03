@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 
+
+//Panel de propiedades extendidas "Informados, Consultados, Ejecutantes, Responsables"
 export const CustomPropertiesPanel = ({ element, modeler }) => {
   const [name, setName] = useState("");
   const [assignee, setAssignee] = useState("");

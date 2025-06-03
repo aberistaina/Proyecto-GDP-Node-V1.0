@@ -3,14 +3,16 @@ import { ButtonMejorasComentarios } from "./ButtonMejorasComentarios";
 import Comentarios from "./Comentarios";
 import { Oportunidades } from "./Oportunidades";
 import ModalMejorasComentarios from "./ModalMejorasComentarios";
+import { TablaBitacoraComentarios } from "./TablaBitacoraComentarios";
+import { useSelector } from "react-redux";
 
-export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabActiva, version, comentarios, oportunidades, getAllComentaries, getAllOpportunities}) => {
-    
-   
+export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabActiva, version, comentarios, oportunidades, getAllComentaries, getAllOpportunities, comentarioBitacora, getComentariosBitacora}) => {
+    const user = useSelector((state) => state.auth.user);
+    const roles = [1, 2, 3, 5]
   
 
   return (
-    <div className="bg-[#ececec] rounded-lg drop-shadow-lg py-5 px-5 mb-8 shadow-[6px_6px_4px_#c0c0c0]">
+    <div className="bg-[#ececec] rounded-lg drop-shadow-lg py-5 px-5 my-8 shadow-[6px_6px_4px_#c0c0c0]">
       {/* Pestañas */}
       <div className="flex border-b border-gray-300 mb-4 justify-between">
         <div>
@@ -34,9 +36,22 @@ export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabAc
             >
             Comentarios
             </button>
+
+            { roles.includes(user?.usuario?.id_rol) &&
+                <button
+            className={`px-4 py-2 font-semibold ${
+                tabActiva === "bitacora"
+                ? "border-b-4 border-green-500 text-black"
+                : "text-gray-500 hover:text-black"
+            }`}
+            onClick={() => setTabActiva("bitacora")}
+            >
+            Bitácora
+            </button>
+            }
         </div>
         <div>
-        {tabActiva === "oportunidades" || tabActiva === "comentarios" 
+        {tabActiva === "oportunidades" || tabActiva === "comentarios" ||  tabActiva === "bitacora"
         ? 
         <ButtonMejorasComentarios menu={tabActiva} idProceso={idProceso} setOpenModal={setOpenModal} />
         :
@@ -57,6 +72,13 @@ export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabAc
         <div>
           {/* Comentarios */}
             <Comentarios idProceso={idProceso} version={version} comentarios={comentarios} getAllComentaries={getAllComentaries} />
+        </div>
+      )}
+
+      {tabActiva === "bitacora" && (
+        <div>
+          {/* Bitacora */}
+            <TablaBitacoraComentarios version={version} comentarioBitacora={comentarioBitacora} getComentariosBitacora={getComentariosBitacora} />
         </div>
       )}
     </div>

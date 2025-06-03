@@ -2,6 +2,7 @@ import { html } from "htm/preact";
 import { useService } from "bpmn-js-properties-panel";
 import opcionesDB from "../../BpmnDesigner/data/cargos.json";
 
+//Componente que maneja abre el con las propiedades extendidas "Informados, Consultados, Ejecutantes, Responsables"
 export default function CustomPropertyList({
     element,
     popupVisible,

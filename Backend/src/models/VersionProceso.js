@@ -26,14 +26,6 @@ export default class VersionProceso extends Model {
         key: 'id_usuario'
       }
     },
-    id_aprobador: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: 'aprobadores',
-        key: 'id_aprobador'
-      }
-    },
     nombre_version: {
       type: DataTypes.STRING(50),
       allowNull: false
@@ -49,10 +41,6 @@ export default class VersionProceso extends Model {
     },
     s3_key: {
       type: DataTypes.STRING(512),
-      allowNull: true
-    },
-    s3_bucket: {
-      type: DataTypes.STRING(255),
       allowNull: true
     },
     id_bpmn: {

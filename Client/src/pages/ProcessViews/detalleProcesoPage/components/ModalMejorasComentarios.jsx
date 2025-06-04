@@ -3,6 +3,7 @@ import { FaUpload, FaFileUpload } from "react-icons/fa";
 import { IoMdCloseCircle } from "react-icons/io";
 import { useSnackbar } from "notistack";
 import { useSelector } from "react-redux";
+import PulseLoader from "react-spinners/PulseLoader";
 
 export default function ModalMejorasComentarios({
     menu,
@@ -18,6 +19,7 @@ export default function ModalMejorasComentarios({
     const [asunto, setAsunto] = useState("");
     const fileInputRef = useRef(null);
     const [files, setFiles] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
     const user = useSelector((state) => state.auth.user);
 
     const handleFileChange = (e) => {
@@ -37,6 +39,7 @@ export default function ModalMejorasComentarios({
 
     const handleClick = async () => {
         try {
+            setIsLoading(true)
             const path =
                 menu === "oportunidades"
                     ? "/api/v1/procesos/oportunidades/agregar"
@@ -75,6 +78,7 @@ export default function ModalMejorasComentarios({
             if (data.code === 201) {
                 enqueueSnackbar(data.message, { variant: "success" });
                 setOpenModal(false);
+                setIsLoading(false);
                 if (menu === "comentarios") {
                     getAllComentaries();
                 } else if((menu === "oportunidades")) {
@@ -84,8 +88,10 @@ export default function ModalMejorasComentarios({
                 }
             } else {
                 enqueueSnackbar(data.message, { variant: "error" });
+                setIsLoading(false);
             }
         } catch (error) {
+            setIsLoading(false);
             console.log(error);
         }
     };
@@ -178,9 +184,14 @@ export default function ModalMejorasComentarios({
                     </button>
                     <button
                         className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded"
+                        disabled={isLoading}
                         onClick={handleClick}
                     >
-                        Guardar
+                        {isLoading ? (
+                        <PulseLoader color="#ffffff" size={10} />
+                    ) : (
+                        "Guardar"
+                    )}
                     </button>
                 </div>
             </div>

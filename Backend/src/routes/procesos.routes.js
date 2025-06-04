@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { connectSubprocess, getAllProcess, getSubprocessesOfProcess, readActualProcessVersion, readProcessVersion, getProcessSummary, saveNewProcessChanges, saveSubProcessChanges, uploadProcess, createCommentary, getCommentaries, createOppotunity, getOpportunities, getNiveles, getProcessByNivel, getNivelById, downloadProcess, getProcessVersions, createNewProcessVersion, getPendingProcess, enviarAprobacion, aprobarProceso, rechazarProceso, getPendingDraft, getBitacoraMessages, generarDocumentacion, createNewBitacoraMessage } from "../controllers/process.controller.js";
+import { connectSubprocess, getAllProcess, getSubprocessesOfProcess, readActualProcessVersion, readProcessVersion, getProcessSummary, saveNewProcessChanges, saveSubProcessChanges, uploadProcess, createCommentary, getCommentaries, createOppotunity, getOpportunities, getNiveles, getProcessByNivel, getNivelById, downloadProcess, getProcessVersions, createNewProcessVersion, getPendingProcess, enviarAprobacion, aprobarProceso, rechazarProceso, getPendingDraft, getBitacoraMessages, generarDocumentacion, createNewBitacoraMessage, getComentariesFiles } from "../controllers/process.controller.js";
 
 
 const router = Router()
@@ -11,6 +11,7 @@ router.get("/get-process/resumen-proceso/:idProceso/:version?", getProcessSummar
 router.get("/get-process-xml/:idProceso/:version", readProcessVersion)
 router.get("/get-subprocess-process/:idProceso", getSubprocessesOfProcess)
 router.get("/comentarios/getAll/:idProceso/:version", getCommentaries)
+router.get("/comentarios/get-files/:idComentario", getComentariesFiles)
 router.get("/oportunidades/getAll/:idProceso/:version", getOpportunities)
 router.get("/get-niveles", getNiveles)
 router.get("/get-nivel/:idNivel", getNivelById)

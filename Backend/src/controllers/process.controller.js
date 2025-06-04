@@ -14,6 +14,7 @@ import {
     Niveles,
     Cargo,
     BitacoraAprobaciones,
+    ArchivosComentariosVersionProceso,
 } from "../models/models.js";
 import logger from "../utils/logger.js";
 import {
@@ -39,6 +40,7 @@ import { moveFile } from "../utils/uploadFile.js";
 import { sequelize } from "../database/database.js";
 import { documentacionTemplate } from "../utils/documentacionTemplate.js";
 import { getAdminConfig } from "../services/admin.services.js";
+import { CLIENT_RENEG_LIMIT } from "tls";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const {s3_bucket, s3_bucket_procesos} = await getAdminConfig()
@@ -970,21 +972,55 @@ export const getProcessSummary = async (req, res, next) => {
 
 //Funcion que crea los comentarios de la versión de un proceso
 export const createCommentary = async (req, res, next) => {
+    const transaction = await sequelize.transaction()
     try {
         const { idProceso, comentario, version, id_usuario } = req.body;
+        const extensionesPermitidas = [
+        "pdf", "doc", "docx", "xls", "xlsx", "csv", "txt", "ppt", "pptx",
+        "jpg", "jpeg", "png", "gif", "webp", "rar"];
 
-        await ComentariosVersionProceso.create({
+        let files = null;
+
+        if (req.files && req.files.archivos) {
+            files = req.files.archivos;
+        }
+
+        const partes = files.name.split(".")
+        const extension = partes[partes.length - 1].toLowerCase()
+
+        if(!extensionesPermitidas.includes(extension)){
+            throw new Error("No se permite subir ese tipo de archivos.")
+        }
+
+        const nuevoComentario = await ComentariosVersionProceso.create({
             id_usuario,
             id_bpmn: idProceso,
             comentario,
             id_version_proceso: version,
-        });
+        }, { transaction });
+
+        await uploadFileToS3(
+                "test-bpmn",
+                `${files.name}`,
+                 files.data,
+                `${files.mimetype}`
+        );
+
+        await ArchivosComentariosVersionProceso.create({
+            id_comentario: nuevoComentario.id_comentario,
+            nombre: files.name,
+            s3_key: files.name
+        }, { transaction })
+            
+            
+        await transaction.commit();
 
         res.status(201).json({
             code: 201,
             message: "Comentario creado correctamente",
         });
     } catch (error) {
+        await transaction.rollback();
         logger.error("Controlador Crear Comentario", error);
         console.log(error);
         next(error);
@@ -1032,6 +1068,27 @@ export const getCommentaries = async (req, res, next) => {
     }
 };
 
+export const getComentariesFiles = async(req, res, next) =>{
+    try {
+        const { idComentario } = req.params;
+
+        const archivos = await ArchivosComentariosVersionProceso.findAll({
+            where:{
+                id_comentario: idComentario
+            }
+        })
+
+        res.status(202).json({
+            code: 202,
+            message: "Archivos obtenidos correctamente",
+            data: archivos,
+        });
+    } catch (error) {
+        logger.error("Controlador getComentariesFiles", error);
+        console.log(error);
+        next(error);
+    }
+}
 //Funcion que crea las oportunidades de la versión de un proceso
 export const createOppotunity = async (req, res, next) => {
     try {
@@ -1188,7 +1245,7 @@ export const getProcessByNivel = async (req, res, next) => {
 export const downloadProcess = async (req, res, next) => {
     try {
         const { idProceso } = req.params;
-        const fileName = `${idProceso}.bpmn`;
+        const fileName = path.extname(idProceso) ? idProceso : `${idProceso}.bpmn`;
         const { Body, ContentType, ContentLength } = await downloadFromS3(
             fileName,
             "test-bpmn"
@@ -1245,6 +1302,7 @@ export const getProcessVersions = async (req, res, next) => {
 
 //Función para crear una nueva versión de un proceso
 export const createNewProcessVersion = async (req, res, next) => {
+    
     try {
         const { idProceso, version, id_creador } = req.body;
         const { archivo } = req.files;

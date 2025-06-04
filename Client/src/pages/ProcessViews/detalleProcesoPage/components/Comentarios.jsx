@@ -1,11 +1,19 @@
 import { useState, useEffect } from "react";
 import { FaRegCalendarAlt } from "react-icons/fa";
+import { LuFileSearch } from "react-icons/lu";
 
-export default function Comentarios({ comentarios, getAllComentaries }) {
+export default function Comentarios({ comentarios, getAllComentaries, setOpenModalArchivos, setIdComentario }) {
     
+    const handleClick = (idComentario) =>{
+        setIdComentario(idComentario)
+        setOpenModalArchivos(true)
+    }
+
     useEffect(() => {
         getAllComentaries();
     }, []);
+
+    
 
     return (
         <div className="overflow-x-auto max-h-52 bg-white shadow-md rounded-lg">
@@ -15,6 +23,7 @@ export default function Comentarios({ comentarios, getAllComentaries }) {
                         <th className="px-4 py-3">Fecha</th>
                         <th className="px-4 py-3">Comentario</th>
                         <th className="px-4 py-3">Usuario</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -33,6 +42,11 @@ export default function Comentarios({ comentarios, getAllComentaries }) {
                                 </td>
                                 <td className="px-4 py-2 text-green-700 font-medium min-w-40 max-w-40">
                                     {comentario.nombre_creador}
+                                </td>
+                                <td className="flex gap-1 items-center">
+                                    <LuFileSearch className="text-xl cursor-pointer"
+                                        onClick={() => handleClick(comentario.id_comentario)}
+                                    />
                                 </td>
                             </tr>
                         ))}

@@ -9,7 +9,7 @@ import { ComentariosMejoras } from "./components/ComentariosMejoras";
 import ModalMejorasComentarios from "./components/ModalMejorasComentarios";
 import ModalVersiones from "./components/ModalVersiones";
 import PulseLoader from "react-spinners/PulseLoader";
-import { BitacoraProcesoPage } from "../bitacoraProceso/BitacoraProcesoPage";
+import ModalArchivos from "./components/ModalArchivos";
 
 //agregar comentarios (todos) y oportunidades
 export const DetalleProcesoPage = () => {
@@ -22,11 +22,13 @@ export const DetalleProcesoPage = () => {
     const [tabActiva, setTabActiva] = useState("oportunidades");
     const [openModal, setOpenModal] = useState(false);
     const [openModalVersiones, setOpenModalVersiones] = useState(false);
+    const [openModalArchivos, setOpenModalArchivos] = useState(false);
     const [estaAprobado, setEstaAprobado ] = useState()
     const [comentarios, setComentarios ] = useState([])
     const [ oportunidades, SetOportunidades ] = useState([])
     const [versiones, setVeriones ] = useState([])
     const [comentarioBitacora, setComentarioBitacora] = useState("");
+    const [idComentario, setIdComentario] = useState("")
 
 const getAllComentaries = async() =>{
             try {
@@ -184,6 +186,8 @@ const getAllComentaries = async() =>{
                                     getAllOpportunities={getAllOpportunities}
                                     getComentariosBitacora={getComentariosBitacora}
                                     comentarioBitacora={comentarioBitacora}
+                                    setOpenModalArchivos={setOpenModalArchivos}
+                                    setIdComentario={setIdComentario}
                                     
                                 />
                             )}
@@ -209,7 +213,12 @@ const getAllComentaries = async() =>{
                             versiones={versiones}
                         />
                     )}
+
+                    {openModalArchivos && (
+                       <ModalArchivos setOpenModalArchivos={setOpenModalArchivos} version={version} idComentario={idComentario}/>
+                    )}
                 </div>
+                
             )}
         </BpmnProvider>
     );

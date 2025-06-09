@@ -1,6 +1,11 @@
 import logger from "./logger.js";
 import fs from "fs/promises";
 import * as cheerio from "cheerio"
+import { bpmnIcons } from "./bpmnIcons.js";
+
+export const getBpmnIcon = (type) => {
+  return bpmnIcons[type] || ""; // Devuelve el ícono si existe, si no, vacío
+};
 
 
 const extaerIdProceso = (xmlString) => {

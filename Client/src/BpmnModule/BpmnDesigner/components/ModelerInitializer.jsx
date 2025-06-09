@@ -12,6 +12,7 @@ import { BpmnPropertiesPanelModule, BpmnPropertiesProviderModule, CamundaPlatfor
 import { customBpmnProviders } from "../../utils/BpmnProviders/AllProviders"
 import CustomPropertiesProvider from "../../utils/BpmnProviders/CustomPropertiesProvider";
 import PopupAprobadores from "../../components/PopupAprobadores";
+import CustomColorsProviderViewer from "../../utils/BpmnProviders/CustomColorsProviderViewer";
 
 //Iniciador del modelador junto con toda su configuración
 export const ModelerInitializer = () => {
@@ -36,6 +37,10 @@ export const ModelerInitializer = () => {
                     __init__: ["customPropertiesProvider"],
                     customPropertiesProvider: ["type", CustomPropertiesProvider],
                     popupData: ["value", { popupVisible, setPopupVisible, setElementSeleccionado, setPropertyName }],
+                },
+                {
+                    __init__: ["customColorsProviderViewer"],
+                    customColorsProviderViewer: ["type", CustomColorsProviderViewer],
                 },
                 BpmnPropertiesPanelModule,
                 BpmnPropertiesProviderModule,

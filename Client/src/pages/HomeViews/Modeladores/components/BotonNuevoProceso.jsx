@@ -6,9 +6,9 @@ export const BotonNuevoProceso = ({ setIsOpen }) => {
         <div className="space-x-4 flex justify-end">
             <button
                 onClick={() => setIsOpen(true)}
-                className="bg-[#3C3C3C] hover:bg-[#2f2f2f] text-white w-42 py-2 px-4 flex justify-center items-center gap-1  rounded-md transition duration-200 ease-in-out transform hover:scale-105"
+                className="bg-[#99CC33] hover:bg-[#90c32c] text-white font-bold w-42 py-2 px-6 flex justify-center items-center gap-1  rounded-md transition duration-200 ease-in-out transform hover:scale-105"
             >
-                Crear Poceso <FiPlusCircle className="ms-2 mt-1" />
+                <FiPlusCircle className="ms-2 mt-1" /> Crear Nuevo Poceso 
             </button>
         </div>
     );

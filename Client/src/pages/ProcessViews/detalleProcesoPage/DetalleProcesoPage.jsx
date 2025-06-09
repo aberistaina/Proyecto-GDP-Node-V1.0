@@ -10,6 +10,7 @@ import ModalMejorasComentarios from "./components/ModalMejorasComentarios";
 import ModalVersiones from "./components/ModalVersiones";
 import PulseLoader from "react-spinners/PulseLoader";
 import { BitacoraProcesoPage } from "../bitacoraProceso/BitacoraProcesoPage";
+import { Footer } from "../../../components/Footer";
 
 //agregar comentarios (todos) y oportunidades
 export const DetalleProcesoPage = () => {
@@ -188,8 +189,7 @@ const getAllComentaries = async() =>{
                                 />
                             )}
                         </div>
-                        
-                        
+
                     </div>
                     {openModal && (
                         <ModalMejorasComentarios

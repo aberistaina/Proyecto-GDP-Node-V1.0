@@ -5,6 +5,7 @@ import { useBpmnContext } from "../../context/useBpmnContext";
 import { useSelector } from "react-redux";
 import { fetchHook } from "../../../hooks/fetchHook";
 import { useNavigate } from "react-router-dom";
+import { crearImagenFlujo } from "../../utils/bpmnUtils";
 
 //Componente con mensaje para guardar cambios en el flujo que se está trabajando
 export const ModalSaveChanges = ({ setShowModalSaveChanges }) => {
@@ -24,9 +25,11 @@ export const ModalSaveChanges = ({ setShowModalSaveChanges }) => {
                 const loggedUser = user.usuario?.id_usuario
 
                 const datosProceso =  JSON.parse(sessionStorage.getItem("datos"));
-
+                const imagen  = await crearImagenFlujo(bpmnModelerRef.current, idProceso )
+                console.log(imagen);
                 const formData = new FormData();
                 formData.append("archivo", blob, `process.bpmn`);
+                formData.append("imagen", imagen, `process.png`);
                 formData.append("id_creador", loggedUser);
     
                 let data = null

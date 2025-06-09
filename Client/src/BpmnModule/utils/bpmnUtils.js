@@ -215,5 +215,72 @@ export const guardarImagenFlujo = async (
   }
 };
 
+export const crearImagenFlujo = async (
+  bpmnModeler,
+  idProceso = "imagen-flujo"
+) => {
+  if (!bpmnModeler) {
+    console.error("No se pudo generar la imagen, el modelador no está disponible.");
+    return null;
+  }
+
+  try {
+    const { svg } = await bpmnModeler.saveSVG();
+
+    const viewBoxMatch = svg.match(/viewBox="([^"]+)"/);
+    let svgMod = svg;
+
+    if (viewBoxMatch) {
+      const [minX, minY, vbWidth, vbHeight] = viewBoxMatch[1].trim().split(/\s+/);
+      svgMod = svg.replace(
+        /<svg([^>]*)>/,
+        `<svg$1><rect x="${minX}" y="${minY}" width="${vbWidth}" height="${vbHeight}" fill="white" />`
+      );
+    } else {
+      svgMod = svg.replace(
+        /<svg([^>]*)>/,
+        '<svg$1><rect x="0" y="0" width="100%" height="100%" fill="white" />'
+      );
+    }
+
+    const svgBlob = new Blob([svgMod], {
+      type: "image/svg+xml;charset=utf-8",
+    });
+    const url = URL.createObjectURL(svgBlob);
+    const image = new Image();
+
+    return await new Promise((resolve, reject) => {
+      image.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = image.width;
+        canvas.height = image.height;
+        const ctx = canvas.getContext("2d");
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(image, 0, 0);
+        URL.revokeObjectURL(url);
+
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+          else reject(new Error("No se pudo convertir a PNG"));
+        }, "image/png");
+      };
+
+      image.onerror = (e) => {
+        console.error("Error al cargar SVG en Image():", e);
+        reject(e);
+      };
+
+      image.src = url;
+    });
+  } catch (error) {
+    console.error("❌ Error al crear imagen PNG del flujo:", error);
+    return null;
+  }
+};
+
+
+
 
 

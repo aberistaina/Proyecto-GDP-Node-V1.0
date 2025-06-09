@@ -88,6 +88,8 @@ export const ViewetInitializer = ({ setElementoSeleccionado }) => {
                 const data = await response.text();
                 setEmptyDiagram(data);
                 await createDiagram(bpmnModelerRef, data);
+                
+                
             } catch (error) {
                 console.log(error);
             }

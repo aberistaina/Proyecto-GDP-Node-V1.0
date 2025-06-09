@@ -7,19 +7,18 @@ import { useState } from "react"
 
 
 //Módulo que contiene todos los componentes del visualizador
-export const BpmnViewerModule = ({height, border}) => {
+export const BpmnViewerModule = ({ border }) => {
     const [elementoSeleccionado, setElementoSeleccionado] = useState(null);
-    
+
     return (
-        <>
-            <BpmnProvider>
-            <div className="h-full w-full flex flex-col items-center justify-start ">
-                <div className="w-[100%] h-full space-y-8 mt-10">   
-                    <BpmnViewer height={height} border={border} setElementoSeleccionado={setElementoSeleccionado} />
-                    <PopupDescripcion elementoSeleccionado={elementoSeleccionado} onClose={() => setElementoSeleccionado(null)} />
-                </div>
+        <BpmnProvider>
+            <div className="w-full flex flex-col items-center justify-start space-y-8 min-h-[1px]">
+                <BpmnViewer border={border} setElementoSeleccionado={setElementoSeleccionado} />
+                <PopupDescripcion
+                    elementoSeleccionado={elementoSeleccionado}
+                    onClose={() => setElementoSeleccionado(null)}
+                />
             </div>
-            </BpmnProvider>
-        </>
-    )
-}
+        </BpmnProvider>
+    );
+};

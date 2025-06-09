@@ -1,7 +1,6 @@
 import * as path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs"; //Debug, luego borrar
-import BpmnModdle from "bpmn-moddle";
 import puppeteer from "puppeteer";
 import {
     Procesos,
@@ -34,14 +33,17 @@ import {
     uploadFileToS3,
     downloadFromS3,
     getFileFromS3Version,
+    getImageFromS3Version
 } from "../services/s3Client.services.js";
 import { moveFile } from "../utils/uploadFile.js";
 import { sequelize } from "../database/database.js";
 import { documentacionTemplate } from "../utils/documentacionTemplate.js";
 import { getAdminConfig } from "../services/admin.services.js";
+import { getMacroProcessData, getProcessData } from "../services/documentacion.services.js";
+import { generarContenidoMacroproceso, generarPortada, generarContenidoProceso, generarTemplateFinal } from "../utils/documentacion.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const {s3_bucket, s3_bucket_procesos} = await getAdminConfig()
+
 
 export const getAllProcess = async (req, res, next) => {
     try {
@@ -61,18 +63,21 @@ export const getAllProcess = async (req, res, next) => {
 
 //Función leer el contenido XML de un subproceso desde S3
 export const readActualProcessVersion = async (req, res, next) => {
+    
     try {
         const { idProceso, version } = req.params;
+        console.log(req.params);
 
         const procesoVersionActual = await VersionProceso.findByPk(version);
 
         const versionActiva = procesoVersionActual.nombre_version;
 
         
-
+        const {s3_bucket, s3_bucket_procesos} = await getAdminConfig()
+        
         const xmlContent = await getFileFromS3Version(
             s3_bucket,
-            `${idProceso}.bpmn`,
+            `${s3_bucket_procesos}/${idProceso}.bpmn`,
             versionActiva,
         );
 
@@ -86,8 +91,11 @@ export const readActualProcessVersion = async (req, res, next) => {
 };
 
 export const readProcessVersion = async (req, res, next) => {
+    
     try {
         const { idProceso, version } = req.params;
+        const {s3_bucket, s3_bucket_procesos} = await getAdminConfig()
+        console.log("CONTROLADOR2", s3_bucket_procesos);
 
         const versionProceso = await VersionProceso.findOne({
             where: {
@@ -96,9 +104,10 @@ export const readProcessVersion = async (req, res, next) => {
             },
         });
 
+        
         const xmlContent = await getFileFromS3Version(
-            "test-bpmn",
-            `${idProceso}.bpmn`,
+            s3_bucket,
+            `${s3_bucket_procesos}/${idProceso}.bpmn`,
             versionProceso.nombre_version
         );
 
@@ -317,10 +326,10 @@ export const uploadProcess = async (req, res, next) => {
     }
 };
 
-//Guardar cambios cuando se trabaja en el modelador o crear un nuevo proceso si este no existe
+//Funcion para guardar un nuevo proceso 
 export const saveNewProcessChanges = async (req, res, next) => {
     try {
-        const { archivo } = req.files;
+        const { archivo, imagen } = req.files;
         const {
             id_creador,
             aprobadores,
@@ -367,7 +376,7 @@ export const saveNewProcessChanges = async (req, res, next) => {
 
         await uploadFileToS3(
             s3_bucket,
-            `${idProceso}.bpmn`,
+            `${s3_bucket_procesos}/${idProceso}.bpmn`,
             archivo.data,
             "application/xml",
             "1.0",
@@ -852,6 +861,7 @@ export const getProcessSummary = async (req, res, next) => {
         const { idProceso, version } = req.params;
         let xmlContent;
         let versionProceso;
+        const {s3_bucket, s3_bucket_procesos} = await getAdminConfig()
 
         if (!version || version === "undefined") {
             xmlContent = await getDataFileBpmnFromS3(
@@ -872,8 +882,8 @@ export const getProcessSummary = async (req, res, next) => {
                 },
             });
             xmlContent = await getFileFromS3Version(
-                "test-bpmn",
-                `${idProceso}.bpmn`,
+                s3_bucket,
+                `${s3_bucket_procesos}/${idProceso}.bpmn`,
                 versionProceso.nombre_version
             );
         }
@@ -1243,11 +1253,12 @@ export const getProcessVersions = async (req, res, next) => {
     }
 };
 
-//Función para crear una nueva versión de un proceso
+//Función para crear o guardar cambios de  una nueva versión de un proceso
 export const createNewProcessVersion = async (req, res, next) => {
     try {
         const { idProceso, version, id_creador } = req.body;
-        const { archivo } = req.files;
+        const { archivo, imagen } = req.files;
+        console.log(req.files);
 
         const proceso = await Procesos.findOne({
             where: { id_bpmn: idProceso },
@@ -1274,6 +1285,15 @@ export const createNewProcessVersion = async (req, res, next) => {
                 `${idProceso}.bpmn`,
                 archivo.data,
                 "application/xml",
+                borradorAcutal.nombre_version,
+                "borrador"
+            );
+
+            await uploadFileToS3(
+                "test-bpmn",
+                `Imagenes-Procesos/${idProceso}.png`,
+                imagen.data,
+                "image/png",
                 borradorAcutal.nombre_version,
                 "borrador"
             );
@@ -1327,9 +1347,9 @@ export const createNewProcessVersion = async (req, res, next) => {
 
         await uploadFileToS3(
             "test-bpmn",
-            `${idProceso}.bpmn`,
-            archivo.data,
-            "application/xml",
+            `Imagenes-Procesos/${idProceso}.png`,
+            imagen.data,
+            "image/png",
             nuevaVersion,
             "borrador"
         );
@@ -1425,15 +1445,46 @@ export const generarDocumentacion = async (req, res, next) => {
             versionProceso.nombre_version
         );
 
-        const moddle = new BpmnModdle();
-        /* const { archivo } = req.files */
+        const imagen  = await getImageFromS3Version(
+            "test-bpmn",
+            "Imagenes-Procesos/Id_6ba9787b-da8d-4cb1-a417-8f793a457e11.png",
+            "1.0",
+            );
+        
+    
+        const base64 = imagen.toString("base64");
+        const dataUrl = `data:image/png;base64,${base64}`;
 
-        const { rootElement } = await moddle.fromXML(xmlContent);
-        const procesos = rootElement.rootElements.filter(
-            (e) => e.$type === "bpmn:Process"
+        const macroProceso = await getMacroProcessData(xmlContent)
+
+        const portada = generarPortada(macroProceso.name, dataUrl);
+        const contenidoMacro = generarContenidoMacroproceso(macroProceso);
+;
+
+        const procesos = await IntermediaProcesos.findAll({
+            attributes:["id_bpmn"],
+            where:{
+                id_bpmn_padre: idProceso
+            }
+        })
+
+        let contenidoProcesos = ""
+        for (const proceso of procesos) {
+            const xmlContent = await getDataFileBpmnFromS3(
+            "test-bpmn",
+            `${proceso.id_bpmn}.bpmn`,
         );
+            const procesoDataArray = await getProcessData(xmlContent);
+            for (const procesoData of procesoDataArray) {
+                contenidoProcesos += generarContenidoProceso(procesoData);
+            }
+        }
 
-        const template = documentacionTemplate(procesos);
+        const template = generarTemplateFinal({
+            portada,
+            contenidoMacro,
+            contenidoProcesos,
+            });
 
         const browser = await puppeteer.launch({ headless: "new" });
         const page = await browser.newPage();
@@ -1448,6 +1499,7 @@ export const generarDocumentacion = async (req, res, next) => {
         const buffer = await page.pdf({
             path: rutaAbsolutaPDF,
             format: "A4",
+            margin: { top: '0.4in', bottom: '0.4in', left: '0.4in', right: '0.4in' },
             printBackground: true,
         });
 

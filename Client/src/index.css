@@ -2,12 +2,3 @@
 @tailwind components;
 @tailwind utilities;
 
-#root {
-  margin: 0 auto;
-  padding:3rem 10rem;
-}
-
-body {
-  background: linear-gradient(270deg, #f2fbff 0%, #d5deff 55%, #ddceff 98%);
-  font-family: 'Inter', sans-serif;
-}

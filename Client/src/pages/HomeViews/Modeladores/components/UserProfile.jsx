@@ -1,21 +1,29 @@
+import { BotonNuevoProceso } from "./BotonNuevoProceso";
 
-export const UserProfile = ({ usuario }) => {
+export const UserProfile = ({ usuario, setIsOpen }) => {
     return (
-        <div className="flex items-center gap-3">
-            <div className="">
-                <img
-                src={`https://robohash.org/${usuario.nombre}`}
-                alt="Avatar usuario"
-                className="w-20 h-20 object-cover rounded-full shadow-[0_0_70px_35px_white]" 
-                />
+        <div className="flex items-center justify-between gap-3 bg-[#3F3F40] h-[140px] rounded-lg px-5">
+            <div className="flex">
+                <div className="flex justify-center items-center">
+                    <img
+                        src={`https://robohash.org/${usuario.nombre}`}
+                        alt="Avatar usuario"
+                        className="w-24 h-24 object-cover rounded-full bg-white"
+                    />
+                </div>
+
+                <div className="flex flex-col justify-center ">
+                    <p className="text-4xl font-bold px-7 text-white">
+                        Bienvenido,{" "}
+                        <span className="font-bold">{usuario.nombre}</span>
+                    </p>
+
+                    <p className="text-xl font-light text-white px-7">
+                        {usuario.cargo} - {usuario.rol}
+                    </p>
+                </div>
             </div>
-            
-            <div>
-                <p className="text-2xl px-7">Bienvenido, <span className="font-semibold">{usuario.nombre}</span></p>
-                
-                <p className="text-xs text-gray-500 px-7">{usuario.cargo}</p>
-                <p className="text-xs text-gray-500 px-7">{usuario.rol}</p>
-            </div>
+            <BotonNuevoProceso setIsOpen={setIsOpen} />
         </div>
     );
 };

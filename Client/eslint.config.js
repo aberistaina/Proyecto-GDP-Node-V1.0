@@ -36,5 +36,8 @@ export default [
       'react/prop-types': 'off',
       'no-unused-vars': 'off'
     },
+    "env": {
+    "node": true
+  }
   },
 ]

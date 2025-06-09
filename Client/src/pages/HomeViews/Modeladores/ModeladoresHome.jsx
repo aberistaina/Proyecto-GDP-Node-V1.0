@@ -43,9 +43,8 @@ export const ModeladoresHome = () => {
 
     return (
         <div className="p-6 space-y-8 min-h-screen">
-            {usuario && <UserProfile usuario={usuario} />}
+            {usuario && <UserProfile usuario={usuario} setIsOpen={setIsOpen} />}
             <DashboardResumen borradoresActivos={borradoresActivos} />
-            <BotonNuevoProceso setIsOpen={setIsOpen}/>
             <BorradoresActivos
                 borradoresActivos={borradoresActivos}
                 isLoading={isLoading}

@@ -4,6 +4,7 @@ import {
     GetObjectCommand,
     PutObjectCommand,
     HeadObjectCommand,
+    ListObjectsV2Command,
 } from "@aws-sdk/client-s3";
 
 const s3Client = new S3Client({
@@ -14,14 +15,12 @@ const s3Client = new S3Client({
     },
 });
 
-export const getDataFileBpmnFromS3 = async (bucketName, fileName, version) => {
+export const getDataFileBpmnFromS3 = async (bucketName, fileName) => {
     try {
         const command = new GetObjectCommand({
             Bucket: bucketName,
             Key: fileName,
         });
-
-        
 
         const { Body } = await s3Client.send(command);
 
@@ -71,24 +70,26 @@ export const uploadFileToS3 = async (
     }
 };
 
-export const getFileFromS3Version = async (bucketName, fileName, versionBuscada) => {
+export const getFileFromS3Version = async (
+    bucketName,
+    fileName,
+    versionBuscada
+) => {
     try {
         // Listar las versiones de los objetos en el bucket
         const { Versions } = await s3Client.send(
             new ListObjectVersionsCommand({
                 Bucket: bucketName,
-                Prefix: `${fileName}`,
-                Delimiter: '/'
+                Prefix: fileName,
             })
         );
-        console.log("Bucket", bucketName);
-        console.log("KEY", fileName);
+
         //Recorre todas las versiones y busca la que tenga la metadata "x-amz-meta-version" que necesitamos"
         for (const version of Versions) {
             const { Metadata } = await s3Client.send(
                 new HeadObjectCommand({
                     Bucket: bucketName,
-                    Key: fileName,
+                    Key: `${fileName}`,
                     VersionId: version.VersionId,
                 })
             );
@@ -97,7 +98,7 @@ export const getFileFromS3Version = async (bucketName, fileName, versionBuscada)
                 const { Body } = await s3Client.send(
                     new GetObjectCommand({
                         Bucket: bucketName,
-                        Key: fileName,
+                        Key: `${fileName}`,
                         VersionId: version.VersionId,
                     })
                 );
@@ -122,17 +123,67 @@ export const getFileFromS3Version = async (bucketName, fileName, versionBuscada)
     }
 };
 
+export const getImageFromS3Version = async (
+    bucketName,
+    fileName,
+    versionBuscada
+) => {
+    try {
+        const { Versions } = await s3Client.send(
+            new ListObjectVersionsCommand({
+                Bucket: bucketName,
+                Prefix: fileName,
+            })
+        );
+
+        for (const version of Versions) {
+            const { Metadata } = await s3Client.send(
+                new HeadObjectCommand({
+                    Bucket: bucketName,
+                    Key: fileName,
+                    VersionId: version.VersionId,
+                })
+            );
+
+            if (Metadata["x-amz-meta-version"] === versionBuscada) {
+                const { Body } = await s3Client.send(
+                    new GetObjectCommand({
+                        Bucket: bucketName,
+                        Key: fileName,
+                        VersionId: version.VersionId,
+                    })
+                );
+
+                const streamToBuffer = (stream) =>
+                    new Promise((resolve, reject) => {
+                        const chunks = [];
+                        stream.on("data", (chunk) => chunks.push(chunk));
+                        stream.on("error", reject);
+                        stream.on("end", () => resolve(Buffer.concat(chunks)));
+                    });
+
+                const buffer = await streamToBuffer(Body)
+                return buffer;
+            }
+        }
+
+        throw new Error("Versión no encontrada en S3");
+    } catch (error) {
+        console.error("Error getting file from S3:", error);
+        throw error;
+    }
+};
+
 export const downloadFromS3 = async (fileName, bucketName) => {
     try {
         const command = new GetObjectCommand({
-            Bucket: bucketName, 
+            Bucket: bucketName,
             Key: fileName,
         });
 
-        return await s3Client.send(command)
-
+        return await s3Client.send(command);
     } catch (error) {
         console.error("Error al descargar archivo desde S3:", error);
-        throw error
+        throw error;
     }
 };

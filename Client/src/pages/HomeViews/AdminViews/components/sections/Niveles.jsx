@@ -30,7 +30,7 @@ export const Niveles = ({setIsOpenCreateUpdateModal}) => {
                                 </th>
                                 <th className="px-6 py-3 text-sm font-medium text-gray-600 uppercase tracking-wider">
                                     <div className="flex justify-center">
-                                        <FaEdit fill="#05a975" className="text-xl" />
+                                        <FaEdit fill="#FBBF24" className="text-xl" />
                                     </div>
                                 </th>
         

@@ -53,6 +53,8 @@ export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
         }
     }
 
+    const usuariosFiltrados = usuarios.filter((u) => u.id_rol !== 5)
+    console.log(usuariosFiltrados);
     return (
 
     <>  
@@ -63,7 +65,7 @@ export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
                     <CreateButton  setIsOpenCreateUpdateModal={setIsOpenCreateUpdateModal}  />
                 </div>
             </div>
-            {usuarios && (<table className="w-[50%] divide-y divide-gray-200 shadow-md rounded-lg overflow-hidden mb-6 p-4 ">
+            {usuariosFiltrados && (<table className="w-[50%] divide-y divide-gray-200 shadow-md rounded-lg overflow-hidden mb-6 p-4 ">
                 <thead className="bg-gray-100">
                     <tr>
                         <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">
@@ -83,7 +85,7 @@ export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
                         </th>
                         <th className="px-6 py-3 text-sm font-medium text-gray-600 uppercase tracking-wider">
                             <div className="flex justify-center">
-                                <FaEdit fill="#05a975" className="text-xl" />
+                                <FaEdit fill="#FBBF24" className="text-xl" />
                             </div>
                         </th>
 
@@ -95,7 +97,7 @@ export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                    {usuarios.map((user) => (
+                    {usuariosFiltrados.map((user) => (
                         <tr key={user.id_usuario} className="hover:bg-gray-50 transition">
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                                 {user.nombre}

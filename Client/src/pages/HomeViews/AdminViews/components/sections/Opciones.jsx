@@ -212,7 +212,7 @@ export default function Opciones() {
             <div className="flex justify-end">
                 <button
                     onClick={handleSubmit}
-                    className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded"
+                    className="bg-[#99CC33] hover:bg-[#90c32c] text-white font-bold w-42 py-2 px-6 flex justify-center items-center gap-1  rounded-md transition duration-200 ease-in-out transform hover:scale-105"
                 >
                     Guardar Cambios
                 </button>

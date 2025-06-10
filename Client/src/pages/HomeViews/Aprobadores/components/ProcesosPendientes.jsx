@@ -5,41 +5,45 @@ import { IoDocumentTextOutline } from "react-icons/io5";
 import { BsSend } from "react-icons/bs";
 import { LuBriefcase } from "react-icons/lu";
 import { BsClipboard2Check } from "react-icons/bs";
+import { BiErrorCircle } from "react-icons/bi";
 
-export const ListaProcesosPendientes = ({ procesosPendientes, isLoading }) => {
-    
-    const navigate = useNavigate()
+export const ListaProcesosPendientes = ({ procesos, isLoading }) => {
+    const navigate = useNavigate();
 
-    const handleClick = (idProceso, version) =>{
+    const handleClick = (idProceso, version) => {
         try {
-                navigate(`/process-details/${idProceso}/${version}`)
-    
-            
+            navigate(`/process-details/${idProceso}/${version}`);
         } catch (error) {
             console.log(error);
         }
-    }
+    };
 
-    if (!isLoading) return <PulseLoader color="#10644C" size={15} />
-    if (procesosPendientes.length === 0) return <p>No Hay Procsos Pendientes Para Aprobar</p>;
+    const procesosPendientes = procesos.filter((p) => p.estado === "pendiente");
+    const procesosAprobados = procesos.filter((p) => p.estado === "rechazado");
+    const procesosRechazados = procesos.filter((p) => p.estado === "aprobado");
+
+    if (!isLoading) return <PulseLoader color="#10644C" size={15} />;
+    if (procesosPendientes.length === 0)
+        return <p>No Hay Procsos Pendientes Para Aprobar</p>;
     return (
         <>
-<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="bg-[#FBFBFB] p-5 rounded-lg shadow ">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* Aprobaciones Pendientes*/}
+                <div className="bg-[#FBFBFB] p-5 rounded-lg shadow  ">
                     <div className="mb-2 border-b bg-white rounded-md">
                         <h2 className="text-2xl font-semibold  flex gap-2 items-center">
                             <IoDocumentTextOutline
                                 className="text-3xl"
-                                stroke="#99CC33"
+                                stroke="#d5c507"
                             />
-                            Borradores Activos
+                            Aprobaciones Pendientes
                         </h2>
                         <span className="text-[#AAAAAA] text-sm">
                             Procesos que estás editando actualmente.
                         </span>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-3 min-h-[360px] max-h-[360px] overflow-auto">
                         {procesosPendientes.length === 0 ? (
                             <h1 className="text-center text-gray-500">
                                 No hay borradores activos
@@ -55,10 +59,11 @@ export const ListaProcesosPendientes = ({ procesosPendientes, isLoading }) => {
                                             {proceso.nombreProceso}
                                         </p>
                                         <p className="text-xs text-gray-500">
-                                            Versión {proceso.nombreVersion} · {proceso.fechaCreacionAprobacion} ·{" "}
+                                            Versión {proceso.nombreVersion} ·{" "}
+                                            {proceso.fechaCreacionAprobacion} ·{" "}
                                         </p>
                                         <p className="mt-1 inline-block px-3 py-1 rounded-full border border-[#F2D643] text-xs font-bold bg-yellow-100 text-yellow-800">
-                                            {proceso.estadoAprobacion}
+                                            {proceso.estado}
                                         </p>
                                     </div>
                                     <button
@@ -78,24 +83,25 @@ export const ListaProcesosPendientes = ({ procesosPendientes, isLoading }) => {
                     </div>
                 </div>
 
+                {/*Procesos Aprobados*/}
                 <div className="bg-[#FBFBFB] p-5 rounded-lg shadow ">
                     <div className="mb-2 border-b bg-white rounded-md">
                         <h2 className="text-2xl font-semibold  flex gap-2 items-center">
-                            <BsSend className="text-2xl" fill="#3B82F6" />
-                            Pendientes de Aprobación
+                            <BsClipboard2Check className="text-2xl" fill="#008000" />
+                            Procesos Aprobados
                         </h2>
                         <span className="text-[#AAAAAA] text-sm">
-                            Procesos que están esperando respuesta.
+                            Procesos que están aprobados.
                         </span>
                     </div>
 
-                    <ul className="space-y-3">
-                        {procesosPendientes.length === 0 ? (
+                    <ul className="space-y-3 min-h-[360px] max-h-[360px] overflow-auto">
+                        {procesosAprobados.length === 0 ? (
                             <h1 className="text-center text-gray-500">
-                                No hay borradores Pendientes de Aprobación
+                                No hay Procesos Aprobados
                             </h1>
                         ) : (
-                            procesosPendientes.map((proceso) => (
+                            procesosAprobados.map((proceso) => (
                                 <div
                                     key={proceso.idAprobador}
                                     className="flex justify-between items-center bg-white rounded-md px-3 py-4 shadow-lg mt-6"
@@ -105,10 +111,11 @@ export const ListaProcesosPendientes = ({ procesosPendientes, isLoading }) => {
                                             {proceso.nombreProceso}
                                         </p>
                                         <p className="text-xs text-gray-500">
-                                            Versión {proceso.nombreVersion} · {proceso.fechaCreacionAprobacion} ·{" "}
+                                            Versión {proceso.nombreVersion} ·{" "}
+                                            {proceso.fechaCreacionAprobacion} ·{" "}
                                         </p>
                                         <p className="mt-1 inline-block px-3 py-1 rounded-full border border-sky-600 text-xs font-bold bg-sky-200 text-sky-600">
-                                            {proceso.estadoAprobacion}
+                                            {proceso.estado}
                                         </p>
                                     </div>
                                     <button
@@ -127,28 +134,29 @@ export const ListaProcesosPendientes = ({ procesosPendientes, isLoading }) => {
                         )}
                     </ul>
                 </div>
-
-                <div className="bg-[#FBFBFB] p-5 rounded-lg shadow ">
-                    <div className="mb-2 border-b bg-white rounded-md">
-                        <h2 className="text-2xl font-semibold  flex gap-2 items-center">
-                            <LuBriefcase
+                
+                {/*Procesos Rechazados*/}
+                <div className="bg-[#FBFBFB] p-5 rounded-lg shadow">
+                    <div className="mb-2 border-b bg-white rounded-md ">
+                        <h2 className="text-2xl font-semibold  flex gap-2 items-center ">
+                            <BiErrorCircle
                                 className="text-3xl"
-                                stroke="#A855F7"
+                                fill="#f91818"
                             />
                             Procesos Rechazados
                         </h2>
                         <span className="text-[#AAAAAA] text-sm">
-                            Procesos que están esperando modificaciones.
+                            Procesos Rechazados que están esperando modificaciones.
                         </span>
                     </div>
 
-                    <div className="space-y-3">
-                        {procesosPendientes.length === 0 ? (
+                    <div className="space-y-3 min-h-[360px] max-h-[360px] overflow-auto">
+                        {procesosRechazados.length === 0 ? (
                             <h1 className="text-center text-gray-500">
-                                No hay borradores activos
+                                No hay Procesos Rechazados
                             </h1>
                         ) : (
-                            procesosPendientes.map((proceso) => (
+                            procesosRechazados.map((proceso) => (
                                 <div
                                     key={proceso.idAprobador}
                                     className="flex justify-between items-center bg-white rounded-md px-3 py-4 shadow-lg mt-6"
@@ -158,10 +166,11 @@ export const ListaProcesosPendientes = ({ procesosPendientes, isLoading }) => {
                                             {proceso.nombreProceso}
                                         </p>
                                         <p className="text-xs text-gray-500">
-                                            Versión {proceso.nombreVersion} · {proceso.fechaCreacionAprobacion} ·{" "}
+                                            Versión {proceso.nombreVersion} ·{" "}
+                                            {proceso.fechaCreacionAprobacion} ·{" "}
                                         </p>
                                         <p className="mt-1 inline-block px-3 py-1 rounded-full border border-red-600 text-xs font-bold bg-red-200 text-red-600">
-                                            {proceso.estadoAprobacion}
+                                            {proceso.estado}
                                         </p>
                                     </div>
                                     <button
@@ -181,60 +190,7 @@ export const ListaProcesosPendientes = ({ procesosPendientes, isLoading }) => {
                     </div>
                 </div>
 
-                <div className="bg-[#FAFAFB] p-5 rounded-lg shadow ">
-                    <div className="mb-2 border-b bg-white rounded-md">
-                        <h2 className="text-2xl font-semibold  flex gap-2 items-center">
-                            <BsClipboard2Check
-                                className="text-3xl"
-                                fill="#008000"
-                            />
-                            Procesos Aprobados
-                        </h2>
-                        <span className="text-[#AAAAAA] text-sm">
-                            Procesos que fueron aprobados.
-                        </span>
-                    </div>
-
-                    <div className="space-y-3">
-                        {procesosPendientes.length === 0 ? (
-                            <h1 className="text-center text-gray-500">
-                                No hay borradores activos
-                            </h1>
-                        ) : (
-                            procesosPendientes.map((proceso) => (
-                                <div
-                                    key={proceso.idAprobador}
-                                    className="flex justify-between items-center bg-white rounded-md  px-3 py-4 shadow-lg mt-6"
-                                >
-                                    <div>
-                                        <p className="font-semibold text-gray-800">
-                                            {proceso.nombreProceso}
-                                        </p>
-                                        <p className="text-xs text-gray-500">
-                                            Versión {proceso.nombreVersion} · {proceso.fechaCreacionAprobacion} ·{" "}
-                                        </p>
-                                        <p className="mt-1 inline-block px-3 py-1 rounded-full border border-green-600 text-xs font-bold bg-green-200 text-green-600">
-                                            {proceso.estadoAprobacion}
-                                        </p>
-                                    </div>
-                                    <button
-                                        className="bg-[#F4F4F5] text-[#99CC33] hover:bg-[#99CC33] hover:text-white  border border-[#99CC33] text-sm px-3 py-2 flex justify-center items-center gap-1  rounded-md transition duration-200 ease-in-out transform "
-                                        onClick={() =>
-                                            handleClick(
-                                                proceso.idBpmn,
-                                                proceso.idVersionProceso
-                                            )
-                                        }
-                                    >
-                                        Ver Detalles <IoIosArrowForward />
-                                    </button>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </div>
             </div>
-
-        </> 
+        </>
     );
 };

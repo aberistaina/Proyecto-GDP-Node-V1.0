@@ -761,8 +761,7 @@ export const getPendingProcess = async (req, res, next) => {
 
         const aprobacionesPendientes = await Aprobadores.findAll({
             where: {
-                id_usuario: idUsuario,
-                estado: "pendiente",
+                id_usuario: idUsuario
             },
             include: [
                 {
@@ -783,8 +782,8 @@ export const getPendingProcess = async (req, res, next) => {
             idAprobador: item.id_aprobador,
             idUsuario: item.id_usuario,
             idVersionProceso: item.id_version_proceso,
-            estadoAprobacion: item.estado,
-            fechaCreacionAprobacion: item.created_at,
+            estado: item.estado,
+            fechaCreacionAprobacion: formatShortTime(item.created_at),
 
             idCreadorVersion: item.version_proceso?.id_creador,
             nombreVersion: item.version_proceso?.nombre_version,
@@ -794,6 +793,7 @@ export const getPendingProcess = async (req, res, next) => {
             descripcionProceso:
                 item.version_proceso?.id_proceso_proceso?.descripcion,
         }));
+
 
         res.status(200).json({
             code: 200,

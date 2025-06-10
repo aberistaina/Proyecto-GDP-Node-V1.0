@@ -1,6 +1,7 @@
 import { IoDocumentTextOutline } from "react-icons/io5";
 import { BsSend } from "react-icons/bs";
-import { LuBriefcase } from "react-icons/lu";
+import { BiErrorCircle } from "react-icons/bi";
+import { BsClipboard2Check } from "react-icons/bs";
 
 export const DashboardResumen = ({ borradoresActivos }) => {
     const borradores = borradoresActivos.filter((b) => b.estado === "borrador");
@@ -10,15 +11,16 @@ export const DashboardResumen = ({ borradoresActivos }) => {
     const borradoresRechazados = borradoresActivos.filter(
         (b) => b.estado === "rechazado"
     );
+    const borradoresAprobados = borradoresActivos.filter((b) => b.estado === "aprobado");
     return (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Borradores Activos*/}
             <div className="flex flex-col  px-10 rounded-lg py-4 text-black bg-slate-50 shadow-md">
                 <div className="flex items-center gap-4">
                     <div>
                         <IoDocumentTextOutline
-                            className="text-5xl bg-[#EBF5D6] p-2 rounded-lg"
-                            stroke="#99CC33"
+                            className="text-5xl bg-[#FEF9C3] p-2 rounded-lg"
+                            stroke="#d5c507"
                         />
                     </div>
                     <div>
@@ -53,12 +55,12 @@ export const DashboardResumen = ({ borradoresActivos }) => {
                     <div>
                         <div>
                             <p className="text-3xl font-bold ">
-                                {borradores.length}
+                                {borradoresEnEspera.length}
                             </p>
                         </div>
                         <div>
                             <p className="text-lg text-slate-600">
-                                Pendientes de Aprobación
+                                Borradores Pendientes
                             </p>
                         </div>
                     </div>
@@ -70,20 +72,21 @@ export const DashboardResumen = ({ borradoresActivos }) => {
                 </div>
             </div>
 
-            {/* Borradores Pendientes de Aprobación*/}
+            {/* Borradores Rechazados*/}
 
             <div className="flex flex-col  px-10 rounded-lg py-4 text-black bg-slate-50 shadow-md">
                 <div className="flex items-center gap-4">
                     <div>
-                        <LuBriefcase
-                            className="text-5xl bg-[#EEDDFD] p-2 rounded-lg"
+                        <BiErrorCircle
+                            className="text-5xl bg-red-200 p-2 rounded-lg"
                             stroke="#A855F7"
+                            fill="#f91818"
                         />
                     </div>
                     <div>
                         <div>
                             <p className="text-3xl font-bold ">
-                                {borradores.length}
+                                {borradoresRechazados.length}
                             </p>
                         </div>
                         <div>
@@ -98,7 +101,42 @@ export const DashboardResumen = ({ borradoresActivos }) => {
                         Procesos Rechazados y esperando nuevas mejoras.
                     </p>
                 </div>
-            </div>   
+            </div>
+
+            {/* Borradores Aprobados*/}
+
+            <div className="flex flex-col  px-10 rounded-lg py-4 text-black bg-slate-50 shadow-md">
+                <div className="flex items-center gap-4">
+                    <div>
+                        <BsClipboard2Check
+                            className="text-5xl bg-[#BBF7D0] p-2 rounded-lg"
+                            stroke="#008000"
+                            fill="#008000"
+                        />
+                    </div>
+                    <div>
+                        <div>
+                            <p className="text-3xl font-bold ">
+                                {borradoresAprobados.length}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-lg text-slate-600">
+                                Procesos Aprobados
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <p className="text-[#AAAAAA] text-xs pt-4">
+                        Procesos Aprobados .
+                    </p>
+                </div>
+            </div>
+            
+
         </div>
+
+        
     );
 };

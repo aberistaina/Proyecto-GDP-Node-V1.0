@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { IoIosArrowForward } from "react-icons/io";
 import { IoDocumentTextOutline } from "react-icons/io5";
 import { BsSend } from "react-icons/bs";
-import { LuBriefcase } from "react-icons/lu";
 import { BsClipboard2Check } from "react-icons/bs";
+import { BiErrorCircle } from "react-icons/bi";
 
 export const BorradoresActivos = ({ borradoresActivos, isLoading }) => {
     const navigate = useNavigate();
@@ -19,6 +19,8 @@ export const BorradoresActivos = ({ borradoresActivos, isLoading }) => {
 
     if (!isLoading) return <PulseLoader color="#10644C" size={15} />;
     const borradores = borradoresActivos.filter((b) => b.estado === "borrador");
+    const borradoresRechazados = borradoresActivos.filter((b) => b.estado === "rechazado");
+    const borradoresAprobados = borradoresActivos.filter((b) => b.estado === "aprobado");
     const borradoresEnEspera = borradoresActivos.filter(
         (b) => b.estado === "enviado"
     );
@@ -40,7 +42,7 @@ export const BorradoresActivos = ({ borradoresActivos, isLoading }) => {
                         </span>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-3 min-h-[360px] max-h-[360px] overflow-auto">
                         {borradores.length === 0 ? (
                             <h1 className="text-center text-gray-500">
                                 No hay borradores activos
@@ -91,7 +93,7 @@ export const BorradoresActivos = ({ borradoresActivos, isLoading }) => {
                         </span>
                     </div>
 
-                    <ul className="space-y-3">
+                    <ul className="space-y-3 min-h-[360px] max-h-[360px] overflow-auto">
                         {borradoresEnEspera.length === 0 ? (
                             <h1 className="text-center text-gray-500">
                                 No hay borradores Pendientes de Aprobación
@@ -134,24 +136,25 @@ export const BorradoresActivos = ({ borradoresActivos, isLoading }) => {
                 <div className="bg-[#FBFBFB] p-5 rounded-lg shadow ">
                     <div className="mb-2 border-b bg-white rounded-md">
                         <h2 className="text-2xl font-semibold  flex gap-2 items-center">
-                            <LuBriefcase
+                            <BiErrorCircle
                                 className="text-3xl"
-                                stroke="#A855F7"
+                                stroke="#f91818"
+                                fill="#f91818"
                             />
-                            Procesos Rechazados
+                            Borradores Rechazados
                         </h2>
                         <span className="text-[#AAAAAA] text-sm">
                             Procesos que están esperando modificaciones.
                         </span>
                     </div>
 
-                    <div className="space-y-3">
-                        {borradores.length === 0 ? (
+                    <div className="space-y-3 min-h-[360px] max-h-[360px] overflow-auto">
+                        {borradoresRechazados.length === 0 ? (
                             <h1 className="text-center text-gray-500">
-                                No hay borradores activos
+                                No hay borradores rechazados
                             </h1>
                         ) : (
-                            borradores.map((borrador) => (
+                            borradoresRechazados.map((borrador) => (
                                 <div
                                     key={borrador.idAprobador}
                                     className="flex justify-between items-center bg-white rounded-md px-3 py-4 shadow-lg mt-6"
@@ -199,13 +202,13 @@ export const BorradoresActivos = ({ borradoresActivos, isLoading }) => {
                         </span>
                     </div>
 
-                    <div className="space-y-3">
-                        {borradores.length === 0 ? (
+                    <div className="space-y-3 min-h-[360px] max-h-[360px] overflow-auto">
+                        {borradoresAprobados.length === 0 ? (
                             <h1 className="text-center text-gray-500">
-                                No hay borradores activos
+                                No hay procesos aprobados
                             </h1>
                         ) : (
-                            borradores.map((borrador) => (
+                            borradoresAprobados.map((borrador) => (
                                 <div
                                     key={borrador.idAprobador}
                                     className="flex justify-between items-center bg-white rounded-md  px-3 py-4 shadow-lg mt-6"

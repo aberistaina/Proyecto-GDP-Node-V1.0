@@ -21,10 +21,10 @@ export const AdminSideBar = ({usuario}) => {
           <button
             key={sec.id}
             onClick={() => setType(sec.id)}
-            className={`text-left px-3 py-2 rounded-lg transition-all font-medium text-sm ${
+            className={`text-left px-3 py-2 min-w-[135px] max-w-[135px] rounded-lg transition-all font-medium text-sm ${
               type === sec.id
-                ? "bg-[#6f42c1] text-white"
-                : "text-gray-700 hover:bg-gray-200"
+                ? "bg-[#99CC33] text-white"
+                : "hover:bg-[#F5FAEA] hover:text-[#99CC33] hover:scale-105 transition duration-300 ease-in-out"
             }`}
           >
             {sec.label}

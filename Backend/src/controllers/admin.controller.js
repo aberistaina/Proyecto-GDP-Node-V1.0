@@ -41,6 +41,7 @@ export const getAllUsers = async (req, res, next) => {
                 id_usuario: data.id_usuario,
                 nombre: data.nombre,
                 email: data.email,
+                id_rol: data.id_rol,
                 created_at: formatShortTime(data.created_at),
                 cargo: data.id_cargo_cargo?.nombre,
                 rol: data.id_rol_role?.nombre,

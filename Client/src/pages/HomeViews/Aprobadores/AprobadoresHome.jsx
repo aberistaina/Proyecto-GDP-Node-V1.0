@@ -7,7 +7,7 @@ import { useSelector } from "react-redux";
 export const AprobadoresHome = () => {
     const user = useSelector((state) => state.auth.user);
     const usuario = user?.usuario
-    const [ procesosPendientes, setProcesosPendientes ] = useState([])
+    const [ procesos, setProcesos ] = useState([])
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
@@ -23,7 +23,7 @@ export const AprobadoresHome = () => {
                     : import.meta.env.VITE_URL_PRODUCCION;
                 const response = await fetch(`${URL}/api/v1/procesos/get-pending-process/${usuario.id_usuario}`)
                 const data = await response.json()
-                setProcesosPendientes(data.data)
+                setProcesos(data.data)
                 setIsLoading(true)
                 
             } catch (error) {
@@ -37,8 +37,8 @@ export const AprobadoresHome = () => {
   return (
     <div className="p-6 space-y-8 min-h-screen">
       {usuario && <UserProfile usuario={usuario} />}
-      <DashboardResumen procesosPendientes={procesosPendientes} />
-      <ListaProcesosPendientes procesosPendientes={procesosPendientes} isLoading={isLoading} />
+      <DashboardResumen procesos={procesos} />
+      <ListaProcesosPendientes procesos={procesos} isLoading={isLoading} />
     </div>
   )
 }

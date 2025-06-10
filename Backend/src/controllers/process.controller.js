@@ -1,4 +1,5 @@
 import * as path from "path";
+import mime from "mime-types";
 import { fileURLToPath } from "url";
 import fs from "fs"; //Debug, luego borrar
 import puppeteer from "puppeteer";
@@ -13,6 +14,8 @@ import {
     Niveles,
     Cargo,
     BitacoraAprobaciones,
+    ArchivosOportunidadesMejora,
+    ArchivosComentariosVersionProceso,
 } from "../models/models.js";
 import logger from "../utils/logger.js";
 import {
@@ -33,18 +36,27 @@ import {
     uploadFileToS3,
     downloadFromS3,
     getFileFromS3Version,
-    getImageFromS3Version
+    getImageFromS3Version,
 } from "../services/s3Client.services.js";
 import { moveFile } from "../utils/uploadFile.js";
 import { sequelize } from "../database/database.js";
 import { documentacionTemplate } from "../utils/documentacionTemplate.js";
 import { getAdminConfig } from "../services/admin.services.js";
-import { getMacroProcessData, getProcessData } from "../services/documentacion.services.js";
-import { generarContenidoMacroproceso, generarPortada, generarContenidoProceso, generarTemplateFinal } from "../utils/documentacion.js";
+import {
+    getMacroProcessData,
+    getProcessData,
+} from "../services/documentacion.services.js";
+import {
+    generarContenidoMacroproceso,
+    generarPortada,
+    generarContenidoProceso,
+    generarTemplateFinal,
+} from "../utils/documentacion.js";
+import { isValidFilesExtension } from "../utils/validators.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-
+//Función para obtener todos los procesos
 export const getAllProcess = async (req, res, next) => {
     try {
         const procesos = await Procesos.findAll();
@@ -61,24 +73,21 @@ export const getAllProcess = async (req, res, next) => {
     }
 };
 
-//Función leer el contenido XML de un subproceso desde S3
+//Función leer el contenido XML de la versión actual del proceso desde S3
 export const readActualProcessVersion = async (req, res, next) => {
-    
     try {
         const { idProceso, version } = req.params;
-        console.log(req.params);
 
         const procesoVersionActual = await VersionProceso.findByPk(version);
 
         const versionActiva = procesoVersionActual.nombre_version;
 
-        
-        const {s3_bucket, s3_bucket_procesos} = await getAdminConfig()
-        
+        const { s3_bucket, s3_bucket_procesos } = await getAdminConfig();
+
         const xmlContent = await getFileFromS3Version(
             s3_bucket,
             `${s3_bucket_procesos}/${idProceso}.bpmn`,
-            versionActiva,
+            versionActiva
         );
 
         res.setHeader("Content-Type", "application/xml");
@@ -90,12 +99,11 @@ export const readActualProcessVersion = async (req, res, next) => {
     }
 };
 
+//Función leer el contenido XML de una versión específica del proceso desde S3
 export const readProcessVersion = async (req, res, next) => {
-    
     try {
         const { idProceso, version } = req.params;
-        const {s3_bucket, s3_bucket_procesos} = await getAdminConfig()
-        console.log("CONTROLADOR2", s3_bucket_procesos);
+        const { s3_bucket, s3_bucket_procesos } = await getAdminConfig();
 
         const versionProceso = await VersionProceso.findOne({
             where: {
@@ -104,7 +112,6 @@ export const readProcessVersion = async (req, res, next) => {
             },
         });
 
-        
         const xmlContent = await getFileFromS3Version(
             s3_bucket,
             `${s3_bucket_procesos}/${idProceso}.bpmn`,
@@ -120,6 +127,7 @@ export const readProcessVersion = async (req, res, next) => {
     }
 };
 
+//Función que vincula un subproceso a un proceso
 export const connectSubprocess = async (req, res, next) => {
     const transaction = await sequelize.transaction();
     try {
@@ -301,10 +309,10 @@ export const uploadProcess = async (req, res, next) => {
                     }
                 }
             }
-
+            const { s3_bucket, s3_bucket_procesos } = await getAdminConfig();
             await uploadFileToS3(
-                "test-bpmn",
-                `${idProceso}.bpmn`,
+                `${s3_bucket}`,
+                `${s3_bucket_procesos}/${idProceso}.bpmn`,
                 archivo.data,
                 "application/xml",
                 "1.0",
@@ -326,7 +334,7 @@ export const uploadProcess = async (req, res, next) => {
     }
 };
 
-//Funcion para guardar un nuevo proceso 
+//Funcion para guardar un nuevo proceso
 export const saveNewProcessChanges = async (req, res, next) => {
     try {
         const { archivo, imagen } = req.files;
@@ -394,55 +402,7 @@ export const saveNewProcessChanges = async (req, res, next) => {
     }
 };
 
-export const saveSubProcessChanges = async (req, res, next) => {
-    try {
-        const { archivo } = req.files;
-        const { idProcesoPadre, callActivity } = req.body;
-
-        if (!req.files || Object.keys(req.files).length === 0) {
-            return res.status(400).json({
-                code: 400,
-                message: "No se ha subido ningún archivo.",
-            });
-        }
-
-        const { idProceso, name } = await extraerDatosBpmn(archivo);
-
-        const rutaRelativa = path.join("upload", `${idProceso}.bpmn`);
-        const rutaAbsoluta = path.join(__dirname, "../", rutaRelativa);
-        const rutaRelativaProcesoPadre = path.join(
-            "upload",
-            `${idProcesoPadre}.bpmn`
-        );
-        const rutaAbsolutaProcesoPadre = path.join(
-            __dirname,
-            "../",
-            rutaRelativaProcesoPadre
-        );
-
-        await createProcessIfNotExist(idProceso, name, rutaRelativa);
-        await createAssociation(
-            idProcesoPadre,
-            callActivity,
-            idProceso,
-            rutaRelativa,
-            name,
-            rutaAbsolutaProcesoPadre
-        );
-
-        await moveFile(archivo, rutaAbsoluta);
-
-        res.status(201).json({
-            code: 201,
-            message: "SubProceso Guardado Correctamente",
-        });
-    } catch (error) {
-        logger.error("Controlador Save Changes", error);
-        console.log(error);
-        next(error);
-    }
-};
-
+//Funcion que obtiene los subprocesos de un proceso
 export const getSubprocessesOfProcess = async (req, res, next) => {
     try {
         const { idProceso } = req.params;
@@ -562,6 +522,7 @@ export const enviarAprobacion = async (req, res, next) => {
     }
 };
 
+//Función que aprueba un borrador
 export const aprobarProceso = async (req, res, next) => {
     const transaction = await sequelize.transaction();
     try {
@@ -673,6 +634,7 @@ export const aprobarProceso = async (req, res, next) => {
     }
 };
 
+//Función que rechaza un borrador
 export const rechazarProceso = async (req, res, next) => {
     try {
         const transaction = await sequelize.transaction();
@@ -755,13 +717,14 @@ export const rechazarProceso = async (req, res, next) => {
     }
 };
 
+//Función que obtiene los procesos de un aprobador
 export const getPendingProcess = async (req, res, next) => {
     try {
         const { idUsuario } = req.params;
 
         const aprobacionesPendientes = await Aprobadores.findAll({
             where: {
-                id_usuario: idUsuario
+                id_usuario: idUsuario,
             },
             include: [
                 {
@@ -794,7 +757,6 @@ export const getPendingProcess = async (req, res, next) => {
                 item.version_proceso?.id_proceso_proceso?.descripcion,
         }));
 
-
         res.status(200).json({
             code: 200,
             message:
@@ -808,6 +770,7 @@ export const getPendingProcess = async (req, res, next) => {
     }
 };
 
+//Función que obtiene los borradores de un diseñador
 export const getPendingDraft = async (req, res, next) => {
     try {
         const { idUsuario } = req.params;
@@ -861,12 +824,12 @@ export const getProcessSummary = async (req, res, next) => {
         const { idProceso, version } = req.params;
         let xmlContent;
         let versionProceso;
-        const {s3_bucket, s3_bucket_procesos} = await getAdminConfig()
+        const { s3_bucket, s3_bucket_procesos } = await getAdminConfig();
 
         if (!version || version === "undefined") {
             xmlContent = await getDataFileBpmnFromS3(
                 "test-bpmn",
-                `${idProceso}.bpmn`
+                `${s3_bucket_procesos}/${idProceso}.bpmn`
             );
             versionProceso = await VersionProceso.findOne({
                 where: {
@@ -1042,25 +1005,81 @@ export const getCommentaries = async (req, res, next) => {
     }
 };
 
+//Función que obtiene los Archivos de un comentario
+export const getComentariesFiles = async(req, res, next) =>{
+    try {
+        const { idComentario } = req.params;
+
+        const archivos = await ArchivosComentariosVersionProceso.findAll({
+            where:{
+                id_comentario: idComentario
+            }
+        })
+
+        res.status(202).json({
+            code: 202,
+            message: "Archivos obtenidos correctamente",
+            data: archivos,
+        });
+    } catch (error) {
+        logger.error("Controlador getComentariesFiles", error);
+        console.log(error);
+        next(error);
+    }
+}
+
 //Funcion que crea las oportunidades de la versión de un proceso
 export const createOppotunity = async (req, res, next) => {
+    const transaction = await sequelize.transaction();
     try {
+        const { s3_bucket, s3_bucket_adjuntos } = await getAdminConfig();
         const { idProceso, descripcion, asunto, version, id_usuario } =
             req.body;
         const archivos = req.files?.archivos || null;
 
-        await OportunidadesMejora.create({
+
+        const nuevaOportunidad = await OportunidadesMejora.create({
             id_usuario,
             id_bpmn: idProceso,
             asunto,
             descripcion,
             id_version_proceso: version,
-        });
+        }, {transaction});
+
+        const nombreVersion = await VersionProceso.findByPk(version , {transaction})
+
+        if(archivos){
+            const archivosArray = Array.isArray(archivos) ? archivos : [archivos];
+            for (const archivo of archivosArray) {
+
+                isValidFilesExtension(archivo)
+                const mimeType = mime.lookup(archivo.name) || "application/octet-stream";
+                
+                await ArchivosOportunidadesMejora.create({
+                    id_oportunidad: nuevaOportunidad.id_oportunidad,
+                    nombre: archivo.name,
+                    s3_key: `${s3_bucket_adjuntos}/${archivo.name}`
+                } , {transaction})
+
+                await uploadFileToS3(
+                    `${s3_bucket}`,
+                    `${s3_bucket_adjuntos}/${archivo.name}`,
+                    archivo.data,
+                    mimeType,
+                    `${nombreVersion.nombre_version}`,
+                    `${nombreVersion.estado}`
+                );
+            }
+            
+        }
+
+        await transaction.commit()
         res.status(201).json({
             code: 201,
             message: "Oportunidad creada correctamente",
         });
     } catch (error) {
+        await transaction.rollback();
         logger.error("Controlador Crear Oportunidad", error);
         console.log(error);
         next(error);
@@ -1103,6 +1122,60 @@ export const getOpportunities = async (req, res, next) => {
         });
     } catch (error) {
         logger.error("Controlador Crear Oportunidad", error);
+        console.log(error);
+        next(error);
+    }
+};
+
+//Función que obtiene los Archivos de una oportunidad
+export const getOpportunitiesFiles = async(req, res, next) =>{
+    try {
+        const { idComentario } = req.params;
+
+        const archivos = await ArchivosOportunidadesMejora.findAll({
+            where:{
+                id_oportunidad: idComentario
+            }
+        })
+
+        res.status(202).json({
+            code: 202,
+            message: "Archivos obtenidos correctamente",
+            data: archivos,
+        });
+    } catch (error) {
+        logger.error("Controlador getComentariesFiles", error);
+        console.log(error);
+        next(error);
+    }
+}
+
+//Función Para descargar un proceso
+export const downloadFiles = async (req, res, next) => {
+    try {
+        const { fileName } = req.params;
+        const { s3_bucket, s3_bucket_adjuntos } = await getAdminConfig();
+        console.log(s3_bucket_adjuntos);
+        
+        const { Body, ContentType, ContentLength } = await downloadFromS3(
+            `${s3_bucket_adjuntos}/${fileName}`,
+            `${s3_bucket}`
+        );
+        const mimeType = mime.lookup(fileName) || "application/octet-stream";
+
+        res.setHeader(
+            "Content-Type",
+            ContentType || mimeType
+        );
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="${fileName}"`
+        );
+        res.setHeader("Content-Length", ContentLength);
+
+        Body.pipe(res);
+    } catch (error) {
+        logger.error("Controlador downloadProcess", error);
         console.log(error);
         next(error);
     }
@@ -1199,9 +1272,11 @@ export const downloadProcess = async (req, res, next) => {
     try {
         const { idProceso } = req.params;
         const fileName = `${idProceso}.bpmn`;
+        const { s3_bucket, s3_bucket_procesos } = await getAdminConfig();
+        
         const { Body, ContentType, ContentLength } = await downloadFromS3(
-            fileName,
-            "test-bpmn"
+            `${s3_bucket_procesos}/${fileName}`,
+            `${s3_bucket}`
         );
 
         res.setHeader(
@@ -1258,7 +1333,7 @@ export const createNewProcessVersion = async (req, res, next) => {
     try {
         const { idProceso, version, id_creador } = req.body;
         const { archivo, imagen } = req.files;
-        console.log(req.files);
+        const { s3_bucket, s3_bucket_procesos, s3_bucket_imagenes } = await getAdminConfig();
 
         const proceso = await Procesos.findOne({
             where: { id_bpmn: idProceso },
@@ -1281,8 +1356,8 @@ export const createNewProcessVersion = async (req, res, next) => {
 
         if (borradorAcutal) {
             await uploadFileToS3(
-                "test-bpmn",
-                `${idProceso}.bpmn`,
+                `${s3_bucket}`,
+                `${s3_bucket_procesos}/${idProceso}.bpmn`,
                 archivo.data,
                 "application/xml",
                 borradorAcutal.nombre_version,
@@ -1290,8 +1365,8 @@ export const createNewProcessVersion = async (req, res, next) => {
             );
 
             await uploadFileToS3(
-                "test-bpmn",
-                `Imagenes-Procesos/${idProceso}.png`,
+                `${s3_bucket}`,
+                `${s3_bucket_imagenes}/${idProceso}.png`,
                 imagen.data,
                 "image/png",
                 borradorAcutal.nombre_version,
@@ -1346,8 +1421,8 @@ export const createNewProcessVersion = async (req, res, next) => {
         });
 
         await uploadFileToS3(
-            "test-bpmn",
-            `Imagenes-Procesos/${idProceso}.png`,
+            `${s3_bucket}`,
+            `${s3_bucket_imagenes}/${idProceso}.png`,
             imagen.data,
             "image/png",
             nuevaVersion,
@@ -1414,7 +1489,6 @@ export const getBitacoraMessages = async (req, res, next) => {
             };
         });
 
-
         res.status(200).json({
             code: 200,
             message: "Comentarios obtenidos correctamente",
@@ -1431,6 +1505,7 @@ export const getBitacoraMessages = async (req, res, next) => {
 export const generarDocumentacion = async (req, res, next) => {
     try {
         const { idProceso, version } = req.body;
+        const { s3_bucket, s3_bucket_procesos } = await getAdminConfig();
 
         const versionProceso = await VersionProceso.findOne({
             where: {
@@ -1440,40 +1515,37 @@ export const generarDocumentacion = async (req, res, next) => {
         });
 
         const xmlContent = await getFileFromS3Version(
-            "test-bpmn",
-            `${idProceso}.bpmn`,
+            `${s3_bucket}`,
+            `${s3_bucket_procesos}/${idProceso}.bpmn`,
             versionProceso.nombre_version
         );
 
-        const imagen  = await getImageFromS3Version(
+        const imagen = await getImageFromS3Version(
             "test-bpmn",
             "Imagenes-Procesos/Id_6ba9787b-da8d-4cb1-a417-8f793a457e11.png",
-            "1.0",
-            );
-        
-    
+            "1.0"
+        );
+
         const base64 = imagen.toString("base64");
         const dataUrl = `data:image/png;base64,${base64}`;
 
-        const macroProceso = await getMacroProcessData(xmlContent)
+        const macroProceso = await getMacroProcessData(xmlContent);
 
         const portada = generarPortada(macroProceso.name, dataUrl);
         const contenidoMacro = generarContenidoMacroproceso(macroProceso);
-;
-
         const procesos = await IntermediaProcesos.findAll({
-            attributes:["id_bpmn"],
-            where:{
-                id_bpmn_padre: idProceso
-            }
-        })
+            attributes: ["id_bpmn"],
+            where: {
+                id_bpmn_padre: idProceso,
+            },
+        });
 
-        let contenidoProcesos = ""
+        let contenidoProcesos = "";
         for (const proceso of procesos) {
             const xmlContent = await getDataFileBpmnFromS3(
-            "test-bpmn",
-            `${proceso.id_bpmn}.bpmn`,
-        );
+                `${s3_bucket}`,
+                `${s3_bucket_procesos}/${proceso.id_bpmn}.bpmn`
+            );
             const procesoDataArray = await getProcessData(xmlContent);
             for (const procesoData of procesoDataArray) {
                 contenidoProcesos += generarContenidoProceso(procesoData);
@@ -1484,7 +1556,7 @@ export const generarDocumentacion = async (req, res, next) => {
             portada,
             contenidoMacro,
             contenidoProcesos,
-            });
+        });
 
         const browser = await puppeteer.launch({ headless: "new" });
         const page = await browser.newPage();
@@ -1499,7 +1571,12 @@ export const generarDocumentacion = async (req, res, next) => {
         const buffer = await page.pdf({
             path: rutaAbsolutaPDF,
             format: "A4",
-            margin: { top: '0.4in', bottom: '0.4in', left: '0.4in', right: '0.4in' },
+            margin: {
+                top: "0.4in",
+                bottom: "0.4in",
+                left: "0.4in",
+                right: "0.4in",
+            },
             printBackground: true,
         });
 

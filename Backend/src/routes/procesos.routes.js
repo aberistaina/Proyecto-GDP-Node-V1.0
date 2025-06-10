@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { connectSubprocess, getAllProcess, getSubprocessesOfProcess, readActualProcessVersion, readProcessVersion, getProcessSummary, saveNewProcessChanges, saveSubProcessChanges, uploadProcess, createCommentary, getCommentaries, createOppotunity, getOpportunities, getNiveles, getProcessByNivel, getNivelById, downloadProcess, getProcessVersions, createNewProcessVersion, getPendingProcess, enviarAprobacion, aprobarProceso, rechazarProceso, getPendingDraft, getBitacoraMessages, generarDocumentacion, createNewBitacoraMessage } from "../controllers/process.controller.js";
+import { connectSubprocess, getAllProcess, getSubprocessesOfProcess, readActualProcessVersion, readProcessVersion, getProcessSummary, saveNewProcessChanges, uploadProcess, createCommentary, getCommentaries, createOppotunity, getOpportunities, getNiveles, getProcessByNivel, getNivelById, downloadProcess, getProcessVersions, createNewProcessVersion, getPendingProcess, enviarAprobacion, aprobarProceso, rechazarProceso, getPendingDraft, getBitacoraMessages, generarDocumentacion, createNewBitacoraMessage, getComentariesFiles, getOpportunitiesFiles, downloadFiles } from "../controllers/process.controller.js";
+
 
 
 const router = Router()
@@ -11,11 +12,15 @@ router.get("/get-process/resumen-proceso/:idProceso/:version?", getProcessSummar
 router.get("/get-process-xml/:idProceso/:version", readProcessVersion)
 router.get("/get-subprocess-process/:idProceso", getSubprocessesOfProcess)
 router.get("/comentarios/getAll/:idProceso/:version", getCommentaries)
+router.get("/comentarios/get-files/:idComentario", getComentariesFiles)
 router.get("/oportunidades/getAll/:idProceso/:version", getOpportunities)
+router.get("/oportunidades/get-files/:idComentario", getOpportunitiesFiles)
 router.get("/get-niveles", getNiveles)
 router.get("/get-nivel/:idNivel", getNivelById)
 router.get("/get-versiones/:idProceso", getProcessVersions)
 router.get("/download-process/:idProceso", downloadProcess)
+router.get("/download-files/:fileName", downloadFiles)
+
 router.get("/get-pending-process/:idUsuario", getPendingProcess)
 router.get("/get-pending-draft/:idUsuario", getPendingDraft)
 router.get("/get-bitacora-aprobaciones/:version", getBitacoraMessages)
@@ -24,7 +29,6 @@ router.post("/connect-subprocess", connectSubprocess)
 router.post("/upload-process", uploadProcess)
 router.post("/save-process-changes", saveNewProcessChanges)
 router.post("/save-new-version-changes", createNewProcessVersion)
-router.post("/save-subprocess-changes", saveSubProcessChanges)
 router.post("/comentarios/agregar", createCommentary)
 router.post("/oportunidades/agregar", createOppotunity)
 router.post("/bitacora/agregar", createNewBitacoraMessage)

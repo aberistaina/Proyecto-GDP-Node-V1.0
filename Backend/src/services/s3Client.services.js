@@ -77,6 +77,10 @@ export const getFileFromS3Version = async (
 ) => {
     try {
         // Listar las versiones de los objetos en el bucket
+        console.log("BucketName", bucketName);
+        console.log("fileName", fileName);
+        console.log("versionBuscada", versionBuscada);
+
         const { Versions } = await s3Client.send(
             new ListObjectVersionsCommand({
                 Bucket: bucketName,
@@ -92,6 +96,7 @@ export const getFileFromS3Version = async (
                     Key: `${fileName}`,
                     VersionId: version.VersionId,
                 })
+                
             );
 
             if (Metadata["x-amz-meta-version"] === versionBuscada) {
@@ -118,8 +123,8 @@ export const getFileFromS3Version = async (
             }
         }
     } catch (error) {
-        console.error("Error getting file from S3:", error);
-        throw error;
+        console.error("Error getting file from S3:");
+        /* throw error; */
     }
 };
 

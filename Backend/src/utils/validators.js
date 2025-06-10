@@ -4,13 +4,14 @@ export const isValidEmail = (email) => {
 };
 
 export const isValidPassword = (password) => {
-    const passwordRegex = /^(?=(?:.*[A-Za-z]){4})(?=(?:.*\d){4})(?=(?:.*[@#$+=&]){1})[A-Za-z\d@#$+=&]{9,}$/;
-    return passwordRegex.test(password); 
-}
+    const passwordRegex =
+        /^(?=(?:.*[A-Za-z]){4})(?=(?:.*\d){4})(?=(?:.*[@#$+=&]){1})[A-Za-z\d@#$+=&]{9,}$/;
+    return passwordRegex.test(password);
+};
 export const isValidName = (name) => {
     const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]{2,40}$/;
     return nameRegex.test(name);
-}
+};
 
 export const isValidPhone = (phone) => {
     const phoneRegex = /^\+56\d{9}$/;
@@ -41,9 +42,36 @@ export const isValidRut = (rut) => {
     }
 
     const resto = suma % 11;
-    const dvCalculado = resto === 0 ? "0" : resto === 1 ? "k" : (11 - resto).toString();
+    const dvCalculado =
+        resto === 0 ? "0" : resto === 1 ? "k" : (11 - resto).toString();
 
     // Comparar dígito verificador calculado con el ingresado
     return dv === dvCalculado;
 };
 
+export const isValidFilesExtension = (file) => {
+    const validExtensions = [
+        "pdf",
+        "doc",
+        "docx",
+        "xls",
+        "xlsx",
+        "ppt",
+        "pptx",
+        "txt",
+        "rtf",
+        "csv",
+        "jpg",
+        "jpeg",
+        "png",
+        "gif",
+        "bmp",
+    ];
+
+    const extension = file.name.match(/\.([0-9a-z]+)$/i)?.[1] ?? "";
+    if(validExtensions.includes(extension)){
+        return
+    }else{
+        throw new Error(`el archivo ${file.name} no tiene una extensión válida. Solo se permiten subir los siguientes tipos de archivo (${validExtensions})`)
+    }
+};

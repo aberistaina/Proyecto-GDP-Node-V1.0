@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { connectSubprocess, getAllProcess, getSubprocessesOfProcess, readActualProcessVersion, readProcessVersion, getProcessSummary, saveNewProcessChanges, uploadProcess, createCommentary, getCommentaries, createOppotunity, getOpportunities, getNiveles, getProcessByNivel, getNivelById, downloadProcess, getProcessVersions, createNewProcessVersion, getPendingProcess, enviarAprobacion, aprobarProceso, rechazarProceso, getPendingDraft, getBitacoraMessages, generarDocumentacion, createNewBitacoraMessage, getComentariesFiles, getOpportunitiesFiles, downloadFiles } from "../controllers/process.controller.js";
+import { getAllCargos, getAllRoles } from "../controllers/admin.controller.js";
 
 
 
@@ -17,6 +18,7 @@ router.get("/oportunidades/getAll/:idProceso/:version", getOpportunities)
 router.get("/oportunidades/get-files/:idComentario", getOpportunitiesFiles)
 router.get("/get-niveles", getNiveles)
 router.get("/get-nivel/:idNivel", getNivelById)
+router.get("/get-all-cargos", getAllCargos)
 router.get("/get-versiones/:idProceso", getProcessVersions)
 router.get("/download-process/:idProceso", downloadProcess)
 router.get("/download-files/:fileName", downloadFiles)

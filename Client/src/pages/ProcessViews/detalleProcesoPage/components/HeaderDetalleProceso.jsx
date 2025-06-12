@@ -21,6 +21,7 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
     
 
     const user = useSelector((state) => state.auth.user);
+    console.log(user);
     const navigate = useNavigate()
 
 

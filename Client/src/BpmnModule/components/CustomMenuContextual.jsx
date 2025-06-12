@@ -160,6 +160,8 @@ export const CustomMenuContextual = ({modo}) => {
 
     if (!openMenuContextual.state) return null;
 
+
+
     return (
         <ul
             className="absolute z-50 bg-white shadow-md border border-gray-300 rounded text-sm"

@@ -6,7 +6,8 @@ import ModalMejorasComentarios from "./ModalMejorasComentarios";
 import { TablaBitacoraComentarios } from "./TablaBitacoraComentarios";
 import { useSelector } from "react-redux";
 
-export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabActiva, version, comentarios, oportunidades, getAllComentaries, getAllOpportunities, comentarioBitacora, getComentariosBitacora}) => {
+export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabActiva, version, comentarios, oportunidades, getAllComentaries, getAllOpportunities, comentarioBitacora, getComentariosBitacora, setOpenModalArchivos, setIdComentario}) => {
+    
     const user = useSelector((state) => state.auth.user);
     const roles = [1, 2, 3, 5]
   
@@ -64,14 +65,14 @@ export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabAc
       {tabActiva === "oportunidades" && (
         <div>
           {/* Oportunidades */}
-          <Oportunidades idProceso={idProceso} version={version} oportunidades={oportunidades} getAllOpportunities={getAllOpportunities} />
+          <Oportunidades idProceso={idProceso} version={version} oportunidades={oportunidades} getAllOpportunities={getAllOpportunities} setOpenModalArchivos={setOpenModalArchivos} setIdComentario={setIdComentario} />
         </div>
       )}
 
       {tabActiva === "comentarios" && (
         <div>
           {/* Comentarios */}
-            <Comentarios idProceso={idProceso} version={version} comentarios={comentarios} getAllComentaries={getAllComentaries} />
+            <Comentarios idProceso={idProceso} version={version} comentarios={comentarios} getAllComentaries={getAllComentaries} setOpenModalArchivos={setOpenModalArchivos} setIdComentario={setIdComentario} />
         </div>
       )}
 

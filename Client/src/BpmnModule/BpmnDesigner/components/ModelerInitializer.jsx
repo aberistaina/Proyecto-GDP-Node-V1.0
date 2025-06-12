@@ -2,7 +2,7 @@ import "bpmn-js/dist/assets/diagram-js.css";
 import "bpmn-js/dist/assets/bpmn-font/css/bpmn.css";
 import "../../css/color.css";
 import "../../css/Properties.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import BpmnModeler from "bpmn-js/lib/Modeler";
 import { useBpmnContext } from "../../context/useBpmnContext";
 import { createDiagram } from "../../utils/bpmnUtils";
@@ -21,11 +21,49 @@ export const ModelerInitializer = () => {
     const [elementSeleccionado, setElementSeleccionado] = useState(null);
     const { bpmnModelerRef, containerRef, emptyDiagram, setEmptyDiagram } = useBpmnContext();
     const { idProceso, callActivity, version } = useParams();
+    const [cargos, setCargos] = useState([]);
+
+    // Crea un ref para popupData
+    const popupDataRef = useRef({
+        popupVisible,
+        setPopupVisible,
+        setElementSeleccionado,
+        setPropertyName,
+        cargos
+    });
+
+    
+
+useEffect(() => {
+  const getCargos = async () => {
+    try {
+      const URL =
+        import.meta.env.VITE_APP_MODE === "desarrollo"
+          ? import.meta.env.VITE_URL_DESARROLLO
+          : import.meta.env.VITE_URL_PRODUCCION;
+
+      const response = await fetch(`${URL}/api/v1/procesos/get-all-cargos`);
+      const data = await response.json();
+
+      const formateados = data.data.map((c) => ({
+        id: c.id_cargo,
+        label: c.nombre
+      }));
+
+      setCargos(formateados);
+    } catch (error) {
+      console.error("Error cargando cargos:", error);
+    }
+  };
+
+  getCargos();
+}, []);
 
     useEffect(() => {
 
         const container = containerRef.current;
         if (!container) return;
+
 
         bpmnModelerRef.current = new BpmnModeler({
             container,
@@ -36,7 +74,7 @@ export const ModelerInitializer = () => {
                 {
                     __init__: ["customPropertiesProvider"],
                     customPropertiesProvider: ["type", CustomPropertiesProvider],
-                    popupData: ["value", { popupVisible, setPopupVisible, setElementSeleccionado, setPropertyName }],
+                    popupData: ["value", popupDataRef.current],
                 },
                 {
                     __init__: ["customColorsProviderViewer"],
@@ -98,6 +136,16 @@ export const ModelerInitializer = () => {
         };
     }, [containerRef, bpmnModelerRef, emptyDiagram, callActivity]);
 
+    useEffect(() => {
+        popupDataRef.current = {
+            popupVisible,
+            setPopupVisible,
+            setElementSeleccionado,
+            setPropertyName,
+            cargos
+        };
+    }, [popupVisible, setPopupVisible, setElementSeleccionado, setPropertyName, cargos]);
+
     return (
         <>
             {popupVisible && elementSeleccionado && (
@@ -107,6 +155,7 @@ export const ModelerInitializer = () => {
                     modeling={bpmnModelerRef.current?.get("modeling")}
                     moddle={bpmnModelerRef.current?.get("moddle")}
                     onClose={() => setPopupVisible(false)}
+                    cargos={cargos}
                 />
             )}
         </>)

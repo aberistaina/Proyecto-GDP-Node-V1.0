@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
-import opcionesDB from "../BpmnDesigner/data/cargos.json";
 
-
-//Popup con las propiedades extendidas "Informados, Consultados, Ejecutantes, Responsables"
 export default function PopupAprobadores({
     element,
     modeling,
     moddle,
     onClose,
     propertyName,
+    cargos // Asegúrate de recibir cargos como prop
 }) {
     const [selectedIds, setSelectedIds] = useState(new Set());
 
@@ -26,24 +24,23 @@ export default function PopupAprobadores({
         );
 
         const currentValue = property?.value || "";
-        const values = new Set(currentValue.split(",").filter(Boolean));
-
-        setSelectedIds(values); 
-    }, [element, propertyName]); 
-
-    if (!element || !modeling || !moddle || !propertyName) {
-        console.warn("PopupAprobadores: faltan props necesarios");
-        return null;
-    }
+        const ids = currentValue.split(",").filter(Boolean);
+        
+        // Convertir todos los IDs a string para consistencia
+        setSelectedIds(new Set(ids.map(id => id.toString())));
+    }, [element, propertyName, moddle]);
 
     const toggleValue = (id) => {
-        const updated = new Set(selectedIds);
-        if (updated.has(id)) {
-            updated.delete(id);
-        } else {
-            updated.add(id);
-        }
-        setSelectedIds(updated);
+        const idStr = id.toString(); // Asegurar que es string
+        setSelectedIds(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(idStr)) {
+                newSet.delete(idStr);
+            } else {
+                newSet.add(idStr);
+            }
+            return newSet;
+        });
     };
 
     const guardar = () => {
@@ -94,6 +91,11 @@ export default function PopupAprobadores({
         onClose();
     };
 
+    if (!element || !modeling || !moddle || !propertyName || !cargos) {
+        console.warn("PopupAprobadores: faltan props necesarios");
+        return null;
+    }
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-[999]">
             <div className="bg-white rounded shadow-lg p-6 w-96">
@@ -101,7 +103,7 @@ export default function PopupAprobadores({
                     Seleccionar {propertyName}
                 </h2>
                 <div className="flex flex-col gap-2 max-h-64 overflow-y-auto">
-                    {opcionesDB.map((op) => (
+                    {cargos.map((op) => (
                         <label
                             key={op.id}
                             className="flex items-center gap-2 text-sm"
@@ -109,7 +111,7 @@ export default function PopupAprobadores({
                             <input
                                 type="checkbox"
                                 className="form-checkbox h-4 w-4 text-blue-600"
-                                checked={selectedIds.has(op.id)} 
+                                checked={selectedIds.has(op.id.toString())} // Convertir a string
                                 onChange={() => toggleValue(op.id)}
                             />
                             {op.label}

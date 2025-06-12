@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 
-export const CadenaValor = ({ allProcess }) => {
+/* export const CadenaValor = ({ allProcess }) => {
     const navigate = useNavigate();
     return (
         <div className="overflow-x-auto py-6 px-4 w-full">
@@ -16,6 +16,28 @@ export const CadenaValor = ({ allProcess }) => {
                             {proceso.nombre}
                         </span>
                     </button>
+                ))}
+            </div>
+        </div>
+    );
+};
+ */
+
+export const CadenaValor = ({ allProcess }) => {
+    const navigate = useNavigate();
+    return (
+        <div className="overflow-x-auto py-6 px-4 w-full">
+            <div className="flex gap-20 min-w-max">
+                {allProcess.filter((proceso) => proceso.estado === "activo").map((proceso) => (
+                    <div
+                        key={proceso.id_proceso}
+                        class="w-80 h-40 bg-[url('/cadena-valor.png')] bg-no-repeat bg-contain bg-center flex items-center justify-center text-black font-bold"
+                        onClick={() => navigate(`/process-details/${proceso.id_bpmn}/${proceso.version}`)}
+                    >
+                        <span className="block max-w-[240px] break-words whitespace-normal text-wrap pr-10 ">
+                            {proceso.nombre}
+                        </span>
+                    </div>
                 ))}
             </div>
         </div>

@@ -1,8 +1,6 @@
 import { html } from "htm/preact";
 import { useService } from "bpmn-js-properties-panel";
-import opcionesDB from "../../BpmnDesigner/data/cargos.json";
 
-//Componente que maneja abre el con las propiedades extendidas "Informados, Consultados, Ejecutantes, Responsables"
 export default function CustomPropertyList({
     element,
     popupVisible,
@@ -10,67 +8,86 @@ export default function CustomPropertyList({
     setElementSeleccionado,
     setPropertyName,
     label,
-    propertyName
+    propertyName,
+    cargos
 }) {
     const modeling = useService("modeling");
     const moddle = useService("moddle");
+    const bpmnFactory = useService("bpmnFactory");
     const businessObject = element.businessObject;
 
-    let extensionElements = businessObject.extensionElements;
-    let camundaProperties;
-
-    if (extensionElements) {
-        camundaProperties = extensionElements.values.find(
-            (v) => v.$type === "camunda:Properties"
-        );
-    }
-
-    const property = camundaProperties?.values.find(
-        (p) => p.name === propertyName
-    );
-
-    const currentValue = property?.value || "";
-    const selectedIds = currentValue.split(",").filter(Boolean);
-
-    const toggleValue = (id) => {
-        const updated = selectedIds.includes(id)
-            ? selectedIds.filter((v) => v !== id)
-            : [...selectedIds, id];
-
-        const newValue = updated.join(",");
-
-        if (!extensionElements) {
-            extensionElements = moddle.create("bpmn:ExtensionElements", {
-                values: [],
-            });
-            modeling.updateProperties(element, { extensionElements });
+    // Obtener los valores actuales
+    const getCurrentValues = () => {
+        let extensionElements = businessObject.extensionElements;
+        let camundaProperties;
+        
+        if (extensionElements) {
+            camundaProperties = extensionElements.values.find(
+                (v) => v.$type === "camunda:Properties"
+            );
         }
 
-        if (!camundaProperties) {
-            camundaProperties = moddle.create("camunda:Properties", {
-                values: [],
-            });
-            extensionElements.values.push(camundaProperties);
-        }
-
-        const existing = camundaProperties.values.find(
+        const property = camundaProperties?.values.find(
             (p) => p.name === propertyName
         );
 
-        if (existing) {
-            modeling.updateModdleProperties(element, existing, {
-                value: newValue,
+        return {
+            extensionElements,
+            camundaProperties,
+            property,
+            value: property?.value || ""
+        };
+    };
+
+    // Actualizar los valores en el modelo
+    const updateValues = (newValue) => {
+        const { extensionElements, camundaProperties } = getCurrentValues();
+        let newExtensionElements = extensionElements;
+        let newCamundaProperties = camundaProperties;
+
+        // Crear extensionElements si no existen
+        if (!newExtensionElements) {
+            newExtensionElements = moddle.create("bpmn:ExtensionElements", {
+                values: []
+            });
+            modeling.updateProperties(element, { 
+                extensionElements: newExtensionElements 
+            });
+        }
+
+        // Crear camunda:Properties si no existen
+        if (!newCamundaProperties) {
+            newCamundaProperties = moddle.create("camunda:Properties", {
+                values: []
+            });
+            newExtensionElements.get("values").push(newCamundaProperties);
+        }
+
+        // Buscar la propiedad existente
+        const existingProp = newCamundaProperties.values.find(
+            (p) => p.name === propertyName
+        );
+
+        if (existingProp) {
+            // Actualizar propiedad existente
+            modeling.updateModdleProperties(element, existingProp, {
+                value: newValue
             });
         } else {
+            // Crear nueva propiedad
             const newProp = moddle.create("camunda:Property", {
                 name: propertyName,
-                value: newValue,
+                value: newValue
             });
-            modeling.updateModdleProperties(element, camundaProperties, {
-                values: [...camundaProperties.values, newProp],
+            modeling.updateModdleProperties(element, newCamundaProperties, {
+                values: [...newCamundaProperties.values, newProp]
             });
         }
     };
+
+    // Obtener los IDs seleccionados actuales
+    const { value } = getCurrentValues();
+    const selectedIds = value.split(",").filter(Boolean);
 
     return html`
         <div class="bio-properties-panel-entry relative">
@@ -92,9 +109,11 @@ export default function CustomPropertyList({
                     <p class="font-semibold mb-1">Seleccionados:</p>
                     <ul class="list-disc list-inside space-y-1">
                         ${selectedIds
-                            .map((id) => opcionesDB.find((op) => op.id === id))
-                            .filter(Boolean)
-                            .map((item) => html`<li>${item.label}</li>`)}
+                            .map(id => {
+                                const cargo = cargos.find(op => op.id.toString() === id.toString());
+                                return cargo ? html`<li key=${id}>${cargo.label}</li>` : null;
+                            })
+                            .filter(Boolean)}
                     </ul>
                 </div>
             `}

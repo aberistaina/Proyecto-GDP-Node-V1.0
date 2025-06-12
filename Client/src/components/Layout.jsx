@@ -4,11 +4,8 @@ import { Footer } from "./Footer";
 
 export const Layout = () => {
     const location = useLocation();
-    const { idProceso } = useParams(); // 👈 acá lo importante
     const hideSidebarRoutes = ["/login", "/register", "/recover-password"];
     const shouldShowSidebar = !hideSidebarRoutes.includes(location.pathname);
-
-    const mostrarFooterAjustado = Boolean(idProceso); // solo si estás en vista con param
 
     const isVistaConBpmn = () => {
         return location.pathname.includes("process-details");

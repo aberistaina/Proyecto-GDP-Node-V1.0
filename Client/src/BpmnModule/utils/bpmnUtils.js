@@ -5,6 +5,7 @@ export const exportDiagramXml = async (bpmnModelerRef) => {
             const { xml } = await bpmnModelerRef.current.saveXML({
                 format: true,
             });
+            console.log(xml);
             return xml;
         }
     } catch (err) {

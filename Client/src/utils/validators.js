@@ -10,8 +10,7 @@ export const validarPassword = (password) => {
 };
 
 export const getFileExtension = (file) => {
-    const fileName = file.name;
-    const extension = fileName.split(".").pop();
+    const extension = file.name.match(/\.([0-9a-z]+)$/i)?.[1] ?? "";
     return extension;
 };
 

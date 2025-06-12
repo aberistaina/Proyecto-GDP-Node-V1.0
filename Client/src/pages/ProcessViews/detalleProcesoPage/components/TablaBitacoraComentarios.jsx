@@ -1,18 +1,15 @@
 import { useEffect } from "react";
 import { FaRegCalendarAlt } from "react-icons/fa";
 
-
-export const TablaBitacoraComentarios = ({comentarioBitacora, getComentariosBitacora, version }) => {
-    
-    
-
-    
-
-
-useEffect(() => {
+export const TablaBitacoraComentarios = ({
+    comentarioBitacora,
+    getComentariosBitacora,
+    version,
+}) => {
+    useEffect(() => {
         const getData = async () => {
             try {
-                getComentariosBitacora()
+                getComentariosBitacora();
             } catch (error) {
                 console.log(error);
             }
@@ -20,20 +17,21 @@ useEffect(() => {
         getData();
     }, [version]);
 
-  return (
-    <div className="overflow-x-auto max-h-52 bg-white shadow-md rounded-lg">
-                <table className="min-w-full table-auto text-sm text-left text-gray-700">
-                    <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
-                        <tr>
-                            <th className="px-4 py-3">Fecha</th>
-                            <th className="px-4 py-3">Comentario</th>
-                            <th className="px-4 py-3">Usuario</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {comentarioBitacora && comentarioBitacora.map((comentario) => (
+    return (
+        <div className="overflow-x-auto max-h-52 bg-white shadow-md rounded-lg">
+            <table className="min-w-full table-auto text-sm text-left text-gray-700">
+                <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+                    <tr>
+                        <th className="px-4 py-3">Fecha</th>
+                        <th className="px-4 py-3">Comentario</th>
+                        <th className="px-4 py-3">Usuario</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {comentarioBitacora?.length ? (
+                        comentarioBitacora.map((comentario) => (
                             <tr
-                                key={comentario.id_comentario}
+                                key={comentario.id_comentario_bitacora}
                                 className="border-b hover:bg-gray-50"
                             >
                                 <td className="px-4 py-2 flex gap-1 justify-center min-w-44 max-w-44">
@@ -46,9 +44,16 @@ useEffect(() => {
                                     {comentario.usuario?.nombre}
                                 </td>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-  )
-}
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="3" className="text-center py-4">
+                                No hay comentarios
+                            </td>
+                        </tr>
+                    )}
+                </tbody>
+            </table>
+        </div>
+    );
+};

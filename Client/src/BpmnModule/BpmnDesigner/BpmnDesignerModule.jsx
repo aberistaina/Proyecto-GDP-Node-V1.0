@@ -10,6 +10,7 @@ import { io } from "socket.io-client";
 import { useConfirmAlert } from "../../context/ConfirmAlertProvider";
 import { ModalSaveChanges } from "./components/ModalSaveChanges";
 import { BpmnDesignerButtons } from "./components/BpmnDesignerButtons";
+import { ModelerButtons } from "../components/ModelerButtons";
 
 //Modulo que contiene el modelador y todos sus componentes
 export const BpmnDesignerModule = () => {
@@ -94,7 +95,7 @@ export const BpmnDesignerModule = () => {
                             <BpmnModeler />
                             <PropertiesPanel />
                         </div>
-                        {/* <ModelerButtons modo="designer" setShowModalSaveChanges={setShowModalSaveChanges} /> */}
+                        {<ModelerButtons modo="designer" setShowModalSaveChanges={setShowModalSaveChanges} />}
                         <MenuContextListener />
 
                         {/* Modal para Guardar cambios proceso */}

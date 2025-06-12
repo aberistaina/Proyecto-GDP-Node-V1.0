@@ -9,9 +9,7 @@ import { ComentariosMejoras } from "./components/ComentariosMejoras";
 import ModalMejorasComentarios from "./components/ModalMejorasComentarios";
 import ModalVersiones from "./components/ModalVersiones";
 import PulseLoader from "react-spinners/PulseLoader";
-import { BitacoraProcesoPage } from "../bitacoraProceso/BitacoraProcesoPage";
-import { Footer } from "../../../components/Footer";
-
+import { ModalArchivos } from "./components/ModalArchivos";
 //agregar comentarios (todos) y oportunidades
 export const DetalleProcesoPage = () => {
     const user = useSelector((state) => state.auth.user);
@@ -28,6 +26,8 @@ export const DetalleProcesoPage = () => {
     const [ oportunidades, SetOportunidades ] = useState([])
     const [versiones, setVeriones ] = useState([])
     const [comentarioBitacora, setComentarioBitacora] = useState("");
+    const [ openModalArchivos, setOpenModalArchivos ] = useState(false)
+    const [ idComentario, setIdComentario ] = useState("")
 
 const getAllComentaries = async() =>{
             try {
@@ -102,6 +102,7 @@ const getAllComentaries = async() =>{
                         : import.meta.env.VITE_URL_PRODUCCION;
                     const response = await fetch(`${URL}/api/v1/procesos/get-pending-process/${user.usuario.id_usuario}`)
                     const data = await response.json()
+                    console.log(data);
                     const estadoProcesoActual = data.data.find((proceso) =>(
                         proceso.idVersionProceso == version
                     ))
@@ -109,7 +110,7 @@ const getAllComentaries = async() =>{
                         setEstaAprobado(false);
                         return;
                     }
-                    const estado = estadoProcesoActual.estadoAprobacion === "pendiente";
+                    const estado = estadoProcesoActual.estado === "pendiente";
                     setEstaAprobado(estado);
                 } catch (error) {
                     console.log(error);
@@ -185,6 +186,8 @@ const getAllComentaries = async() =>{
                                     getAllOpportunities={getAllOpportunities}
                                     getComentariosBitacora={getComentariosBitacora}
                                     comentarioBitacora={comentarioBitacora}
+                                    setOpenModalArchivos={setOpenModalArchivos}
+                                    setIdComentario={setIdComentario}
                                     
                                 />
                             )}
@@ -207,7 +210,12 @@ const getAllComentaries = async() =>{
                             setOpenModalVersiones={setOpenModalVersiones}
                             idProceso={idProceso}
                             versiones={versiones}
+                            
                         />
+                    )}
+
+                    {openModalArchivos && (
+                        <ModalArchivos setOpenModalArchivos={setOpenModalArchivos} version= {version} idComentario={idComentario} tabActiva={tabActiva}/>
                     )}
                 </div>
             )}

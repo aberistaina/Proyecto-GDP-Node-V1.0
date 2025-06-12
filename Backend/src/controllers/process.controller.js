@@ -347,6 +347,7 @@ export const saveNewProcessChanges = async (req, res, next) => {
             esMacroproceso,
         } = req.body;
 
+        const { s3_bucket, s3_bucket_procesos } = await getAdminConfig();
         const datoArchivo = await extraerDatosBpmn(archivo);
         const idProceso = datoArchivo.idProceso;
 
@@ -356,6 +357,7 @@ export const saveNewProcessChanges = async (req, res, next) => {
                 message: "No se ha subido ningún archivo.",
             });
         }
+
 
         await createProcessIfNotExist(
             id_creador,
@@ -528,6 +530,7 @@ export const aprobarProceso = async (req, res, next) => {
     try {
         const { idProceso, id_usuario, version } = req.body;
 
+
         const solicitud = await Aprobadores.findOne({
             where: {
                 id_usuario,
@@ -586,13 +589,15 @@ export const aprobarProceso = async (req, res, next) => {
                 },
             });
 
-            await versionAnterior.update(
+            if(versionAnterior){
+                await versionAnterior.update(
                 {
                     estado: "inactivo",
                 },
                 { transaction }
             );
-
+            }
+            
             await versionBorrador.update(
                 {
                     estado: "aprobado",
@@ -943,15 +948,47 @@ export const getProcessSummary = async (req, res, next) => {
 
 //Funcion que crea los comentarios de la versión de un proceso
 export const createCommentary = async (req, res, next) => {
+    const transaction = await sequelize.transaction();
     try {
         const { idProceso, comentario, version, id_usuario } = req.body;
+        const { s3_bucket, s3_bucket_adjuntos } = await getAdminConfig();
+        const archivos = req.files?.archivos || null;
 
-        await ComentariosVersionProceso.create({
+        const nuevoComentario = await ComentariosVersionProceso.create({
             id_usuario,
             id_bpmn: idProceso,
             comentario,
             id_version_proceso: version,
-        });
+        },{transaction});
+
+        const nombreVersion = await VersionProceso.findByPk(version , {transaction})
+
+        if(archivos){
+            const archivosArray = Array.isArray(archivos) ? archivos : [archivos];
+            for (const archivo of archivosArray) {
+
+                isValidFilesExtension(archivo)
+                const mimeType = mime.lookup(archivo.name) || "application/octet-stream";
+                
+                await ArchivosComentariosVersionProceso.create({
+                    id_comentario: nuevoComentario.id_comentario,
+                    nombre: archivo.name,
+                    s3_key: `${s3_bucket_adjuntos}/${archivo.name}`
+                } , {transaction})
+
+                await uploadFileToS3(
+                    `${s3_bucket}`,
+                    `${s3_bucket_adjuntos}/${archivo.name}`,
+                    archivo.data,
+                    mimeType,
+                    `${nombreVersion.nombre_version}`,
+                    `${nombreVersion.estado}`
+                );
+            }
+            
+        }
+
+        await transaction.commit()
 
         res.status(201).json({
             code: 201,
@@ -1016,6 +1053,7 @@ export const getComentariesFiles = async(req, res, next) =>{
             }
         })
 
+        console.log(archivos);
         res.status(202).json({
             code: 202,
             message: "Archivos obtenidos correctamente",

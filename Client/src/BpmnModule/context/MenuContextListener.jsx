@@ -7,10 +7,12 @@ export const MenuContextListener = ({ processID }) => {
 
     useEffect(() => {
         if (!bpmnModelerRef.current) return;
+        console.log("Setting up event listeners...")
 
         const eventBus = bpmnModelerRef.current.get("eventBus");
 
         const handleContextMenu = (event) => {
+
             const { element, originalEvent } = event;
             const tipo = element.businessObject?.$type;
 

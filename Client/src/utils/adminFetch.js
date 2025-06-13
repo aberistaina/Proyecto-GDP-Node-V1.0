@@ -1,6 +1,8 @@
 export const getAllUsers = async (URL, setUsuarios) => {
         try {
-            const response = await fetch(`${URL}/api/v1/admin/all-users`);
+            const response = await fetch(`${URL}/api/v1/admin/all-users`, {
+            credentials: "include",
+        });
             const data = await response.json();
             setUsuarios(data.data);
         } catch (error) {
@@ -10,7 +12,9 @@ export const getAllUsers = async (URL, setUsuarios) => {
 
 export const getAllRoles = async (URL, setRoles) => {
         try {
-            const response = await fetch(`${URL}/api/v1/admin/all-roles`);
+            const response = await fetch(`${URL}/api/v1/admin/all-roles`, {
+            credentials: "include",
+        });
             const data = await response.json();
             setRoles(data.data);
         } catch (error) {
@@ -20,7 +24,9 @@ export const getAllRoles = async (URL, setRoles) => {
 
 export const getAllCargos = async (URL, setCargos) => {
         try {
-            const response = await fetch(`${URL}/api/v1/admin/all-cargos`);
+            const response = await fetch(`${URL}/api/v1/admin/all-cargos`, {
+            credentials: "include",
+        });
             const data = await response.json();
             setCargos(data.data);
         } catch (error) {
@@ -30,7 +36,9 @@ export const getAllCargos = async (URL, setCargos) => {
 
 export const getAllNiveles = async (URL, setNiveles) => {
         try {
-            const response = await fetch(`${URL}/api/v1/admin/all-niveles`);
+            const response = await fetch(`${URL}/api/v1/admin/all-niveles`, {
+            credentials: "include",
+        });
             const data = await response.json();
             setNiveles(data.data);
         } catch (error) {
@@ -93,7 +101,9 @@ export const handleDeleteClick = async(id, enqueueSnackbar, type, getAllData, co
                         console.error("Tipo no válido:", type);
                         return;
             }
-            const response = await fetch(`${URL}/${path}`, {method: "DELETE" })
+            const response = await fetch(`${URL}/${path}`, {method: "DELETE" }, {
+            credentials: "include",
+        })
             const data = await response.json()
             
             if(data.code == 200){
@@ -133,7 +143,9 @@ export const getEntidadesData = async(id, setFormEntidades, type ) =>{
                     return;
         }
 
-        const response = await fetch(`${URL}/${path}`)
+        const response = await fetch(`${URL}/${path}`, {
+            credentials: "include",
+        })
         const data = await response.json()
         setFormEntidades(data.data)
         

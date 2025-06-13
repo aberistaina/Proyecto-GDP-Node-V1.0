@@ -35,7 +35,7 @@ const getAllComentaries = async() =>{
                 import.meta.env.VITE_APP_MODE === "desarrollo"
                     ? import.meta.env.VITE_URL_DESARROLLO
                     : import.meta.env.VITE_URL_PRODUCCION;
-                const response = await fetch(`${URL}/api/v1/procesos/comentarios/getAll/${idProceso}/${version}`)
+                const response = await fetch(`${URL}/api/v1/procesos/comentarios/getAll/${idProceso}/${version}`, {credentials: "include"})
                 const data = await response.json()
                 setComentarios(data.data)
             } catch (error) {
@@ -49,7 +49,7 @@ const getAllComentaries = async() =>{
                 import.meta.env.VITE_APP_MODE === "desarrollo"
                     ? import.meta.env.VITE_URL_DESARROLLO
                     : import.meta.env.VITE_URL_PRODUCCION;
-                const response = await fetch(`${URL}/api/v1/procesos/oportunidades/getAll/${idProceso}/${version}`)
+                const response = await fetch(`${URL}/api/v1/procesos/oportunidades/getAll/${idProceso}/${version}`, {credentials: "include"})
                 const data = await response.json()
                 SetOportunidades(data.data)
             } catch (error) {
@@ -64,7 +64,7 @@ const getAllComentaries = async() =>{
                 import.meta.env.VITE_APP_MODE === "desarrollo"
                     ? import.meta.env.VITE_URL_DESARROLLO
                     : import.meta.env.VITE_URL_PRODUCCION;
-                const response = await fetch(`${URL}/api/v1/procesos/get-bitacora-aprobaciones/${version}`)
+                const response = await fetch(`${URL}/api/v1/procesos/get-bitacora-aprobaciones/${version}`, {credentials: "include"})
                 const data = await response.json()
                 setComentarioBitacora(data.data)
                 console.log(data);
@@ -81,7 +81,7 @@ const getAllComentaries = async() =>{
                     ? import.meta.env.VITE_URL_DESARROLLO
                     : import.meta.env.VITE_URL_PRODUCCION;
             const response = await fetch(
-                `${URL}/api/v1/procesos/get-process/resumen-proceso/${idProceso}/${version}`
+                `${URL}/api/v1/procesos/get-process/resumen-proceso/${idProceso}/${version}`, {credentials: "include"}
             );
             const data = await response.json();
             setResumenProceso(data.data);
@@ -100,9 +100,9 @@ const getAllComentaries = async() =>{
                     import.meta.env.VITE_APP_MODE === "desarrollo"
                         ? import.meta.env.VITE_URL_DESARROLLO
                         : import.meta.env.VITE_URL_PRODUCCION;
-                    const response = await fetch(`${URL}/api/v1/procesos/get-pending-process/${user.usuario.id_usuario}`)
+                    const response = await fetch(`${URL}/api/v1/procesos/get-pending-process/${user.usuario.id_usuario}`, {credentials: "include"})
                     const data = await response.json()
-                    console.log(data);
+
                     const estadoProcesoActual = data.data.find((proceso) =>(
                         proceso.idVersionProceso == version
                     ))
@@ -134,7 +134,7 @@ const getAllComentaries = async() =>{
                     ? import.meta.env.VITE_URL_DESARROLLO
                     : import.meta.env.VITE_URL_PRODUCCION;
 
-            const response = await fetch(`${URL}/api/v1/procesos/get-versiones/${idProceso}`);
+            const response = await fetch(`${URL}/api/v1/procesos/get-versiones/${idProceso}`, {credentials: "include"});
             const data = await response.json();
             setVeriones(data.data)
 

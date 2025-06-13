@@ -31,7 +31,7 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
                 import.meta.env.VITE_APP_MODE === "desarrollo"
                     ? import.meta.env.VITE_URL_DESARROLLO
                     : import.meta.env.VITE_URL_PRODUCCION;
-            const response = await fetch(`${URL}/api/v1/procesos/download-process/${idProceso}`)
+            const response = await fetch(`${URL}/api/v1/procesos/download-process/${idProceso}`, {credentials: "include"})
 
             if (!response.ok){
                 enqueueSnackbar("Hubo un problema al intentar descargar el archivo, intente nuevamente más tarde", { variant: "error" });
@@ -64,6 +64,7 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
             const requestOptions = {
                 method: "POST",
                 body: formData ,
+                credentials: "include"
 
             }
             const URL =
@@ -98,6 +99,7 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
             const requestOptions = {
                 method: "POST",
                 body: formData ,
+                credentials: "include"
 
             }
             const URL =
@@ -130,6 +132,7 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
             const requestOptions = {
                 method: "POST",
                 body: formData ,
+                credentials: "include"
 
             }
             const URL =

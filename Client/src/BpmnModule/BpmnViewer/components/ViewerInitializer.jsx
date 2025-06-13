@@ -69,6 +69,7 @@ export const ViewetInitializer = ({ setElementoSeleccionado }) => {
             try {
                 const requestOptions = {
                     method: "GET",
+                    credentials: "include"
                 };
                 const URL =
                     import.meta.env.VITE_APP_MODE === "desarrollo"

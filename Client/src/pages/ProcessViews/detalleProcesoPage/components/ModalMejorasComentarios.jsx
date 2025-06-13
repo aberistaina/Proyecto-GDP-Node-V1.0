@@ -67,6 +67,7 @@ export default function ModalMejorasComentarios({
             const requestOptions = {
                 method: "POST",
                 body: formData,
+                credentials: "include"
             };
 
             const response = await fetch(`${URL}${path}`, requestOptions);

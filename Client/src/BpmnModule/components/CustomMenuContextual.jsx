@@ -2,7 +2,6 @@ import { useNavigate} from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useBpmnContext } from "../context/useBpmnContext";
 import { useConfirmAlert } from "../../context/ConfirmAlertProvider";
-import { fetchHook } from "../../hooks/fetchHook";
 import { useSnackbar } from "notistack";
 import { useParams } from "react-router-dom";
 import { exportDiagramXml } from "../utils/bpmnUtils";
@@ -34,19 +33,31 @@ export const CustomMenuContextual = ({modo}) => {
                 formData.append("id_creador", loggedUser);
                 const datosProceso =  JSON.parse(sessionStorage.getItem("datos"));
     
-                let data = null
+                let response = null
                 if(!idProceso && !version){
                     formData.append("nombre", datosProceso.nombre)
                     formData.append("descripcion", datosProceso.descripcion)
                     formData.append("aprobadores", datosProceso.aprobadores);
                     formData.append("nivel", datosProceso.nivel)
                     formData.append("esMacroproceso", datosProceso.macroproceso);
-                    data = await fetchHook(`${URL}/api/v1/procesos/save-process-changes`, "POST", formData, null)
+                    const requestOptions = {
+                        method: "POST",
+                        body: formData,
+                        credentials: "include"
+                    }
+                    response = await fetch(`${URL}/api/v1/procesos/save-process-changes`, requestOptions)
                 }else if(idProceso && version){
                     formData.append("idProceso", idProceso)
                     formData.append("version", version)
-                    data = await fetchHook(`${URL}/api/v1/procesos/save-new-version-changes`, "POST", formData, null)
+                    const requestOptions = {
+                        method: "POST",
+                        body: formData,
+                        credentials: "include"
+                    }
+                    response = await fetch(`${URL}/api/v1/procesos/save-new-version-changes`, requestOptions)
                 }
+                
+                const data = await response.json()
                 
                 if(data.code == 201){
                     enqueueSnackbar(data.message, { variant: "success" });
@@ -120,13 +131,14 @@ export const CustomMenuContextual = ({modo}) => {
                 import.meta.env.VITE_APP_MODE === "desarrollo"
                     ? import.meta.env.VITE_URL_DESARROLLO
                     : import.meta.env.VITE_URL_PRODUCCION;
+            
+            const requestOptions = {
+                method: "POST",
+                body: formData,
+                credentials: "include"
+            }
 
-            const response = await fetchHook(
-                `${URL}/api/v1/procesos/connect-subprocess`,
-                "POST",
-                formData,
-                null
-            );
+            const response = await fetch(`${URL}/api/v1/procesos/connect-subprocess`, requestOptions);
             
             if (!response.ok) {
                 createDiagram(bpmnModelerRef, response.xml);
@@ -148,7 +160,7 @@ export const CustomMenuContextual = ({modo}) => {
                         ? import.meta.env.VITE_URL_DESARROLLO
                         : import.meta.env.VITE_URL_PRODUCCION;
 
-                const data = await fetchHook(`${URL}/api/v1/procesos/`, "GET", null, null)
+                const data = await fetch(`${URL}/api/v1/procesos/`, {credentials: "include"})
                 setSubProcess(data.data || []);
             } catch (error) {
                 console.log("Error al cargar subprocesos:", error);

@@ -43,7 +43,7 @@ export const ModalCrearProceso = ({ isOpen, closeModal }) => {
                         ? import.meta.env.VITE_URL_DESARROLLO
                         : import.meta.env.VITE_URL_PRODUCCION;
                 const response = await fetch(
-                    `${URL}/api/v1/aprobadores/get-all`
+                    `${URL}/api/v1/aprobadores/get-all`, {credentials: "include"}
                 );
                 const data = await response.json();
                 setAprobadores(data.data);
@@ -62,7 +62,7 @@ export const ModalCrearProceso = ({ isOpen, closeModal }) => {
                         ? import.meta.env.VITE_URL_DESARROLLO
                         : import.meta.env.VITE_URL_PRODUCCION;
                 const response = await fetch(
-                    `${URL}/api/v1/procesos/get-niveles`
+                    `${URL}/api/v1/procesos/get-niveles`, {credentials: "include"}
                 );
                 const data = await response.json();
                 setNiveles(data.data);

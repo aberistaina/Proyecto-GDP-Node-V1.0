@@ -3,7 +3,6 @@ import { useParams } from "react-router-dom";
 import {exportDiagramXml} from "../../utils/bpmnUtils";
 import { useBpmnContext } from "../../context/useBpmnContext";
 import { useSelector } from "react-redux";
-import { fetchHook } from "../../../hooks/fetchHook";
 import { useNavigate } from "react-router-dom";
 import { crearImagenFlujo } from "../../utils/bpmnUtils";
 
@@ -32,25 +31,40 @@ export const ModalSaveChanges = ({ setShowModalSaveChanges }) => {
                 formData.append("imagen", imagen, `process.png`);
                 formData.append("id_creador", loggedUser);
     
-                let data = null
+                let response = null
                 if(idProcesoPadre && callActivity){
                     formData.append("idProcesoPadre", idProcesoPadre)
                     formData.append("callActivity", callActivity)
-                    data = await fetchHook(`${URL}/api/v1/procesos/save-subprocess-changes`, "POST", formData, null)
+                    const requestOptions = {
+                        method: "POST",
+                        body: formData,
+                        credentials: "include"
+                    }
+                    response = await fetch(`${URL}/api/v1/procesos/save-subprocess-changes`, requestOptions)
                 }else if(idProceso && version){
+                    const requestOptions = {
+                        method: "POST",
+                        body: formData,
+                        credentials: "include"
+                    }
                     formData.append("idProceso", idProceso)
                     formData.append("version", version)
-                    data = await fetchHook(`${URL}/api/v1/procesos/save-new-version-changes`, "POST", formData, null)
+                    response = await fetch(`${URL}/api/v1/procesos/save-new-version-changes`, requestOptions)
                     navigate(`/process-details/${idProceso}/${version}`)
                 }else{
+                    const requestOptions = {
+                        method: "POST",
+                        body: formData,
+                        credentials: "include"
+                    }
                     formData.append("nombre", datosProceso.nombre)
                     formData.append("descripcion", datosProceso.descripcion)
                     formData.append("aprobadores", datosProceso.aprobadores);
                     formData.append("nivel", datosProceso.nivel)
                     formData.append("esMacroproceso", datosProceso.macroproceso);
-                    data = await fetchHook(`${URL}/api/v1/procesos/save-process-changes`, "POST", formData, null)
+                    response = await fetch(`${URL}/api/v1/procesos/save-process-changes`, requestOptions)
                 }
-                
+                const data = await response.json()
                 if(data.code == 201){
                     setRefreshProcess(true)
                     enqueueSnackbar(data.message, { variant: "success" });

@@ -13,7 +13,7 @@ export const ViewerProcess = ({idProceso, version}) => {
                             ? import.meta.env.VITE_URL_DESARROLLO
                             : import.meta.env.VITE_URL_PRODUCCION;
                             
-                    const response = await fetch(`${URL}/api/v1/procesos/get-process/${idProceso}/${version}`)
+                    const response = await fetch(`${URL}/api/v1/procesos/get-process/${idProceso}/${version}`, {credentials: "include"})
                     const data = await response.text()
                     setEmptyDiagram(data)
                 } catch (error) {

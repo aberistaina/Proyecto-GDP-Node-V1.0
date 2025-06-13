@@ -71,7 +71,7 @@ export const UserForm = ({ setIsOpenCreateUpdateModal }) => {
                     ? import.meta.env.VITE_URL_DESARROLLO
                     : import.meta.env.VITE_URL_PRODUCCION
 
-                const response = await fetch(`${URL}/api/v1/admin/all-entidades`)
+                const response = await fetch(`${URL}/api/v1/admin/all-entidades`, {credentials: "include"})
                 const data = await response.json()
                 setEntidades(data.data)
                 
@@ -92,7 +92,7 @@ export const UserForm = ({ setIsOpenCreateUpdateModal }) => {
                     ? import.meta.env.VITE_URL_DESARROLLO
                     : import.meta.env.VITE_URL_PRODUCCION
 
-                const response = await fetch(`${URL}/api/v1/admin/get-user/${id}`)
+                const response = await fetch(`${URL}/api/v1/admin/get-user/${id}`, {credentials: "include"})
                 const data = await response.json()
                 setFormUser(data.data)
                 

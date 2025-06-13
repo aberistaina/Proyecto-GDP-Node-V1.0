@@ -11,7 +11,7 @@ export const AdminCards = () => {
                     import.meta.env.VITE_APP_MODE === "desarrollo"
                         ? import.meta.env.VITE_URL_DESARROLLO
                         : import.meta.env.VITE_URL_PRODUCCION;
-                const response = await fetch(`${URL}/api/v1/admin/cards-data`);
+                const response = await fetch(`${URL}/api/v1/admin/cards-data`, {credentials: "include"});
                 const data = await response.json();
                 setData(data.data);
             } catch (error) {

@@ -5,8 +5,6 @@ import { RegisterPage } from "./pages/AuthViews/registerPage/RegisterPage";
 import { PasswordPage } from "./pages/AuthViews/passwordPage/PasswordPage";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { TipoProcesoPage } from "./pages/ProcessViews/tipoProceso/TipoProcesoPage";
-
-import { UpdatePasswordPage } from "./pages/AuthViews/updatePasswordPage/UpdatePasswordPage";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { fetchUsuario } from "./store/authThunks";
@@ -37,7 +35,6 @@ function App() {
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/register" element={<RegisterPage />} />
                     <Route path="/recover-password" element={<PasswordPage />} />
-                    <Route path="/update-password" element={<UpdatePasswordPage />} />
 
                     {/* RUTAS SUPER ADMINISTRADOR */}
                     <Route element={<ProtectedRoute roles={[5]} />}>

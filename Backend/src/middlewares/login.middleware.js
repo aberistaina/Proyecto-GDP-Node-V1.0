@@ -1,39 +1,50 @@
 import { AuthenticationError, UnauthorizedError } from "../errors/TypeError.js";
 import logger from "../utils/logger.js";
-import { comparePassword, createToken, verifyToken, hashPassword } from "../services/auth.services.js";
+import {
+    comparePassword,
+    createToken,
+    verifyToken,
+    hashPassword,
+} from "../services/auth.services.js";
 import { Usuarios, Roles, Cargo } from "../models/models.js";
 
 import { getAdminConfig } from "../services/admin.services.js";
 
-const { token_expiracion_login } = await getAdminConfig()
+const { token_expiracion_login } = await getAdminConfig();
 
-
-export const issueTokenMiddleware = async(req, res, next) =>{
+export const issueTokenMiddleware = async (req, res, next) => {
     try {
-        const {email, password } = req.body
-
+        const { email, password } = req.body;
 
         let user = await Usuarios.findOne({
-            attributes: ["id_usuario", "id_rol", "id_cargo", "id_jefe_directo", "nombre", "email", "password_hash"],
+            attributes: [
+                "id_usuario",
+                "id_rol",
+                "id_cargo",
+                "id_jefe_directo",
+                "nombre",
+                "email",
+                "password_hash",
+            ],
             include: [
                 {
                     model: Roles,
-                    as: "id_rol_role"
+                    as: "id_rol_role",
                 },
                 {
                     model: Cargo,
-                    as: "id_cargo_cargo"
-                }
+                    as: "id_cargo_cargo",
+                },
             ],
-            where:{
-                email
-            }
-        })
-        
-        if (!user){
-            throw new UnauthorizedError("Email o contraseña incorrectos")
+            where: {
+                email,
+            },
+        });
+
+        if (!user) {
+            throw new UnauthorizedError("Email o contraseña incorrectos");
         }
-        
+
         const userMap = {
             id_usuario: user.id_usuario,
             nombre: user.nombre,
@@ -42,51 +53,49 @@ export const issueTokenMiddleware = async(req, res, next) =>{
             id_rol: user.id_rol_role?.id_rol,
             cargo: user.id_cargo_cargo?.nombre,
             id_cargo: user.id_cargo_cargo?.id_cargo,
+        };
+
+        const validatePassword = await comparePassword(
+            password,
+            user.password_hash
+        );
+
+        if (!validatePassword) {
+            throw new UnauthorizedError("Email o contraseña incorrectos");
         }
 
-        const validatePassword = await comparePassword(password, user.password_hash)
+        const token = createToken(userMap, token_expiracion_login);
 
-        if(!validatePassword){
-            throw new UnauthorizedError("Email o contraseña incorrectos")
-        }
-
-        const token = createToken(userMap, token_expiracion_login)
-
-        req.token = token
-        next()
-
+        req.token = token;
+        next();
     } catch (error) {
-        console.log(error.message)
-        logger.error("Ha ocurrido un error en issuetoken Middleware", error)
-        next(error);
-    } 
-}
-
-export const verifyTokenMiddleware = async(req, res, next) =>{
-
-    try {
-        let {authorization} = req.headers
-        let tokenFromQuery = req.query.token
-        let token = null
-
-        if(authorization && authorization.startsWith('Bearer ')){
-            token = authorization.split(" ")[1] 
-        }else if(tokenFromQuery){
-            token = tokenFromQuery
-        }else{
-            throw new AuthenticationError("Token no proporcionado")
-        }
-
-
-        const decoded = await verifyToken(token);
-
-        req.user = decoded
-        req.token = token
-        next()
-        
-    } catch (error) {
-        console.log(error)
-        logger.error("Ha ocurrido un error en authMiddleware Middleware", error)
+        console.log(error.message);
+        logger.error("Ha ocurrido un error en issuetoken Middleware", error);
         next(error);
     }
-}
+};
+
+export const verifyTokenMiddleware = async (req, res, next) => {
+    try {
+        const tokenFromHeader = req.headers.authorization?.split(" ")[1];
+        const tokenFromQuery = req.query.token;
+        const tokenFromBody = req.body.token;
+        const tokenFromCookie = req.cookies.token;
+
+        const token = tokenFromHeader || tokenFromQuery || tokenFromCookie || tokenFromBody
+
+        if (!token) {
+            throw new AuthenticationError("Token no proporcionado");
+        }
+
+        const decoded = await verifyToken(token);
+        req.user = decoded;
+        req.token = token;
+        next();
+    } catch (error) {
+        console.log(error);
+        logger.error("Ha ocurrido un error en authMiddleware Middleware", error);
+        next(error);
+    }
+};
+

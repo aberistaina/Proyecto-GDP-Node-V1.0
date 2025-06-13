@@ -29,7 +29,7 @@ export const ModeladoresHome = () => {
                         ? import.meta.env.VITE_URL_DESARROLLO
                         : import.meta.env.VITE_URL_PRODUCCION;
                 const response = await fetch(
-                    `${URL}/api/v1/procesos/get-pending-draft/${usuario.id_usuario}`
+                    `${URL}/api/v1/procesos/get-pending-draft/${usuario.id_usuario}`, {credentials: "include"}
                 );
                 const data = await response.json();
                 setBorradoresActivos(data.data);

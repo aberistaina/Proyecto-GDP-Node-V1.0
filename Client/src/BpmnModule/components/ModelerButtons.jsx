@@ -4,7 +4,6 @@ import { FaFileImport } from "react-icons/fa6";
 import { CgExport } from "react-icons/cg";
 import { VscTerminal } from "react-icons/vsc";
 import { FaRegSave } from "react-icons/fa";
-import { fetchHook } from "../../hooks/fetchHook"
 import { useSnackbar } from "notistack";
 import { useParams } from "react-router-dom";
 
@@ -36,9 +35,20 @@ export const ModelerButtons = ({ modo }) => {
             if(idProcesoPadre && callActivity){
                 formData.append("idProcesoPadre", idProcesoPadre)
                 formData.append("callActivity", callActivity)
-                data = await fetchHook(`${URL}/api/v1/procesos/save-subprocess-changes`, "POST", formData, null)
+
+                const requestOptions = {
+                    method: "POST",
+                    body: formData,
+                    credentials: "include"
+                }
+                data = await fetch(`${URL}/api/v1/procesos/save-subprocess-changes`, requestOptions)
             }else{
-                data = await fetchHook(`${URL}/api/v1/procesos/save-process-changes`, "POST", formData, null)
+                const requestOptions = {
+                    method: "POST",
+                    body: formData,
+                    credentials: "include"
+                }
+                data = await fetch(`${URL}/api/v1/procesos/save-process-changes`, requestOptions)
             }
             
            if(data.code == 201){

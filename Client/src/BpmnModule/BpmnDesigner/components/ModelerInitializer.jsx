@@ -42,7 +42,7 @@ useEffect(() => {
           ? import.meta.env.VITE_URL_DESARROLLO
           : import.meta.env.VITE_URL_PRODUCCION;
 
-      const response = await fetch(`${URL}/api/v1/procesos/get-all-cargos`);
+      const response = await fetch(`${URL}/api/v1/procesos/get-all-cargos`, {credentials: "include"});
       const data = await response.json();
 
       const formateados = data.data.map((c) => ({

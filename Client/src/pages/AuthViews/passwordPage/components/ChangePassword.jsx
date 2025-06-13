@@ -5,7 +5,6 @@ import PulseLoader from "react-spinners/PulseLoader";
 import { validarPassword } from "../../../../utils/validators";
 import { PasswordStrengthBar } from "./PasswordStrengthBar";
 import { useSnackbar } from "notistack";
-import  { fetchHook } from "../../../../hooks/fetchHook";
 
 export const ChangePassword = () => {
     const [searchParams] = useSearchParams()
@@ -52,19 +51,29 @@ export const ChangePassword = () => {
                 return;
             }
 
-            const body = {
-                email,
-                password: formPassword.password
-            }
+            
+            const formData = new FormData();
+
+            formData.append("email", email);
+            formData.append("password", formPassword.password);
+            formData.append("token", token);
+
+
             const URL =
                 import.meta.env.VITE_APP_MODE === "desarrollo"
                     ? import.meta.env.VITE_URL_DESARROLLO
                     : import.meta.env.VITE_URL_PRODUCCION;
 
-            const data = await fetchHook(`${URL}/api/v1/auth/change-password`, "POST", body, token);
+            const requestOptions = {
+                    method: "POST",
+                    body: formData,
+            }
+            const response = await fetch(`${URL}/api/v1/auth/change-password`, requestOptions);
+            const data = await response.json()
             
             if(data.code === 200){
                 enqueueSnackbar("Contraseña Modificada con éxito", { variant: "success" });
+                localStorage.removeItem("email");
                 navigate("/login", { replace: true })
             }else{
                 enqueueSnackbar(data.message, { variant: "error" });

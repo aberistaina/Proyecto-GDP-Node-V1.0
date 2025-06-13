@@ -21,7 +21,7 @@ export const  ModalArchivos = ({
                     import.meta.env.VITE_APP_MODE === "desarrollo"
                         ? import.meta.env.VITE_URL_DESARROLLO
                         : import.meta.env.VITE_URL_PRODUCCION;
-                const response = await fetch(`${URL}/api/v1/procesos/download-files/${fileName}`)
+                const response = await fetch(`${URL}/api/v1/procesos/download-files/${fileName}`, {credentials: "include"})
     
                 if (!response.ok){
                     enqueueSnackbar("Hubo un problema al intentar descargar el archivo, intente nuevamente más tarde", { variant: "error" });
@@ -50,11 +50,11 @@ export const  ModalArchivos = ({
                 let response;
                 if(tabActiva === "comentarios"){
                     response = await fetch(
-                    `${URL}/api/v1/procesos/comentarios/get-files/${idComentario}`
+                    `${URL}/api/v1/procesos/comentarios/get-files/${idComentario}`, {credentials: "include"}
                 );
                 }else{
                     response = await fetch(
-                    `${URL}/api/v1/procesos/oportunidades/get-files/${idComentario}`
+                    `${URL}/api/v1/procesos/oportunidades/get-files/${idComentario}`,{credentials: "include"}
                 );
                 }
                 

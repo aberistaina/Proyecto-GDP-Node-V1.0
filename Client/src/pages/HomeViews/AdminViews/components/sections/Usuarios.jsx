@@ -39,7 +39,7 @@ export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
             if(!confirmacion){
                 return
             }
-            const response = await fetch(`${URL}/api/v1/admin/delete-user/${id}`, {method: "DELETE" })
+            const response = await fetch(`${URL}/api/v1/admin/delete-user/${id}`, {method: "DELETE", credentials: "include" })
             const data = await response.json()
             
             if(data.code == 200){

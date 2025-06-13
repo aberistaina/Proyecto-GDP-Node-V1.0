@@ -23,13 +23,13 @@ export const ProcesosContainer = () => {
                 if (!procesoActual) {
                     // En nivel raíz: cargar macroprocesos
                     const resNivel = await fetch(
-                        `${URL}/api/v1/procesos/get-nivel/${idNivel}`
+                        `${URL}/api/v1/procesos/get-nivel/${idNivel}`, {credentials: "include"}
                     );
                     const dataNivel = await resNivel.json();
                     setNivelActual(dataNivel.data);
 
                     const resProcesos = await fetch(
-                        `${URL}/api/v1/procesos/get-process-nivel/${idNivel}`
+                        `${URL}/api/v1/procesos/get-process-nivel/${idNivel}`, {credentials: "include"}
                     );
                     const dataProcesos = await resProcesos.json();
                     const macroprocesos = dataProcesos.data.filter(
@@ -39,7 +39,8 @@ export const ProcesosContainer = () => {
                 } else {
                     // Cargar subprocesos del proceso actual
                     const res = await fetch(
-                        `${URL}/api/v1/procesos/get-subprocess-process/${procesoActual.id_bpmn}`
+                        `${URL}/api/v1/procesos/get-subprocess-process/${procesoActual.id_bpmn}`,
+                        {credentials: "include"}
                     );
                     const data = await res.json();
                     setProcesos(data.data);

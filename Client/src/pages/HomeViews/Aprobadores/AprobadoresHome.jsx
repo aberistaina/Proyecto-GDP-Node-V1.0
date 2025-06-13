@@ -21,7 +21,7 @@ export const AprobadoresHome = () => {
                 import.meta.env.VITE_APP_MODE === "desarrollo"
                     ? import.meta.env.VITE_URL_DESARROLLO
                     : import.meta.env.VITE_URL_PRODUCCION;
-                const response = await fetch(`${URL}/api/v1/procesos/get-pending-process/${usuario.id_usuario}`)
+                const response = await fetch(`${URL}/api/v1/procesos/get-pending-process/${usuario.id_usuario}`, {credentials: "include"})
                 const data = await response.json()
                 setProcesos(data.data)
                 setIsLoading(true)

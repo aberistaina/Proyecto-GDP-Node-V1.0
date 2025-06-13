@@ -42,7 +42,8 @@ export default function Opciones() {
 
             const requestOptions = {
                 method: "POST",
-                body: formData
+                body: formData, 
+                credentials: "include"
             }
             const response = await fetch(`${URL}/api/v1/admin/set-config`, requestOptions)
             const data = await response.json()
@@ -64,7 +65,9 @@ export default function Opciones() {
                     ? import.meta.env.VITE_URL_DESARROLLO
                     : import.meta.env.VITE_URL_PRODUCCION
             
-                const response = await fetch(`${URL}/api/v1/admin/get-config`)
+                const response = await fetch(`${URL}/api/v1/admin/get-config`, {
+            credentials: "include",
+        })
                 const data = await response.json()
                 setConfig(data.data)
             } catch (error) {

@@ -3,7 +3,6 @@ import { MdEmail } from "react-icons/md";
 import PulseLoader from "react-spinners/PulseLoader";
 import { formatTime } from "../../../../utils/formatTime";
 import { useSnackbar } from "notistack";
-import { fetchHook } from "../../../../hooks/fetchHook";
 
 export const EmailForm = ({ handleEmailSent, saveTimeNow, timeLeft }) => {
     const { enqueueSnackbar } = useSnackbar()
@@ -25,15 +24,20 @@ export const EmailForm = ({ handleEmailSent, saveTimeNow, timeLeft }) => {
             saveTimeNow();
             setIsLoading(true);
             
-            const body = {
-                email: formUser.email,
-            }
+            const formData = new FormData();
+            formData.append("email", formUser.email)
 
             const URL =
                 import.meta.env.VITE_APP_MODE === "desarrollo"
                     ? import.meta.env.VITE_URL_DESARROLLO
                     : import.meta.env.VITE_URL_PRODUCCION;
-            const data = await fetchHook(`${URL}/api/v1/auth/recover-password`, "POST", body);
+
+            const requestOptions = {
+                    method: "POST",
+                    body: formData
+            }
+            const response = await fetch(`${URL}/api/v1/auth/recover-password`, requestOptions);
+            const data = await response.json()
 
             if(data.code === 200){
                 enqueueSnackbar("Correo enviado. Sigue las instrucciones para restablecer tu contraseña", { variant: "success" });

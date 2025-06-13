@@ -51,7 +51,8 @@ export default function ModalBitacoraComentarios({ menu, setOpenModal, idProceso
 
             const requestOptions = {
                 method: "POST",
-                body: formData
+                body: formData,
+                credentials: "include"
             };
 
             const response = await fetch(`${URL}${path}`, requestOptions);

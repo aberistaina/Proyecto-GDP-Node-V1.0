@@ -21,6 +21,7 @@ export const BorradoresActivos = ({ borradoresActivos, isLoading }) => {
     const borradores = borradoresActivos.filter((b) => b.estado === "borrador");
     const borradoresRechazados = borradoresActivos.filter((b) => b.estado === "rechazado");
     const borradoresAprobados = borradoresActivos.filter((b) => b.estado === "aprobado");
+    console.log(borradoresAprobados);
     const borradoresEnEspera = borradoresActivos.filter(
         (b) => b.estado === "enviado"
     );
@@ -50,7 +51,7 @@ export const BorradoresActivos = ({ borradoresActivos, isLoading }) => {
                         ) : (
                             borradores.map((borrador) => (
                                 <div
-                                    key={borrador.idAprobador}
+                                    key={borrador.idVersionProceso}
                                     className="flex justify-between items-center bg-white rounded-md px-3 py-4 shadow-lg mt-6"
                                 >
                                     <div>
@@ -101,7 +102,7 @@ export const BorradoresActivos = ({ borradoresActivos, isLoading }) => {
                         ) : (
                             borradoresEnEspera.map((borrador) => (
                                 <div
-                                    key={borrador.idAprobador}
+                                    key={borrador.idVersionProceso}
                                     className="flex justify-between items-center bg-white rounded-md px-3 py-4 shadow-lg mt-6"
                                 >
                                     <div>
@@ -156,7 +157,7 @@ export const BorradoresActivos = ({ borradoresActivos, isLoading }) => {
                         ) : (
                             borradoresRechazados.map((borrador) => (
                                 <div
-                                    key={borrador.idAprobador}
+                                    key={borrador.idVersionProceso}
                                     className="flex justify-between items-center bg-white rounded-md px-3 py-4 shadow-lg mt-6"
                                 >
                                     <div>
@@ -210,7 +211,7 @@ export const BorradoresActivos = ({ borradoresActivos, isLoading }) => {
                         ) : (
                             borradoresAprobados.map((borrador) => (
                                 <div
-                                    key={borrador.idAprobador}
+                                    key={borrador.idVersionProceso}
                                     className="flex justify-between items-center bg-white rounded-md  px-3 py-4 shadow-lg mt-6"
                                 >
                                     <div>

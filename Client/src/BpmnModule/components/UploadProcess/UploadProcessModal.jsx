@@ -49,7 +49,7 @@ export const UploadProcessModal = ({ setShowModal }) => {
                     : import.meta.env.VITE_URL_PRODUCCION;
 
             const response = await fetch(
-                `${URL}/api/v1/procesos/upload-process`,
+                `${URL}/api/v1/admin/upload-process`,
                 {
                     method: "POST",
                     body: form,

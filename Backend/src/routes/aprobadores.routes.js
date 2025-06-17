@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { getAprobadores } from "../controllers/aprobadores.controller.js";
-import { issueTokenMiddleware, verifyTokenMiddleware } from "../middlewares/login.middleware.js";
+import {  verifyTokenMiddleware } from "../middlewares/login.middleware.js";
 
 
 const router = Router()
 
-router.get("/get-all", getAprobadores)
+router.get("/get-all", verifyTokenMiddleware, getAprobadores)
 
 
 

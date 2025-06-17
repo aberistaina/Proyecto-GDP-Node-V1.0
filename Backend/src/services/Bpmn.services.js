@@ -129,8 +129,6 @@ export const obtenerUltimaVersionProceso = async (idProceso, version) =>{
         const versionesMenores = versionesAnteriores.filter(v =>
             parseFloat(v.nombre_version) < versionActualNumber);
         
-        console.log("Versiones anteriores",versionesAnteriores);
-        console.log("Versiones actual", versionActualNumber);
 
         const versionAnterior = versionesMenores.length > 0 ? versionesMenores[0] : null
         return versionAnterior

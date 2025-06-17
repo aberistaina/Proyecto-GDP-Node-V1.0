@@ -76,10 +76,6 @@ export const getFileFromS3Version = async (
     versionBuscada
 ) => {
     try {
-        // Listar las versiones de los objetos en el bucket
-        console.log("BucketName", bucketName);
-        console.log("fileName", fileName);
-        console.log("versionBuscada", versionBuscada);
 
         const { Versions } = await s3Client.send(
             new ListObjectVersionsCommand({

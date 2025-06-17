@@ -16,7 +16,6 @@ export const login = async (req, res, next) => {
     const { username, password } = req.body;
     try {
         ad.authenticate(username, password, (err, auth) => {
-            console.log("Autenticado:", auth);
             if (err) {
                 console.error("Error autenticando con AD:", err);
                 return res.status(401).json({
@@ -63,7 +62,7 @@ export const samlAuth = (req, res, next) => {
                 .status(401)
                 .json({ code: 401, message: "Autenticación fallida con SAML" });
         }
-        console.log(user);
+
         const token = createToken(user, "30m");
 
         res.status(200).json({

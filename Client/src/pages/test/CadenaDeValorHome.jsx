@@ -82,7 +82,7 @@ export const CadenaDeValorHome = () => {
             className="overflow-x-auto py-6 px-4 w-full cursor-grab select-none"
         >
             <div className="flex min-w-max">
-                <p class="writing-vertical-rl -rotate-90 font-bold ">Procesos Operativos</p>
+                <p className="writing-vertical-rl -rotate-90 font-bold ">Procesos Operativos</p>
                 {operativos
                     .filter((proceso) => proceso.estado === "activo")
                     .map((proceso, index) => (
@@ -110,7 +110,7 @@ export const CadenaDeValorHome = () => {
             className="overflow-x-auto py-6 px-4 w-full cursor-grab select-none"
         >
             <div className="flex min-w-max">
-                <p class="writing-vertical-rl -rotate-90 font-bold ">Procesos De Soporte</p>
+                <p className="writing-vertical-rl -rotate-90 font-bold ">Procesos De Soporte</p>
                 {soporte
                     .filter((proceso) => proceso.estado === "activo")
                     .map((proceso, index) => (
@@ -138,7 +138,7 @@ export const CadenaDeValorHome = () => {
             className="overflow-x-auto py-6 px-4 w-full cursor-grab select-none"
         >
             <div className="flex min-w-max">
-               {estrategicos.length > 0 ? <p class="writing-vertical-rl -rotate-90 font-bold" >Procesos Estrategicos</p> : null}
+               {estrategicos.length > 0 ? <p className="writing-vertical-rl -rotate-90 font-bold" >Procesos Estrategicos</p> : null}
 
                 {estrategicos
                     .filter((proceso) => proceso.estado === "activo")

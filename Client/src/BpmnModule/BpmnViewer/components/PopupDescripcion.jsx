@@ -1,16 +1,51 @@
-
+import { useEffect, useState } from "react";
 //Popup que se levanta en el visualizador al hacer click en algún elemento, muestra la descripción de este
+
 export const PopupDescripcion = ({ elementoSeleccionado, onClose }) => {
+    const [cargos, setCargos] = useState([]);
+
+    useEffect(() => {
+        const getCargos = async () => {
+            try {
+                const URL =
+                    import.meta.env.VITE_APP_MODE === "desarrollo"
+                        ? import.meta.env.VITE_URL_DESARROLLO
+                        : import.meta.env.VITE_URL_PRODUCCION;
+                const response = await fetch(
+                    `${URL}/api/v1/procesos/get-all-cargos`,
+                    { credentials: "include" }
+                );
+                const data = await response.json();
+                console.log(data);
+                setCargos(data.data);
+            } catch (error) {
+                console.log(error);
+            }
+        };
+        getCargos();
+    }, []);
+
     if (!elementoSeleccionado) return null;
     const limpiarHtml = (html) => {
         const doc = new DOMParser().parseFromString(html, "text/html");
         return doc.body.textContent || "";
-        };
+    };
+
+    const obtenerNombresPorIds = (cadenaIds) => {
+        if (!cadenaIds) return "";
+
+        return cadenaIds
+            .split(",")
+            .map((id) => {
+                const cargo = cargos.find((c) => c.id_cargo === Number(id));
+                return cargo ? cargo.nombre : `ID ${id}`;
+            })
+            .join(", ");
+    };
 
     const { descripcion, propiedades, tipo } = elementoSeleccionado;
 
-    const esTarea = tipo?.includes("bpmn:Task");
-
+    const esTarea = tipo?.includes("Task");
 
     const hayResponsabilidades =
         propiedades?.ejecutantes ||
@@ -56,7 +91,7 @@ export const PopupDescripcion = ({ elementoSeleccionado, onClose }) => {
                                         <span className="font-medium text-cyan-800">
                                             Ejecutantes:
                                         </span>{" "}
-                                        {propiedades.ejecutantes}
+                                        {obtenerNombresPorIds(propiedades.ejecutantes)}
                                     </li>
                                 )}
                                 {propiedades.responsable && (
@@ -64,7 +99,7 @@ export const PopupDescripcion = ({ elementoSeleccionado, onClose }) => {
                                         <span className="font-medium text-cyan-800">
                                             Responsable:
                                         </span>{" "}
-                                        {propiedades.responsable}
+                                        {obtenerNombresPorIds(propiedades.responsable)}
                                     </li>
                                 )}
                                 {propiedades.consultado && (
@@ -72,7 +107,7 @@ export const PopupDescripcion = ({ elementoSeleccionado, onClose }) => {
                                         <span className="font-medium text-cyan-800">
                                             Consultado:
                                         </span>{" "}
-                                        {propiedades.consultado}
+                                        {obtenerNombresPorIds(propiedades.consultado)}
                                     </li>
                                 )}
                                 {propiedades.informado && (
@@ -80,7 +115,7 @@ export const PopupDescripcion = ({ elementoSeleccionado, onClose }) => {
                                         <span className="font-medium text-cyan-800">
                                             Informado:
                                         </span>{" "}
-                                        {propiedades.informado}
+                                        {obtenerNombresPorIds(propiedades.informado)}
                                     </li>
                                 )}
                             </ul>

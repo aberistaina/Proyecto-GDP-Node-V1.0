@@ -100,6 +100,7 @@ useEffect(() => {
                 try {
                     const requestOptions = {
                         method: "GET",
+                        credentials: "include"
                     };
                     const URL =
                         import.meta.env.VITE_APP_MODE === "desarrollo"
@@ -110,7 +111,6 @@ useEffect(() => {
                         `${URL}/api/v1/procesos/get-process-xml/${idProceso}/${version}`,
                         requestOptions
                     );
-                    console.log(response);
 
                     if (!response.ok) {
                         await createDiagram(bpmnModelerRef, emptyDiagram);

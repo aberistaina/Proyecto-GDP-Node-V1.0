@@ -142,7 +142,7 @@ export const connectSubprocess = async (req, res, next) => {
             esMacroproceso,
             id_creador,
         } = req.body;
-        console.log(req.body);
+
         const { archivo } = req.files;
         const archivoTransformado = archivo.data.toString("utf8");
 
@@ -218,122 +218,6 @@ export const connectSubprocess = async (req, res, next) => {
     }
 };
 
-//Función para subir procesos a S3 y guardar en la base de datos
-export const uploadProcess = async (req, res, next) => {
-    const transaction = await sequelize.transaction();
-    try {
-        if (!req.files || Object.keys(req.files).length === 0) {
-            return res.status(400).json({
-                code: 400,
-                message: "No se ha subido ningún archivo.",
-            });
-        }
-        const { archivos } = req.files;
-        const { id_aprobador, id_creador, id_nivel } = req.body;
-
-        //Variables momentáneas
-        const estado = "activo";
-        //variables momentáneas
-        const id_aprobadores_cargo = "3";
-
-        const archivosArray = Array.isArray(archivos) ? archivos : [archivos];
-        const datosArchivos = [];
-
-        for (const archivo of archivosArray) {
-            const datoArchivo = await extraerDatosBpmn(archivo);
-            /* const nombreArchivo = formatFileName(archivo.name.split(".")[0]) */
-
-            const nombreProceso = datoArchivo.name;
-            datosArchivos.push(datoArchivo);
-
-            const { idProceso, subProcesos } = datoArchivo;
-
-            const nuevoProceso = await createProcessIfNotExist(
-                id_creador,
-                idProceso,
-                id_aprobadores_cargo,
-                id_nivel,
-                nombreProceso,
-                null,
-                estado,
-                null,
-                transaction
-            );
-
-            const versionExistente = await VersionProceso.findOne({
-                where: {
-                    id_proceso: nuevoProceso.id_proceso,
-                    estado: "aprobado",
-                },
-                transaction,
-            });
-
-            if (!versionExistente) {
-                await VersionProceso.create(
-                    {
-                        id_proceso: nuevoProceso.id_proceso,
-                        id_creador,
-                        id_aprobadores_cargo,
-                        nombre_version: "1.0",
-                        estado: "aprobado",
-                        id_bpmn: idProceso,
-                    },
-                    { transaction }
-                );
-            }
-
-            for (const subProceso of subProcesos) {
-                const callActivity = subProceso.callActivity;
-                const calledElement = subProceso.calledElement;
-
-                if (calledElement) {
-                    await createProcessIfNotExist(
-                        id_creador,
-                        calledElement,
-                        id_aprobadores_cargo,
-                        id_nivel,
-                        "pendiente",
-                        null,
-                        estado,
-                        null,
-                        transaction
-                    );
-
-                    if (callActivity) {
-                        await createAssociation(
-                            idProceso,
-                            callActivity,
-                            calledElement,
-                            transaction
-                        );
-                    }
-                }
-            }
-            const { s3_bucket, s3_bucket_procesos } = await getAdminConfig();
-            await uploadFileToS3(
-                `${s3_bucket}`,
-                `${s3_bucket_procesos}/${idProceso}.bpmn`,
-                archivo.data,
-                "application/xml",
-                "1.0",
-                "activo"
-            );
-        }
-
-        await transaction.commit();
-
-        res.status(201).json({
-            code: 201,
-            message: "Procesos cargado correctamente",
-        });
-    } catch (error) {
-        await transaction.rollback();
-        logger.error("Controlador Cargar Proceso", error);
-        console.log(error);
-        next(error);
-    }
-};
-
 //Funcion para guardar un nuevo proceso
 export const saveNewProcessChanges = async (req, res, next) => {
     try {
@@ -357,7 +241,6 @@ export const saveNewProcessChanges = async (req, res, next) => {
                 message: "No se ha subido ningún archivo.",
             });
         }
-
 
         await createProcessIfNotExist(
             id_creador,
@@ -530,7 +413,6 @@ export const aprobarProceso = async (req, res, next) => {
     try {
         const { idProceso, id_usuario, version } = req.body;
 
-
         const solicitud = await Aprobadores.findOne({
             where: {
                 id_usuario,
@@ -589,15 +471,15 @@ export const aprobarProceso = async (req, res, next) => {
                 },
             });
 
-            if(versionAnterior){
+            if (versionAnterior) {
                 await versionAnterior.update(
-                {
-                    estado: "inactivo",
-                },
-                { transaction }
-            );
+                    {
+                        estado: "inactivo",
+                    },
+                    { transaction }
+                );
             }
-            
+
             await versionBorrador.update(
                 {
                     estado: "aprobado",
@@ -858,6 +740,22 @@ export const getProcessSummary = async (req, res, next) => {
 
         const participantes = extraerParticipantesBpmn(xmlContent);
 
+        const cargos = await Cargo.findAll({
+            attributes: ["id_cargo", "nombre"],
+        });
+
+        const mapaCargos = {};
+            cargos.forEach(c => {
+            mapaCargos[c.id_cargo.toString()] = c.nombre;
+            });
+
+            const participantesConNombres = {};
+            for (const [rol, ids] of Object.entries(participantes)) {
+            participantesConNombres[rol] = ids.map(id => mapaCargos[id] || `ID ${id} no encontrado`);
+            }
+
+        
+
         const proceso = await Procesos.findOne({
             include: [
                 {
@@ -914,7 +812,7 @@ export const getProcessSummary = async (req, res, next) => {
 
         const resumenProceso = {
             subprocesos: subprocesosMap,
-            ...participantes,
+            ...participantesConNombres,
             tiempoSLA: ["2 días", "Automatizable 70%"],
         };
 
@@ -954,27 +852,37 @@ export const createCommentary = async (req, res, next) => {
         const { s3_bucket, s3_bucket_adjuntos } = await getAdminConfig();
         const archivos = req.files?.archivos || null;
 
-        const nuevoComentario = await ComentariosVersionProceso.create({
-            id_usuario,
-            id_bpmn: idProceso,
-            comentario,
-            id_version_proceso: version,
-        },{transaction});
+        const nuevoComentario = await ComentariosVersionProceso.create(
+            {
+                id_usuario,
+                id_bpmn: idProceso,
+                comentario,
+                id_version_proceso: version,
+            },
+            { transaction }
+        );
 
-        const nombreVersion = await VersionProceso.findByPk(version , {transaction})
+        const nombreVersion = await VersionProceso.findByPk(version, {
+            transaction,
+        });
 
-        if(archivos){
-            const archivosArray = Array.isArray(archivos) ? archivos : [archivos];
+        if (archivos) {
+            const archivosArray = Array.isArray(archivos)
+                ? archivos
+                : [archivos];
             for (const archivo of archivosArray) {
+                isValidFilesExtension(archivo);
+                const mimeType =
+                    mime.lookup(archivo.name) || "application/octet-stream";
 
-                isValidFilesExtension(archivo)
-                const mimeType = mime.lookup(archivo.name) || "application/octet-stream";
-                
-                await ArchivosComentariosVersionProceso.create({
-                    id_comentario: nuevoComentario.id_comentario,
-                    nombre: archivo.name,
-                    s3_key: `${s3_bucket_adjuntos}/${archivo.name}`
-                } , {transaction})
+                await ArchivosComentariosVersionProceso.create(
+                    {
+                        id_comentario: nuevoComentario.id_comentario,
+                        nombre: archivo.name,
+                        s3_key: `${s3_bucket_adjuntos}/${archivo.name}`,
+                    },
+                    { transaction }
+                );
 
                 await uploadFileToS3(
                     `${s3_bucket}`,
@@ -985,10 +893,9 @@ export const createCommentary = async (req, res, next) => {
                     `${nombreVersion.estado}`
                 );
             }
-            
         }
 
-        await transaction.commit()
+        await transaction.commit();
 
         res.status(201).json({
             code: 201,
@@ -1043,17 +950,17 @@ export const getCommentaries = async (req, res, next) => {
 };
 
 //Función que obtiene los Archivos de un comentario
-export const getComentariesFiles = async(req, res, next) =>{
+export const getComentariesFiles = async (req, res, next) => {
     try {
         const { idComentario } = req.params;
 
         const archivos = await ArchivosComentariosVersionProceso.findAll({
-            where:{
-                id_comentario: idComentario
-            }
-        })
+            where: {
+                id_comentario: idComentario,
+            },
+        });
 
-        console.log(archivos);
+
         res.status(202).json({
             code: 202,
             message: "Archivos obtenidos correctamente",
@@ -1063,8 +970,8 @@ export const getComentariesFiles = async(req, res, next) =>{
         logger.error("Controlador getComentariesFiles", error);
         console.log(error);
         next(error);
-    }
-}
+    }
+};
 
 //Funcion que crea las oportunidades de la versión de un proceso
 export const createOppotunity = async (req, res, next) => {
@@ -1075,29 +982,38 @@ export const createOppotunity = async (req, res, next) => {
             req.body;
         const archivos = req.files?.archivos || null;
 
+        const nuevaOportunidad = await OportunidadesMejora.create(
+            {
+                id_usuario,
+                id_bpmn: idProceso,
+                asunto,
+                descripcion,
+                id_version_proceso: version,
+            },
+            { transaction }
+        );
 
-        const nuevaOportunidad = await OportunidadesMejora.create({
-            id_usuario,
-            id_bpmn: idProceso,
-            asunto,
-            descripcion,
-            id_version_proceso: version,
-        }, {transaction});
+        const nombreVersion = await VersionProceso.findByPk(version, {
+            transaction,
+        });
 
-        const nombreVersion = await VersionProceso.findByPk(version , {transaction})
-
-        if(archivos){
-            const archivosArray = Array.isArray(archivos) ? archivos : [archivos];
+        if (archivos) {
+            const archivosArray = Array.isArray(archivos)
+                ? archivos
+                : [archivos];
             for (const archivo of archivosArray) {
+                isValidFilesExtension(archivo);
+                const mimeType =
+                    mime.lookup(archivo.name) || "application/octet-stream";
 
-                isValidFilesExtension(archivo)
-                const mimeType = mime.lookup(archivo.name) || "application/octet-stream";
-                
-                await ArchivosOportunidadesMejora.create({
-                    id_oportunidad: nuevaOportunidad.id_oportunidad,
-                    nombre: archivo.name,
-                    s3_key: `${s3_bucket_adjuntos}/${archivo.name}`
-                } , {transaction})
+                await ArchivosOportunidadesMejora.create(
+                    {
+                        id_oportunidad: nuevaOportunidad.id_oportunidad,
+                        nombre: archivo.name,
+                        s3_key: `${s3_bucket_adjuntos}/${archivo.name}`,
+                    },
+                    { transaction }
+                );
 
                 await uploadFileToS3(
                     `${s3_bucket}`,
@@ -1108,10 +1024,9 @@ export const createOppotunity = async (req, res, next) => {
                     `${nombreVersion.estado}`
                 );
             }
-            
         }
 
-        await transaction.commit()
+        await transaction.commit();
         res.status(201).json({
             code: 201,
             message: "Oportunidad creada correctamente",
@@ -1166,15 +1081,15 @@ export const getOpportunities = async (req, res, next) => {
 };
 
 //Función que obtiene los Archivos de una oportunidad
-export const getOpportunitiesFiles = async(req, res, next) =>{
+export const getOpportunitiesFiles = async (req, res, next) => {
     try {
         const { idComentario } = req.params;
 
         const archivos = await ArchivosOportunidadesMejora.findAll({
-            where:{
-                id_oportunidad: idComentario
-            }
-        })
+            where: {
+                id_oportunidad: idComentario,
+            },
+        });
 
         res.status(202).json({
             code: 202,
@@ -1185,26 +1100,22 @@ export const getOpportunitiesFiles = async(req, res, next) =>{
         logger.error("Controlador getComentariesFiles", error);
         console.log(error);
         next(error);
-    }
-}
+    }
+};
 
 //Función Para descargar un proceso
 export const downloadFiles = async (req, res, next) => {
     try {
         const { fileName } = req.params;
         const { s3_bucket, s3_bucket_adjuntos } = await getAdminConfig();
-        console.log(s3_bucket_adjuntos);
-        
+
         const { Body, ContentType, ContentLength } = await downloadFromS3(
             `${s3_bucket_adjuntos}/${fileName}`,
             `${s3_bucket}`
         );
         const mimeType = mime.lookup(fileName) || "application/octet-stream";
 
-        res.setHeader(
-            "Content-Type",
-            ContentType || mimeType
-        );
+        res.setHeader("Content-Type", ContentType || mimeType);
         res.setHeader(
             "Content-Disposition",
             `attachment; filename="${fileName}"`
@@ -1311,7 +1222,7 @@ export const downloadProcess = async (req, res, next) => {
         const { idProceso } = req.params;
         const fileName = `${idProceso}.bpmn`;
         const { s3_bucket, s3_bucket_procesos } = await getAdminConfig();
-        
+
         const { Body, ContentType, ContentLength } = await downloadFromS3(
             `${s3_bucket_procesos}/${fileName}`,
             `${s3_bucket}`
@@ -1371,7 +1282,8 @@ export const createNewProcessVersion = async (req, res, next) => {
     try {
         const { idProceso, version, id_creador } = req.body;
         const { archivo, imagen } = req.files;
-        const { s3_bucket, s3_bucket_procesos, s3_bucket_imagenes } = await getAdminConfig();
+        const { s3_bucket, s3_bucket_procesos, s3_bucket_imagenes } =
+            await getAdminConfig();
 
         const proceso = await Procesos.findOne({
             where: { id_bpmn: idProceso },

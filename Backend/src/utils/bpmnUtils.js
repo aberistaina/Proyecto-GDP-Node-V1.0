@@ -136,49 +136,44 @@ export const formatFileName = (nombre) => {
 };
 
 export const extraerParticipantesBpmn = (xml) => {
-    try {
-        const claves = [
-            "responsable",
-            "consultado",
-            "informado",
-            "ejecutantes",
-        ];
+  try {
+    const claves = ["responsable", "consultado", "informado", "ejecutantes"];
+    const propiedades = Object.fromEntries(claves.map((clave) => [clave, []]));
 
-        // Inicializar todas las claves con arrays vacíos
-        const propiedades = Object.fromEntries(
-            claves.map((clave) => [clave, []])
-        );
+    // Buscar el <bpmn:process ... name="Proceso Principal">
+    const processMatch = xml.match(
+      /<bpmn:process[^>]*name="Proceso Principal"[^>]*>[\s\S]*?<\/bpmn:process>/
+    );
 
-        const processMatch = xml.match(
-            /<bpmn:process[^>]*>[\s\S]*?<\/bpmn:process>/
-        );
+    if (!processMatch) return propiedades;
 
-        if (!processMatch) return propiedades; 
+    const processBlock = processMatch[0];
 
-        const processBlock = processMatch[0];
+    const regex = /<camunda:property\s+name="([^"]+)"\s+value="([^"]+)"\s*\/>/g;
+    let match;
 
-        const regex =
-            /<camunda:property\s+name="([^"]+)"\s+value="([^"]+)"\s*\/>/g;
-
-        let match;
-        while ((match = regex.exec(processBlock)) !== null) {
-            const [, name, value] = match;
-
-            if (propiedades[name]) {
-                propiedades[name].push(
-                    ...value.split(",").map((v) => v.trim())
-                );
-            }
-        }
-
-        return propiedades;
-    } catch (error) {
-        console.error("Error extrayendo participantes del BPMN:", error);
-        return {
-            responsable: [],
-            consultado: [],
-            informado: [],
-            ejecutantes: [],
-        };
+    while ((match = regex.exec(processBlock)) !== null) {
+      const [, name, value] = match;
+      if (propiedades[name]) {
+        propiedades[name].push(...value.split(",").map((v) => v.trim()));
+      }
     }
+
+    // Eliminar duplicados
+    for (const clave of claves) {
+      propiedades[clave] = [...new Set(propiedades[clave])];
+    }
+
+    return propiedades;
+  } catch (error) {
+    console.error("Error extrayendo participantes del BPMN:", error);
+    return {
+      responsable: [],
+      consultado: [],
+      informado: [],
+      ejecutantes: [],
+    };
+  }
 };
+
+

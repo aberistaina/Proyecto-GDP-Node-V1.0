@@ -170,7 +170,9 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
     useEffect(() => {
         if (!user) return
         calcularSiEsUltimaVersion()
-        getPendingProcess()
+        if(user?.usuario?.id_rol === 2){
+            getPendingProcess() 
+            }
     }, [])
     
     

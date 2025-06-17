@@ -25,7 +25,7 @@ export const ModalSaveChanges = ({ setShowModalSaveChanges }) => {
 
                 const datosProceso =  JSON.parse(sessionStorage.getItem("datos"));
                 const imagen  = await crearImagenFlujo(bpmnModelerRef.current, idProceso )
-                console.log(imagen);
+
                 const formData = new FormData();
                 formData.append("archivo", blob, `process.bpmn`);
                 formData.append("imagen", imagen, `process.png`);

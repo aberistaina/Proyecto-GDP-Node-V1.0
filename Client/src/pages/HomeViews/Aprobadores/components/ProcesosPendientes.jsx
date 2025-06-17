@@ -19,8 +19,8 @@ export const ListaProcesosPendientes = ({ procesos, isLoading }) => {
     };
 
     const procesosPendientes = procesos.filter((p) => p.estado === "pendiente");
-    const procesosAprobados = procesos.filter((p) => p.estado === "rechazado");
-    const procesosRechazados = procesos.filter((p) => p.estado === "aprobado");
+    const procesosAprobados = procesos.filter((p) => p.estado === "aprobado");
+    const procesosRechazados = procesos.filter((p) => p.estado === "rechazado");
 
     if (!isLoading) return <PulseLoader color="#10644C" size={15} />;
     if (procesosPendientes.length === 0)
@@ -114,7 +114,7 @@ export const ListaProcesosPendientes = ({ procesos, isLoading }) => {
                                             Versión {proceso.nombreVersion} ·{" "}
                                             {proceso.fechaCreacionAprobacion} ·{" "}
                                         </p>
-                                        <p className="mt-1 inline-block px-3 py-1 rounded-full border border-sky-600 text-xs font-bold bg-sky-200 text-sky-600">
+                                        <p className="mt-1 inline-block px-3 py-1 rounded-full border border-[#008000] text-xs font-bold bg-[#BBF7D0] text-[#008000]">
                                             {proceso.estado}
                                         </p>
                                     </div>

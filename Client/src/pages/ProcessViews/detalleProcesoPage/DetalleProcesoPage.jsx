@@ -102,7 +102,6 @@ const getAllComentaries = async() =>{
                         : import.meta.env.VITE_URL_PRODUCCION;
                     const response = await fetch(`${URL}/api/v1/procesos/get-pending-process/${user.usuario.id_usuario}`, {credentials: "include"})
                     const data = await response.json()
-
                     const estadoProcesoActual = data.data.find((proceso) =>(
                         proceso.idVersionProceso == version
                     ))
@@ -121,7 +120,10 @@ const getAllComentaries = async() =>{
         setIsLoading(false);
         const fetchData = async () => {
             await getData()
-            await getPendingProcess()
+            if(user?.usuario?.id_rol === 2){
+                await getPendingProcess() 
+            }
+            
         };
         fetchData();
     }, [version]);

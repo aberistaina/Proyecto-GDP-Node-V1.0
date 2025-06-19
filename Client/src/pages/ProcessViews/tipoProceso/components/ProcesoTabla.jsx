@@ -34,7 +34,7 @@ export const ProcesoTabla = ({ procesoActual, procesos, entrarAProceso }) => {
 
         {/* Subprocesos como carpetas */}
         {procesos.map((proceso) => (
-          <tr key={proceso.id_proceso} className="border-b hover:bg-gray-50">
+          <tr key={proceso.id_bpmn} className="border-b hover:bg-gray-50">
             <td className="px-4 py-2 flex items-center gap-2">
               <FaFolder className="text-yellow-500" />
               <span

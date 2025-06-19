@@ -35,7 +35,7 @@ export const NavBar = () => {
                         ? import.meta.env.VITE_URL_DESARROLLO
                         : import.meta.env.VITE_URL_PRODUCCION;
                 const response = await fetch(
-                    `${URL}/api/v1/procesos/get-niveles`, {credentials: "include"}
+                    `${URL}/api/v1/niveles/get-niveles`, {credentials: "include"}
                 );
                 const data = await response.json();
                 setMenus(data.data);

@@ -50,11 +50,11 @@ export const  ModalArchivos = ({
                 let response;
                 if(tabActiva === "comentarios"){
                     response = await fetch(
-                    `${URL}/api/v1/procesos/comentarios/get-files/${idComentario}`, {credentials: "include"}
+                    `${URL}/api/v1/comentarios/get-files/${idComentario}`, {credentials: "include"}
                 );
                 }else{
                     response = await fetch(
-                    `${URL}/api/v1/procesos/oportunidades/get-files/${idComentario}`,{credentials: "include"}
+                    `${URL}/api/v1/oportunidades/get-files/${idComentario}`,{credentials: "include"}
                 );
                 }
                 

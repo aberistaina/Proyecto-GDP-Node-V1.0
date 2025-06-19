@@ -160,7 +160,7 @@ export const CustomMenuContextual = ({modo}) => {
                         ? import.meta.env.VITE_URL_DESARROLLO
                         : import.meta.env.VITE_URL_PRODUCCION;
 
-                const data = await fetch(`${URL}/api/v1/procesos/`, {credentials: "include"})
+                const data = await fetch(`${URL}/api/v1/procesos/get-all`, {credentials: "include"})
                 setSubProcess(data.data || []);
             } catch (error) {
                 console.log("Error al cargar subprocesos:", error);

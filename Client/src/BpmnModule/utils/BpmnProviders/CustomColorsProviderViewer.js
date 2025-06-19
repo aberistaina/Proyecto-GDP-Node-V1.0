@@ -31,67 +31,62 @@ export default function CustomColorsProviderViewer(
     };
 
     eventBus.on("import.done", () => {
-        const allElements = elementRegistry.getAll();
+    applyColors();
+});
 
-        Object.entries(colorMap).forEach(([type, color]) => {
-            const elements = allElements.filter((el) => el.type === type);
+eventBus.on("element.changed", ({ element }) => {
+    applyColorsToElement(element);
+});
 
-            elements.forEach((el) => {
-                const gfx = canvas.getGraphics(el);
-                if (!gfx) {
-                    return;
+function applyColors() {
+    const allElements = elementRegistry.getAll();
+    allElements.forEach((el) => applyColorsToElement(el));
+}
+
+function applyColorsToElement(el) {
+    const type = el.type;
+    const color = colorMap[type];
+    if (!color) return;
+
+    const gfx = canvas.getGraphics(el);
+    if (!gfx) return;
+
+    const visualGroup = gfx.querySelector(".djs-visual");
+    if (!visualGroup) return;
+
+    let shapeNode = null;
+
+    if (type === "bpmn:StartEvent" || type === "bpmn:EndEvent") {
+        shapeNode =
+            visualGroup.querySelector("circle") ||
+            visualGroup.querySelector("ellipse");
+    } else if (type.includes("Gateway")) {
+        shapeNode = visualGroup.querySelector("polygon") ||
+                    visualGroup.querySelector(":scope > path");
+    } else {
+        shapeNode = visualGroup.querySelector("rect");
+        if (!shapeNode) {
+            const allPaths = Array.from(visualGroup.querySelectorAll("path"));
+            for (let p of allPaths) {
+                if (!p.classList.contains("djs-icon")) {
+                    shapeNode = p;
+                    break;
                 }
+            }
+        }
+    }
 
-                const visualGroup = gfx.querySelector(".djs-visual");
-                if (!visualGroup) {
-                    return;
-                }
+    if (shapeNode) {
+        shapeNode.style.removeProperty("fill");
+        shapeNode.style.removeProperty("stroke");
 
-                let shapeNode = null;
-
-                // 1) Eventos de inicio/fin: <circle> o <ellipse>
-                if (type === "bpmn:StartEvent" || type === "bpmn:EndEvent") {
-                    shapeNode =
-                        visualGroup.querySelector("circle") ||
-                        visualGroup.querySelector("ellipse");
-                }
-                // 2) Gateways: buscamos primero <polygon> (Bizagi), si no hay, tomamos <path> (bpmn-js)
-                else if (type.includes("Gateway")) {
-                    shapeNode = visualGroup.querySelector("polygon");
-                    if (!shapeNode) {
-                        shapeNode = visualGroup.querySelector(":scope > path");
-                    }
-                }
-                // 3) Tareas / callActivity / subProcess: <rect> o, si no lo hay (Bizagi), un <path> genérico
-                else {
-                    shapeNode = visualGroup.querySelector("rect");
-                    if (!shapeNode) {
-                        // Recorremos todos los <path> y descartamos los que sean iconos internos
-                        const allPaths = Array.from(
-                            visualGroup.querySelectorAll("path")
-                        );
-                        for (let p of allPaths) {
-                            if (!p.classList.contains("djs-icon")) {
-                                shapeNode = p;
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                // 4) Si existe shapeNode, removemos estilo inline y aplicamos el color
-                if (shapeNode) {
-                    shapeNode.style.removeProperty("fill");
-                    shapeNode.style.removeProperty("stroke");
-
-                    svgAttr(shapeNode, {
-                        fill: color.fill,
-                        stroke: color.stroke,
-                    });
-                }
-            });
+        svgAttr(shapeNode, {
+            fill: color.fill,
+            stroke: color.stroke,
         });
-    });
+    }
+}
+
 }
 
 CustomColorsProviderViewer.$inject = ["eventBus", "canvas", "elementRegistry"];

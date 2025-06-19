@@ -50,7 +50,7 @@ export const ModalSaveChanges = ({ setShowModalSaveChanges }) => {
                     formData.append("idProceso", idProceso)
                     formData.append("version", version)
                     response = await fetch(`${URL}/api/v1/procesos/save-new-version-changes`, requestOptions)
-                    navigate(`/process-details/${idProceso}/${version}`)
+                    
                 }else{
                     const requestOptions = {
                         method: "POST",
@@ -66,6 +66,9 @@ export const ModalSaveChanges = ({ setShowModalSaveChanges }) => {
                 }
                 const data = await response.json()
                 if(data.code == 201){
+                    const nuevaVersion = data.data?.id_version_proceso
+                    const id_proceso = data.data?.id_bpmn || idProceso;
+                    navigate(`/process-details/${id_proceso}/${nuevaVersion}`)
                     setRefreshProcess(true)
                     enqueueSnackbar(data.message, { variant: "success" });
                     setShowModalSaveChanges(false)

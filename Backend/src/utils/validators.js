@@ -1,3 +1,5 @@
+import { FileError } from "../errors/TypeError.js";
+
 export const isValidEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -72,6 +74,6 @@ export const isValidFilesExtension = (file) => {
     if(validExtensions.includes(extension)){
         return
     }else{
-        throw new Error(`el archivo ${file.name} no tiene una extensión válida. Solo se permiten subir los siguientes tipos de archivo (${validExtensions})`)
+        throw new FileError(`el archivo ${file.name} no tiene una extensión válida. Solo se permiten subir los siguientes tipos de archivo (${validExtensions})`)
     }
 };

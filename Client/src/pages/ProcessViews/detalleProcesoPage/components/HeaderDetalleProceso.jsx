@@ -72,7 +72,7 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
                 ? import.meta.env.VITE_URL_DESARROLLO
                 : import.meta.env.VITE_URL_PRODUCCION;
 
-            const response = await fetch(`${URL}/api/v1/procesos/solicitar-aprobacion`, requestOptions)
+            const response = await fetch(`${URL}/api/v1/aprobadores/solicitar-aprobacion`, requestOptions)
             const data = await response.json()
 
             if (data.code === 201) {
@@ -106,7 +106,7 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
                 import.meta.env.VITE_APP_MODE === "desarrollo"
                 ? import.meta.env.VITE_URL_DESARROLLO
                 : import.meta.env.VITE_URL_PRODUCCION;
-            const response = await fetch(`${URL}/api/v1/procesos/aprobar-proceso`, requestOptions)
+            const response = await fetch(`${URL}/api/v1/aprobadores/aprobar-proceso`, requestOptions)
             const data = await response.json()
 
             if(data.code ==200){
@@ -139,7 +139,7 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
                 import.meta.env.VITE_APP_MODE === "desarrollo"
                 ? import.meta.env.VITE_URL_DESARROLLO
                 : import.meta.env.VITE_URL_PRODUCCION;
-            const response = await fetch(`${URL}/api/v1/procesos/rechazar-proceso`, requestOptions)
+            const response = await fetch(`${URL}/api/v1/aprobadores/rechazar-proceso`, requestOptions)
             const data = await response.json()
             if(data.code ==200){
                 enqueueSnackbar(data.message, { variant: "success" });

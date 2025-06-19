@@ -1,15 +1,13 @@
 import { AuthenticationError, UnauthorizedError } from "../errors/TypeError.js";
 import logger from "../utils/logger.js";
-import {
-    comparePassword,
-    createToken,
-    verifyToken,
-    hashPassword,
-} from "../services/auth.services.js";
+import { comparePassword, createToken, verifyToken } from "../services/auth.services.js";
 import { Usuarios, Roles, Cargo } from "../models/models.js";
-
 import { getAdminConfig } from "../services/admin.services.js";
+import { fileURLToPath } from "url";
+import path from "path";
 
+const __filename = fileURLToPath(import.meta.url);
+const fileName = path.basename(__filename);
 const { token_expiracion_login } = await getAdminConfig();
 
 export const issueTokenMiddleware = async (req, res, next) => {
@@ -69,8 +67,8 @@ export const issueTokenMiddleware = async (req, res, next) => {
         req.token = token;
         next();
     } catch (error) {
-        console.log(error.message);
-        logger.error("Ha ocurrido un error en issuetoken Middleware", error);
+        console.log(error);
+        logger.error(`[${fileName} -> issueTokenMiddleware] ${error.message}`);
         next(error);
     }
 };
@@ -94,7 +92,7 @@ export const verifyTokenMiddleware = async (req, res, next) => {
         next();
     } catch (error) {
         console.log(error);
-        logger.error("Ha ocurrido un error en authMiddleware Middleware", error);
+        logger.error(`[${fileName} -> verifyTokenMiddleware] ${error.message}`);
         next(error);
     }
 };

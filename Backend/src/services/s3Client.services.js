@@ -1,11 +1,12 @@
-import {
-    ListObjectVersionsCommand,
-    S3Client,
-    GetObjectCommand,
-    PutObjectCommand,
-    HeadObjectCommand,
-    ListObjectsV2Command,
-} from "@aws-sdk/client-s3";
+
+import {ListObjectVersionsCommand, S3Client, GetObjectCommand, PutObjectCommand, HeadObjectCommand} from "@aws-sdk/client-s3";
+import { FileS3Error,  } from "../errors/TypeError.js";
+import { fileURLToPath } from "url";
+import logger from "../utils/logger.js";
+import path from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const fileName = path.basename(__filename);
 
 const s3Client = new S3Client({
     region: "us-east-1",
@@ -37,19 +38,13 @@ export const getDataFileBpmnFromS3 = async (bucketName, fileName) => {
         const xmlContent = await streamToString(Body);
         return xmlContent;
     } catch (error) {
-        console.error("Error getting file from S3:", error);
-        throw error;
+        console.log(error);
+        logger.error(`[${fileName} -> getDataFileBpmnFromS3] ${error.message}`);
+        throw new FileS3Error("Hubo un Error al obtener el archivo en S3", error.message);
     }
 };
 
-export const uploadFileToS3 = async (
-    bucketName,
-    fileName,
-    fileContent,
-    fileContentType,
-    versionMetadata,
-    estado
-) => {
+export const uploadFileToS3 = async (bucketName, fileName, fileContent, fileContentType, versionMetadata, estado) => {
     try {
         const command = new PutObjectCommand({
             Bucket: bucketName,
@@ -61,22 +56,16 @@ export const uploadFileToS3 = async (
                 "x-amz-meta-activo": `${estado}`,
             },
         });
-
         await s3Client.send(command);
-        console.log(`File uploaded successfully to ${bucketName}/${fileName}`);
     } catch (error) {
-        console.error("Error uploading file to S3:", error);
-        throw error;
+        console.log(error);
+        logger.error(`[${fileName} -> uploadFileToS3] ${error.message}`);
+        throw new FileS3Error("Hubo un Error al almacenar el archivo en S3", error.message);
     }
 };
 
-export const getFileFromS3Version = async (
-    bucketName,
-    fileName,
-    versionBuscada
-) => {
+export const getFileFromS3Version = async (bucketName,fileName,versionBuscada) => {
     try {
-
         const { Versions } = await s3Client.send(
             new ListObjectVersionsCommand({
                 Bucket: bucketName,
@@ -119,16 +108,13 @@ export const getFileFromS3Version = async (
             }
         }
     } catch (error) {
-        console.error("Error getting file from S3:");
-        /* throw error; */
+        console.log(error);
+        logger.error(`[${fileName} -> getFileFromS3Version] ${error.message}`);
+        throw new FileS3Error("Hubo un Error al obtener el archivo en S3", error.message);
     }
 };
 
-export const getImageFromS3Version = async (
-    bucketName,
-    fileName,
-    versionBuscada
-) => {
+export const getImageFromS3Version = async (bucketName,fileName,versionBuscada) => {
     try {
         const { Versions } = await s3Client.send(
             new ListObjectVersionsCommand({
@@ -168,10 +154,11 @@ export const getImageFromS3Version = async (
             }
         }
 
-        throw new Error("Versión no encontrada en S3");
+        throw new FileS3Error("No existe una imagen con esa versión en S3");
     } catch (error) {
-        console.error("Error getting file from S3:", error);
-        throw error;
+        console.log(error);
+        logger.error(`[${fileName} -> getImageFromS3Version] ${error.message}`);
+        throw new FileS3Error("Hubo un Error al obtener la imagen desde S3", error.message);
     }
 };
 
@@ -184,7 +171,8 @@ export const downloadFromS3 = async (fileName, bucketName) => {
 
         return await s3Client.send(command);
     } catch (error) {
-        console.error("Error al descargar archivo desde S3:", error);
-        throw error;
+        console.log(error);
+        logger.error(`[${fileName} -> downloadFromS3] ${error.message}`);
+        throw new FileS3Error("Hubo un Error al descargar el archivo desde S3", error.message);
     }
 };

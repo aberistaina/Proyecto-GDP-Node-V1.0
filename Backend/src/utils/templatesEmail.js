@@ -1,5 +1,8 @@
 export const crearTemplateHtml = (email, asunto, token, username) => {
     let template;
+    if (!email || !asunto || !username || (asunto !== "registro" && asunto !== "passwordChanged" && !token)) {
+        throw new Error("Datos inválidos para crear el template del correo");
+    }
 
     if (asunto === "registro") {
         template = `

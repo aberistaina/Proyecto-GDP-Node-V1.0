@@ -1,15 +1,29 @@
-import logger from "./logger.js";
-import fs from "fs/promises";
 import * as cheerio from "cheerio"
 import { bpmnIcons } from "./bpmnIcons.js";
+import { BpmnError } from "../errors/TypeError.js";
+import { fileURLToPath } from "url";
+import logger from "./logger.js";
+import path from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const fileName = path.basename(__filename);
 
 export const getBpmnIcon = (type) => {
-  return bpmnIcons[type] || ""; // Devuelve el ícono si existe, si no, vacío
+    try {
+        return bpmnIcons[type] || ""; 
+    } catch (error) {
+        console.log(error);
+        logger.error(`[${fileName} -> getBpmnIcon] ${error.message}`);
+        throw new BpmnError(null, error.message);
+
+        
+    }
 };
 
 
 const extaerIdProceso = (xmlString) => {
-    if (xmlString.includes("bizagi")) {
+    try {
+        if (xmlString.includes("bizagi")) {
         const regex = /<process id="([^"]+)" name="([^"]+)">/g;
         let match;
         let counter = 0;
@@ -31,10 +45,16 @@ const extaerIdProceso = (xmlString) => {
     }
 
     return null;
+    } catch (error) {
+        console.log(error);
+        logger.error(`[${fileName} -> extaerIdProceso] ${error.message}`);
+        throw new BpmnError(null, error.message);
+    }
 };
 
 const extraerIdSubproceso = (xmlString) => {
-    const regex =
+    try {
+        const regex =
         /<(?:bpmn:)?callActivity\b[^>]*\bid="([^"]*)"[^>]*\bcalledElement="([^"]*)"[^>]*>(?:<\/\w+:callActivity>)?/g;
     let match;
     const resultados = [];
@@ -46,45 +66,37 @@ const extraerIdSubproceso = (xmlString) => {
         });
     }
     return resultados;
+    } catch (error) {
+        console.log(error);
+        logger.error(`[${fileName} -> extraerIdSubproceso] ${error.message}`);
+        throw new BpmnError(null, error.message);
+    }
 };
 
 export const extractSubProcessId = async (archivo) => {
-    const data = archivo.data.toString("utf8");
-    const result = extaerIdProceso(data);
-    return result;
+    try {
+        const data = archivo.data.toString("utf8");
+        const result = extaerIdProceso(data);
+        return result;
+    } catch (error) {
+        console.log(error);
+        logger.error(`[${fileName} -> extractSubProcessId] ${error.message}`);
+        throw new BpmnError(null, error.message);
+    }
 };
 
 const extraerDescripcionProceso = (xmlString) => {
-    const regex = /<bpmn:documentation>([\s\S]*?)<\/bpmn:documentation>/;
-    const match = xmlString.match(regex);
-
-    return match ? match[1].trim() : null;
-};
-
-/* export const changeCallElement = async (
-    xmlContent,
-    callActivity,
-    calledElement,
-    name
-) => {
     try {
+        const regex = /<bpmn:documentation>([\s\S]*?)<\/bpmn:documentation>/;
+        const match = xmlString.match(regex);
 
-        console.log(name);
-        //Buscar y reemplazar SOLO el callActivity específico (con o sin bpmn:)
-        const updatedXml = xmlContent.replace(
-            new RegExp(
-                `(<(?:bpmn:)?callActivity\\s+[^>]*?id="${callActivity}")([^>]*?)(name=")[^"]*(")([^>]*?)(calledElement=")[^"]*(")([^>]*?>)`,
-                "g"
-            ),
-            `$1$2$3${name}$4$5$6${calledElement}$7$8`
-        );
-
-        return updatedXml;
+        return match ? match[1].trim() : null;
     } catch (error) {
-        console.error(`❌ Error al modificar el archivo: ${error.message}`);
-        throw error;
+        console.log(error);
+        logger.error(`[${fileName} -> extraerDescripcionProceso] ${error.message}`);
+        throw new BpmnError(null, error.message);
     }
-}; */
+};
 
 export const changeCallElement = async (xmlContent, callActivity, calledElement, name) => {
   try {
@@ -97,7 +109,9 @@ export const changeCallElement = async (xmlContent, callActivity, calledElement,
 
 
     if (call.length === 0) {
-      throw new Error(`No se encontró el callActivity con ID: ${callActivity}`);
+        const msg = `No se encontró el callActivity con ID: ${callActivity}`;
+        logger.error(`[${fileName} -> changeCallElement - IF] ${msg}`);
+        throw new BpmnError(null, msg);
     }
 
     call.attr("name", name);
@@ -106,7 +120,8 @@ export const changeCallElement = async (xmlContent, callActivity, calledElement,
     return $.xml();
   } catch (error) {
     console.error(`❌ Error al modificar el archivo: ${error.message}`);
-    throw error;
+    logger.error(`[${fileName} -> changeCallElement] ${error.message}`)
+    throw new BpmnError(null, error.message);
   }
 };
 
@@ -126,8 +141,9 @@ export const extraerDatosBpmn = async (archivo) => {
         };
         return processData;
     } catch (error) {
-        logger.error("Utils extraerDatosBpmn", error);
         console.log(error);
+        logger.error(`[${fileName} -> extraerDatosBpmn] ${error.message}`)
+        throw new BpmnError(null, error.message);
     }
 };
 
@@ -167,12 +183,14 @@ export const extraerParticipantesBpmn = (xml) => {
     return propiedades;
   } catch (error) {
     console.error("Error extrayendo participantes del BPMN:", error);
+    
     return {
       responsable: [],
       consultado: [],
       informado: [],
       ejecutantes: [],
     };
+    
   }
 };
 

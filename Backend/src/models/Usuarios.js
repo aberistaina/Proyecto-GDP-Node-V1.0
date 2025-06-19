@@ -57,6 +57,7 @@ export default class Usuarios extends Model {
   }, {
     tableName: 'usuarios',
     timestamps: true,
+    paranoid: true,
     createdAt: 'created_at',
     updatedAt: false,
     indexes: [

@@ -1,6 +1,12 @@
-import { ValidationError } from "../errors/TypeError.js";
+import { ValidationError, NotFoundError } from "../errors/TypeError.js";
 import { isValidName, isValidEmail, isValidPassword } from "../utils/validators.js";
 import { Usuarios } from "../models/models.js";
+import { fileURLToPath } from "url";
+import logger from "../utils/logger.js";
+import path from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const fileName = path.basename(__filename);
 
 export const validateUserData = (nombre, email, password) => {
 
@@ -25,7 +31,8 @@ export const validateUserData = (nombre, email, password) => {
 
 export const userIfExist = async (email) => {
     
-    if (email) {
+    try {
+        if (email) {
         const userByEmail = await Usuarios.findOne({
             where: { email }
         });
@@ -35,20 +42,29 @@ export const userIfExist = async (email) => {
             });
         }
     }
+    } catch (error) {
+        console.log(error);
+        logger.error(`[${fileName} -> userIfExist] ${error.message}`);
+        throw new ValidationError("Error al validar existencia de usuario", error.message);
+    }
 }
 
 export const userNotExist = async (email) => {
     
-    if (email) {
+    try {
+        if (email) {
         const userByEmail = await Usuarios.findOne({
             where: { email }
         });
         if (!userByEmail) {
-            throw new ValidationError("Usuario no encontrado", {
-                field: "email",
-            });
+            throw new NotFoundError("Usuario no encontrado")
         }else{
             return userByEmail;
         }
+    }
+    } catch (error) {
+        console.log(error);
+        logger.error(`[${fileName} -> userNotExist] ${error.message}`);
+        throw new ValidationError("Error al validar existencia de usuario", error.message);
     }
 }

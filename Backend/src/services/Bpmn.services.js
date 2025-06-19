@@ -1,5 +1,11 @@
 import { Procesos, IntermediaProcesos, Aprobadores, VersionProceso } from "../models/models.js";
 import { ProcessError } from "../errors/TypeError.js";
+import { fileURLToPath } from "url";
+import logger from "../utils/logger.js";
+import path from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const fileName = path.basename(__filename);
 
 export const createProcessIfNotExist = async (
     idCreador,
@@ -51,8 +57,8 @@ export const createProcessIfNotExist = async (
             return await Procesos.findOne({ where: { id_bpmn: idProceso } });
         }
     } catch (error) {
-        console.warn(`⚠️ Proceso duplicado detectado (${idProceso}`);
         console.log(error);
+        logger.error(`[${fileName} -> createProcessIfNotExist] ${error.message}`);
         throw new ProcessError(
             "Hubo un error al guardar el proceso en la base de datos"
         );
@@ -95,6 +101,7 @@ export const createAssociation = async (
         }
     } catch (error) {
         console.log(error);
+        logger.error(`[${fileName} -> createAssociation] ${error.message}`);
         throw new ProcessError(
             "Hubo un error al almacenar la asociación del proceso en la base de datos"
         );
@@ -112,6 +119,10 @@ export const getProximoCiclo = async (id_version_proceso) => {
     return ultimo ? ultimo.ciclo_aprobacion + 1 : 1;
     } catch (error) {
         console.log(error);
+        logger.error(`[${fileName} -> getProximoCiclo] ${error.message}`);
+        throw new ProcessError(
+            "Hubo un error al obtener el próximo ciclo de validación"
+        );
     }
 };
 
@@ -134,5 +145,9 @@ export const obtenerUltimaVersionProceso = async (idProceso, version) =>{
         return versionAnterior
     } catch (error) {
         console.log(error);
+        logger.error(`[${fileName} -> obtenerUltimaVersionProceso] ${error.message}`);
+        throw new ProcessError(
+            "Hubo un error al obtener la última versión del proceso"
+        );
     }
 }

@@ -3,56 +3,17 @@ import mime from "mime-types";
 import { fileURLToPath } from "url";
 import fs from "fs"; //Debug, luego borrar
 import puppeteer from "puppeteer";
-import {
-    Procesos,
-    IntermediaProcesos,
-    Usuarios,
-    Aprobadores,
-    ComentariosVersionProceso,
-    VersionProceso,
-    OportunidadesMejora,
-    Niveles,
-    Cargo,
-    BitacoraAprobaciones,
-    ArchivosOportunidadesMejora,
-    ArchivosComentariosVersionProceso,
-} from "../models/models.js";
+import {Procesos, IntermediaProcesos, Usuarios, Aprobadores, VersionProceso, Cargo} from "../models/models.js";
 import logger from "../utils/logger.js";
-import {
-    changeCallElement,
-    extraerDatosBpmn,
-    formatFileName,
-    extraerParticipantesBpmn,
-} from "../utils/bpmnUtils.js";
+import { changeCallElement, extraerDatosBpmn, extraerParticipantesBpmn} from "../utils/bpmnUtils.js";
 import { formatearFecha, formatShortTime } from "../utils/formatearFecha.js";
-import {
-    createAssociation,
-    createProcessIfNotExist,
-    getProximoCiclo,
-    obtenerUltimaVersionProceso,
-} from "../services/Bpmn.services.js";
-import {
-    getDataFileBpmnFromS3,
-    uploadFileToS3,
-    downloadFromS3,
-    getFileFromS3Version,
-    getImageFromS3Version,
-} from "../services/s3Client.services.js";
-import { moveFile } from "../utils/uploadFile.js";
+import {createProcessIfNotExist} from "../services/Bpmn.services.js";
+import {getDataFileBpmnFromS3, uploadFileToS3, downloadFromS3, getFileFromS3Version, getImageFromS3Version} from "../services/s3Client.services.js";
 import { sequelize } from "../database/database.js";
-import { documentacionTemplate } from "../utils/documentacionTemplate.js";
 import { getAdminConfig } from "../services/admin.services.js";
-import {
-    getMacroProcessData,
-    getProcessData,
-} from "../services/documentacion.services.js";
-import {
-    generarContenidoMacroproceso,
-    generarPortada,
-    generarContenidoProceso,
-    generarTemplateFinal,
-} from "../utils/documentacion.js";
-import { isValidFilesExtension } from "../utils/validators.js";
+import {getMacroProcessData, getProcessData,} from "../services/documentacion.services.js";
+import {generarContenidoMacroproceso, generarPortada, generarContenidoProceso, generarTemplateFinal} from "../utils/documentacion.js";
+
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -68,6 +29,51 @@ export const getAllProcess = async (req, res, next) => {
         });
     } catch (error) {
         logger.error("Controlador getAllProcess", error);
+        console.log(error);
+        next(error);
+    }
+};
+
+//Función que obtiene los procesos de un nivel en específico
+export const getProcessByNivel = async (req, res, next) => {
+    try {
+        const { idNivel } = req.params;
+
+        const procesos = await Procesos.findAll({
+            include: [
+                {
+                    model: Usuarios,
+                    as: "id_creador_usuario",
+                    attributes: ["nombre"],
+                },
+                {
+                    model: VersionProceso,
+                    as: "version_procesos",
+                    attributes: ["nombre_version", "id_version_proceso"],
+                    where: { estado: "aprobado" },
+                    separate: true,
+                    limit: 1,
+                },
+            ],
+            where: {
+                id_nivel: idNivel,
+            },
+        });
+
+        const procesosMap = procesos.map((proceso) => ({
+            ...proceso.toJSON(),
+            created_at: formatShortTime(proceso.created_at),
+            creador: proceso.id_creador_usuario?.nombre,
+            version: proceso.version_procesos?.[0]?.id_version_proceso,
+        }));
+
+        res.status(200).json({
+            code: 200,
+            message: "Oportunidades obtenidas correctamente",
+            data: procesosMap,
+        });
+    } catch (error) {
+        logger.error("Controlador getProcessByNivel", error);
         console.log(error);
         next(error);
     }
@@ -222,6 +228,7 @@ export const connectSubprocess = async (req, res, next) => {
 export const saveNewProcessChanges = async (req, res, next) => {
     try {
         const { archivo, imagen } = req.files;
+        console.log(req.files);
         const {
             id_creador,
             aprobadores,
@@ -231,7 +238,7 @@ export const saveNewProcessChanges = async (req, res, next) => {
             esMacroproceso,
         } = req.body;
 
-        const { s3_bucket, s3_bucket_procesos } = await getAdminConfig();
+        const { s3_bucket, s3_bucket_procesos, s3_bucket_imagenes } = await getAdminConfig();
         const datoArchivo = await extraerDatosBpmn(archivo);
         const idProceso = datoArchivo.idProceso;
 
@@ -242,7 +249,7 @@ export const saveNewProcessChanges = async (req, res, next) => {
             });
         }
 
-        await createProcessIfNotExist(
+        const nuevoProceso = await createProcessIfNotExist(
             id_creador,
             idProceso,
             aprobadores,
@@ -260,12 +267,17 @@ export const saveNewProcessChanges = async (req, res, next) => {
             },
         });
 
-        await VersionProceso.create({
+        const nuevaVersion = await VersionProceso.create({
             id_creador,
             id_proceso: proceso.id_proceso,
             id_bpmn: idProceso,
             nombre_version: "1.0",
         });
+
+        const datosProceso = {
+            id_version_proceso: nuevaVersion.id_version_proceso,
+            id_bpmn: nuevoProceso.id_bpmn
+        }
 
         await uploadFileToS3(
             s3_bucket,
@@ -276,9 +288,19 @@ export const saveNewProcessChanges = async (req, res, next) => {
             "borrador"
         );
 
+        await uploadFileToS3(
+            s3_bucket,
+            `${s3_bucket_imagenes}/${idProceso}.png`,
+            imagen.data,
+            "image/png",
+            "1.0",
+            "borrador"
+        );
+
         res.status(201).json({
             code: 201,
             message: "Proceso Guardado Correctamente",
+            data: datosProceso
         });
     } catch (error) {
         logger.error("Controlador Save Changes", error);
@@ -344,261 +366,6 @@ export const getSubprocessesOfProcess = async (req, res, next) => {
         });
     } catch (error) {
         logger.error("Controlador Save Changes", error);
-        console.log(error);
-        next(error);
-    }
-};
-
-//Función que envía borrador para su aprobación
-export const enviarAprobacion = async (req, res, next) => {
-    try {
-        const { idProceso, version } = req.body;
-
-        const proceso = await Procesos.findOne({
-            where: {
-                id_bpmn: idProceso,
-            },
-        });
-
-        const aprobadores = await Usuarios.findAll({
-            where: {
-                id_cargo: proceso.id_aprobadores_cargo,
-            },
-        });
-
-        const versionProceso = await VersionProceso.findByPk(version);
-
-        await versionProceso.update({ estado: "enviado" });
-
-        const nuevoCiclo = await getProximoCiclo(version);
-        const cicloActual = nuevoCiclo - 1;
-
-        const cicloEnCurso = await Aprobadores.findOne({
-            where: {
-                id_version_proceso: version,
-                ciclo_aprobacion: cicloActual,
-            },
-        });
-
-        if (cicloEnCurso) {
-            return res.status(400).json({
-                code: 400,
-                message: `Ya existe una solicitud de aprobación activa para este Proceso.`,
-            });
-        }
-
-        for (const aprobador of aprobadores) {
-            await Aprobadores.create({
-                id_usuario: aprobador.id_usuario,
-                id_version_proceso: version,
-                estado: "pendiente",
-                ciclo_aprobacion: nuevoCiclo,
-            });
-        }
-
-        res.status(201).json({
-            code: 201,
-            message: "Proceso Enviado para su Aprobación",
-        });
-    } catch (error) {
-        logger.error("Controlador Enviar Aprobacion", error);
-        console.log(error);
-        next(error);
-    }
-};
-
-//Función que aprueba un borrador
-export const aprobarProceso = async (req, res, next) => {
-    const transaction = await sequelize.transaction();
-    try {
-        const { idProceso, id_usuario, version } = req.body;
-
-        const solicitud = await Aprobadores.findOne({
-            where: {
-                id_usuario,
-                id_version_proceso: version,
-            },
-            transaction,
-        });
-
-        const proceso = await Procesos.findOne({
-            where: {
-                id_bpmn: idProceso,
-            },
-            transaction,
-        });
-
-        if (!proceso) {
-            await transaction.rollback();
-            return res.status(400).json({
-                code: 400,
-                message: "No existe el proceso que está intentando aprobar",
-            });
-        }
-
-        if (!solicitud) {
-            await transaction.rollback();
-            return res.status(400).json({
-                code: 400,
-                message: "No existe la solicitud que está intentando aprobar",
-            });
-        }
-
-        await solicitud.update({ estado: "aprobado" }, { transaction });
-
-        const solicitudes = await Aprobadores.findAll({
-            where: {
-                id_version_proceso: version,
-            },
-            transaction,
-        });
-
-        const hayPendientes = solicitudes.some((s) => s.estado === "pendiente");
-        const hayRechazadas = solicitudes.some((s) => s.estado === "rechazado");
-        const solicitudesAprobadas = solicitudes.every(
-            (s) => s.estado === "aprobado"
-        );
-
-        if (solicitudesAprobadas) {
-            const versionBorrador = await VersionProceso.findByPk(version);
-            const nombreVersionBorradorAnterior = (
-                parseFloat(versionBorrador.nombre_version) - 0.1
-            ).toFixed(1);
-            const versionAnterior = await VersionProceso.findOne({
-                where: {
-                    id_bpmn: idProceso,
-                    nombre_version: nombreVersionBorradorAnterior,
-                },
-            });
-
-            if (versionAnterior) {
-                await versionAnterior.update(
-                    {
-                        estado: "inactivo",
-                    },
-                    { transaction }
-                );
-            }
-
-            await versionBorrador.update(
-                {
-                    estado: "aprobado",
-                },
-                { transaction }
-            );
-        } else if (hayRechazadas && !hayPendientes) {
-            await Aprobadores.destroy({
-                where: {
-                    id_version_proceso: version,
-                },
-                transaction,
-            });
-
-            const versionProceso = await VersionProceso.findOne({
-                where: {
-                    id_bpmn: idProceso,
-                    id_version_proceso: version,
-                },
-                transaction,
-            });
-
-            await versionProceso.update(
-                { estado: "rechazado" },
-                { transaction }
-            );
-        }
-
-        await transaction.commit();
-        res.status(200).json({
-            code: 200,
-            message: "Proceso Aprobado",
-        });
-    } catch (error) {
-        await transaction.rollback();
-        logger.error("Controlador Enviar Aprobacion", error);
-        console.log(error);
-        next(error);
-    }
-};
-
-//Función que rechaza un borrador
-export const rechazarProceso = async (req, res, next) => {
-    try {
-        const transaction = await sequelize.transaction();
-        const { idProceso, id_usuario, version } = req.body;
-
-        const solicitud = await Aprobadores.findOne({
-            where: {
-                id_usuario,
-                id_version_proceso: version,
-            },
-            transaction,
-        });
-
-        const proceso = await Procesos.findOne({
-            where: {
-                id_bpmn: idProceso,
-            },
-            transaction,
-        });
-
-        if (!proceso) {
-            await transaction.rollback();
-            return res.status(400).json({
-                code: 400,
-                message: "No existe el proceso que está intentando aprobar",
-            });
-        }
-
-        if (!solicitud) {
-            await transaction.rollback();
-            return res.status(400).json({
-                code: 400,
-                message: "No existe la solicitud que está intentando aprobar",
-            });
-        }
-
-        await solicitud.update({ estado: "rechazado" }, { transaction });
-
-        const solicitudes = await Aprobadores.findAll({
-            where: {
-                id_version_proceso: version,
-            },
-            transaction,
-        });
-
-        const hayPendientes = solicitudes.some((s) => s.estado === "pendiente");
-
-        if (!hayPendientes) {
-            await Aprobadores.destroy({
-                where: {
-                    id_version_proceso: version,
-                },
-                transaction,
-            });
-
-            const versionProceso = await VersionProceso.findOne({
-                where: {
-                    id_bpmn: idProceso,
-                    id_version_proceso: version,
-                },
-                transaction,
-            });
-
-            await versionProceso.update(
-                { estado: "rechazado" },
-                { transaction }
-            );
-        }
-
-        await transaction.commit();
-        res.status(200).json({
-            code: 200,
-            message: "Proceso Rechazado ",
-        });
-    } catch (error) {
-        await transaction.rollback();
-        logger.error("Controlador Enviar Aprobacion", error);
         console.log(error);
         next(error);
     }
@@ -844,265 +611,6 @@ export const getProcessSummary = async (req, res, next) => {
     }
 };
 
-//Funcion que crea los comentarios de la versión de un proceso
-export const createCommentary = async (req, res, next) => {
-    const transaction = await sequelize.transaction();
-    try {
-        const { idProceso, comentario, version, id_usuario } = req.body;
-        const { s3_bucket, s3_bucket_adjuntos } = await getAdminConfig();
-        const archivos = req.files?.archivos || null;
-
-        const nuevoComentario = await ComentariosVersionProceso.create(
-            {
-                id_usuario,
-                id_bpmn: idProceso,
-                comentario,
-                id_version_proceso: version,
-            },
-            { transaction }
-        );
-
-        const nombreVersion = await VersionProceso.findByPk(version, {
-            transaction,
-        });
-
-        if (archivos) {
-            const archivosArray = Array.isArray(archivos)
-                ? archivos
-                : [archivos];
-            for (const archivo of archivosArray) {
-                isValidFilesExtension(archivo);
-                const mimeType =
-                    mime.lookup(archivo.name) || "application/octet-stream";
-
-                await ArchivosComentariosVersionProceso.create(
-                    {
-                        id_comentario: nuevoComentario.id_comentario,
-                        nombre: archivo.name,
-                        s3_key: `${s3_bucket_adjuntos}/${archivo.name}`,
-                    },
-                    { transaction }
-                );
-
-                await uploadFileToS3(
-                    `${s3_bucket}`,
-                    `${s3_bucket_adjuntos}/${archivo.name}`,
-                    archivo.data,
-                    mimeType,
-                    `${nombreVersion.nombre_version}`,
-                    `${nombreVersion.estado}`
-                );
-            }
-        }
-
-        await transaction.commit();
-
-        res.status(201).json({
-            code: 201,
-            message: "Comentario creado correctamente",
-        });
-    } catch (error) {
-        logger.error("Controlador Crear Comentario", error);
-        console.log(error);
-        next(error);
-    }
-};
-
-//Función que obtiene los comentarios de la versión un proceso
-export const getCommentaries = async (req, res, next) => {
-    try {
-        const { idProceso, version } = req.params;
-
-        const comentarios = await ComentariosVersionProceso.findAll({
-            include: [
-                {
-                    model: Usuarios,
-                    as: "id_usuario_usuario",
-                    attributes: ["nombre"],
-                },
-            ],
-            where: {
-                id_bpmn: idProceso,
-                id_version_proceso: version,
-            },
-            order: [["created_at", "DESC"]],
-        });
-
-        const comentariosMap = comentarios.map((comentario) => {
-            const data = comentario.toJSON();
-            return {
-                ...data,
-                nombre_creador: comentario.id_usuario_usuario?.nombre,
-                created_at: formatShortTime(data.created_at),
-            };
-        });
-
-        res.status(202).json({
-            code: 202,
-            message: "Comentarios obtenidos correctamente",
-            data: comentariosMap,
-        });
-    } catch (error) {
-        logger.error("Controlador Obtener Comentarios", error);
-        console.log(error);
-        next(error);
-    }
-};
-
-//Función que obtiene los Archivos de un comentario
-export const getComentariesFiles = async (req, res, next) => {
-    try {
-        const { idComentario } = req.params;
-
-        const archivos = await ArchivosComentariosVersionProceso.findAll({
-            where: {
-                id_comentario: idComentario,
-            },
-        });
-
-
-        res.status(202).json({
-            code: 202,
-            message: "Archivos obtenidos correctamente",
-            data: archivos,
-        });
-    } catch (error) {
-        logger.error("Controlador getComentariesFiles", error);
-        console.log(error);
-        next(error);
-    }
-};
-
-//Funcion que crea las oportunidades de la versión de un proceso
-export const createOppotunity = async (req, res, next) => {
-    const transaction = await sequelize.transaction();
-    try {
-        const { s3_bucket, s3_bucket_adjuntos } = await getAdminConfig();
-        const { idProceso, descripcion, asunto, version, id_usuario } =
-            req.body;
-        const archivos = req.files?.archivos || null;
-
-        const nuevaOportunidad = await OportunidadesMejora.create(
-            {
-                id_usuario,
-                id_bpmn: idProceso,
-                asunto,
-                descripcion,
-                id_version_proceso: version,
-            },
-            { transaction }
-        );
-
-        const nombreVersion = await VersionProceso.findByPk(version, {
-            transaction,
-        });
-
-        if (archivos) {
-            const archivosArray = Array.isArray(archivos)
-                ? archivos
-                : [archivos];
-            for (const archivo of archivosArray) {
-                isValidFilesExtension(archivo);
-                const mimeType =
-                    mime.lookup(archivo.name) || "application/octet-stream";
-
-                await ArchivosOportunidadesMejora.create(
-                    {
-                        id_oportunidad: nuevaOportunidad.id_oportunidad,
-                        nombre: archivo.name,
-                        s3_key: `${s3_bucket_adjuntos}/${archivo.name}`,
-                    },
-                    { transaction }
-                );
-
-                await uploadFileToS3(
-                    `${s3_bucket}`,
-                    `${s3_bucket_adjuntos}/${archivo.name}`,
-                    archivo.data,
-                    mimeType,
-                    `${nombreVersion.nombre_version}`,
-                    `${nombreVersion.estado}`
-                );
-            }
-        }
-
-        await transaction.commit();
-        res.status(201).json({
-            code: 201,
-            message: "Oportunidad creada correctamente",
-        });
-    } catch (error) {
-        await transaction.rollback();
-        logger.error("Controlador Crear Oportunidad", error);
-        console.log(error);
-        next(error);
-    }
-};
-
-//Funcion que obtiene las oportunidades de la versión de un proceso
-export const getOpportunities = async (req, res, next) => {
-    try {
-        const { idProceso, version } = req.params;
-
-        let oportunidades = await OportunidadesMejora.findAll({
-            include: [
-                {
-                    model: Usuarios,
-                    as: "id_usuario_usuario",
-                    attributes: ["nombre"],
-                },
-            ],
-            where: {
-                id_bpmn: idProceso,
-                id_version_proceso: version,
-            },
-            order: [["created_at", "DESC"]],
-        });
-
-        const oportunidadesMap = oportunidades.map((oportunidad) => {
-            const data = oportunidad.toJSON();
-            return {
-                ...data,
-                nombre_creador: oportunidad.id_usuario_usuario?.nombre,
-                created_at: formatShortTime(data.created_at),
-            };
-        });
-
-        res.status(200).json({
-            code: 200,
-            message: "Oportunidades obtenidas correctamente",
-            data: oportunidadesMap,
-        });
-    } catch (error) {
-        logger.error("Controlador Crear Oportunidad", error);
-        console.log(error);
-        next(error);
-    }
-};
-
-//Función que obtiene los Archivos de una oportunidad
-export const getOpportunitiesFiles = async (req, res, next) => {
-    try {
-        const { idComentario } = req.params;
-
-        const archivos = await ArchivosOportunidadesMejora.findAll({
-            where: {
-                id_oportunidad: idComentario,
-            },
-        });
-
-        res.status(202).json({
-            code: 202,
-            message: "Archivos obtenidos correctamente",
-            data: archivos,
-        });
-    } catch (error) {
-        logger.error("Controlador getComentariesFiles", error);
-        console.log(error);
-        next(error);
-    }
-};
-
 //Función Para descargar un proceso
 export const downloadFiles = async (req, res, next) => {
     try {
@@ -1125,92 +633,6 @@ export const downloadFiles = async (req, res, next) => {
         Body.pipe(res);
     } catch (error) {
         logger.error("Controlador downloadProcess", error);
-        console.log(error);
-        next(error);
-    }
-};
-
-//Función que obtiene los niveles de los procesos
-export const getNiveles = async (req, res, next) => {
-    try {
-        const niveles = await Niveles.findAll();
-
-        res.status(200).json({
-            code: 200,
-            message: "Oportunidades obtenidas correctamente",
-            data: niveles,
-        });
-    } catch (error) {
-        logger.error("Controlador Obtener Niveles", error);
-        console.log(error);
-        next(error);
-    }
-};
-
-//Función que obtiene un niveles de proceso por ID
-export const getNivelById = async (req, res, next) => {
-    try {
-        const { idNivel } = req.params;
-
-        const nivel = await Niveles.findOne({
-            attributes: ["id_nivel", "nombre"],
-            where: {
-                id_nivel: idNivel,
-            },
-        });
-
-        res.status(200).json({
-            code: 200,
-            message: "Nivel Obtenido correctamente",
-            data: nivel,
-        });
-    } catch (error) {
-        logger.error("Controlador getNivelById", error);
-        console.log(error);
-        next(error);
-    }
-};
-
-//Función que obtiene los procesos de un nivel en específico
-export const getProcessByNivel = async (req, res, next) => {
-    try {
-        const { idNivel } = req.params;
-
-        const procesos = await Procesos.findAll({
-            include: [
-                {
-                    model: Usuarios,
-                    as: "id_creador_usuario",
-                    attributes: ["nombre"],
-                },
-                {
-                    model: VersionProceso,
-                    as: "version_procesos",
-                    attributes: ["nombre_version", "id_version_proceso"],
-                    where: { estado: "aprobado" },
-                    separate: true,
-                    limit: 1,
-                },
-            ],
-            where: {
-                id_nivel: idNivel,
-            },
-        });
-
-        const procesosMap = procesos.map((proceso) => ({
-            ...proceso.toJSON(),
-            created_at: formatShortTime(proceso.created_at),
-            creador: proceso.id_creador_usuario?.nombre,
-            version: proceso.version_procesos?.[0]?.id_version_proceso,
-        }));
-
-        res.status(200).json({
-            code: 200,
-            message: "Oportunidades obtenidas correctamente",
-            data: procesosMap,
-        });
-    } catch (error) {
-        logger.error("Controlador getProcessByNivel", error);
         console.log(error);
         next(error);
     }
@@ -1279,15 +701,15 @@ export const getProcessVersions = async (req, res, next) => {
 
 //Función para crear o guardar cambios de  una nueva versión de un proceso
 export const createNewProcessVersion = async (req, res, next) => {
+    const transaction = await sequelize.transaction();
     try {
         const { idProceso, version, id_creador } = req.body;
         const { archivo, imagen } = req.files;
-        const { s3_bucket, s3_bucket_procesos, s3_bucket_imagenes } =
-            await getAdminConfig();
+        const { s3_bucket, s3_bucket_procesos, s3_bucket_imagenes } = await getAdminConfig();
 
         const proceso = await Procesos.findOne({
             where: { id_bpmn: idProceso },
-        });
+        }, transaction);
 
         const versionBase = await VersionProceso.findByPk(version);
         if (!versionBase) {
@@ -1302,7 +724,7 @@ export const createNewProcessVersion = async (req, res, next) => {
                 id_bpmn: idProceso,
                 estado: "borrador",
             },
-        });
+        }, transaction);
 
         if (borradorAcutal) {
             await uploadFileToS3(
@@ -1338,14 +760,14 @@ export const createNewProcessVersion = async (req, res, next) => {
                 id_bpmn: idProceso,
                 nombre_version: nuevaVersion,
             },
-        });
+        }, transaction);
 
         const borrador = await VersionProceso.findOne({
             where: {
                 id_bpmn: idProceso,
                 estado: "borrador",
             },
-        });
+        },transaction);
 
         if (versionSuperior && borrador) {
             return res.status(409).json({
@@ -1361,15 +783,16 @@ export const createNewProcessVersion = async (req, res, next) => {
             });
         }
 
-        await VersionProceso.create({
+        const nuevaVersionCreada = await VersionProceso.create({
             id_proceso: proceso.id_proceso,
             id_creador,
             id_aprobador: ultimaVersion.id_aprobador,
             nombre_version: nuevaVersion,
             estado: "borrador",
             id_bpmn: idProceso,
-        });
+        }, { transaction });
 
+        
         await uploadFileToS3(
             `${s3_bucket}`,
             `${s3_bucket_imagenes}/${idProceso}.png`,
@@ -1378,74 +801,15 @@ export const createNewProcessVersion = async (req, res, next) => {
             nuevaVersion,
             "borrador"
         );
-
+        await transaction.commit();
         res.status(201).json({
             code: 201,
             message: "Borrador creado con éxito",
+            data: nuevaVersionCreada
         });
     } catch (error) {
+        await transaction.rollback();
         logger.error("Controlador createNewProcessVersion", error);
-        console.log(error);
-        next(error);
-    }
-};
-
-//Función para crear un nuevo comentario en la bitácora
-export const createNewBitacoraMessage = async (req, res, next) => {
-    try {
-        const { comentario, version, id_usuario } = req.body;
-
-        await BitacoraAprobaciones.create({
-            id_version_proceso: version,
-            id_usuario: id_usuario,
-            comentario,
-        });
-        res.status(201).json({
-            code: 201,
-            message: "Comentario creado con éxito",
-        });
-    } catch (error) {
-        logger.error("Controlador createNewBitacoraMessage", error);
-        console.log(error);
-        next(error);
-    }
-};
-
-//Función para crear obtener los comentario de la bitácora
-export const getBitacoraMessages = async (req, res, next) => {
-    try {
-        const { version } = req.params;
-
-        const comentarios = await BitacoraAprobaciones.findAll({
-            include: [
-                {
-                    model: Usuarios,
-                    as: "usuario",
-                    attributes: ["nombre"],
-                },
-            ],
-            where: {
-                id_version_proceso: version,
-            },
-            order: [["created_at", "DESC"]],
-        });
-
-        const comentariosMap = comentarios.map((comentario) => {
-            const data = comentario.toJSON();
-            return {
-                ...data,
-                nombre_creador: comentario.id_usuario_usuario?.nombre,
-                created_at: formatShortTime(data.created_at),
-            };
-        });
-
-        res.status(200).json({
-            code: 200,
-            message: "Comentarios obtenidos correctamente",
-            data: comentariosMap,
-        });
-    } catch (error) {
-        logger.error("Controlador getBitacoraMessages", error);
         console.log(error);
         next(error);
     }

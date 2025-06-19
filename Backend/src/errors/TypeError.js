@@ -63,3 +63,15 @@ export class FileError extends CustomError {
         super(message || "Error Al guardar el archivo", 500, details);
     }
 }
+
+export class BpmnError extends CustomError {
+    constructor(message, details) {
+        super(message || "Error al procesar el modelo", 500, details);
+    }
+}
+
+export class FileS3Error extends CustomError {
+    constructor(message, details) {
+        super(message || "Error con S3", 500, details);
+    }
+}

@@ -1,25 +1,22 @@
-import {
-    Procesos,
-    IntermediaProcesos,
-    Usuarios,
-    Aprobadores,
-    ComentariosVersionProceso,
-    VersionProceso,
-    OportunidadesMejora,
-    Niveles,
-    Cargo,
-    Roles,
-    Administracion,
-} from "../models/models.js";
+import { Usuarios, VersionProceso, Niveles, Cargo, Roles, Administracion } from "../models/models.js";
 import crypto from "crypto";
+import {  extraerDatosBpmn } from "../utils/bpmnUtils.js";
+import { adminValidation } from "../services/admin.services.js";
+import { FileError, NotFoundError } from "../errors/TypeError.js";
 import { formatShortTime } from "../utils/formatearFecha.js";
-import logger from "../utils/logger.js";
 import { userIfExist } from "../services/validateUserData.js";
 import { hashPassword } from "../services/auth.services.js";
 import { getAdminConfig } from "../services/admin.services.js";
 import { sequelize } from "../database/database.js";
 import { createProcessIfNotExist, createAssociation } from "../services/Bpmn.services.js";
 import { uploadFileToS3 } from "../services/s3Client.services.js";
+import logger from "../utils/logger.js";
+import { fileURLToPath } from "url";
+import path from "path";
+
+
+const __filename = fileURLToPath(import.meta.url);
+const fileName = path.basename(__filename);
 
 
 //CRUD Usuarios
@@ -38,6 +35,10 @@ export const getAllUsers = async (req, res, next) => {
                 },
             ],
         });
+
+        if(usuarios.length === 0){
+            throw new NotFoundError("No existen usuarios en la base de datos")
+        }
 
         const usuariosMap = usuarios.map((usuario) => {
             const data = usuario.toJSON();
@@ -58,7 +59,7 @@ export const getAllUsers = async (req, res, next) => {
             data: usuariosMap,
         });
     } catch (error) {
-        logger.error("Controlador getAllUsers", error);
+        logger.error(`[${fileName} -> getAllUsers] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -75,10 +76,7 @@ export const getUserById = async (req, res, next) => {
         });
 
         if (!usuario) {
-            res.status(400).json({
-                code: 400,
-                message: "No existe este usuario en la base de datos",
-            });
+            throw new NotFoundError("No existe el usuario en la base de datos")
         }
 
         res.status(200).json({
@@ -87,7 +85,7 @@ export const getUserById = async (req, res, next) => {
             data: usuario,
         });
     } catch (error) {
-        logger.error("Controlador getUserById", error);
+        logger.error(`[${fileName} -> getUserById] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -101,18 +99,10 @@ export const updateUser = async (req, res, next) => {
         const usuario = await Usuarios.findByPk(id);
 
         if (!usuario) {
-            res.status(400).json({
-                code: 400,
-                message: "No existe este usuario en la base de datos",
-            });
+            throw new NotFoundError("No existe el usuario en la base de datos")
         }
 
-        const updateUser = {
-            id_rol,
-            id_cargo,
-            nombre,
-            email,
-        };
+        const updateUser = { id_rol, id_cargo, nombre, email,};
 
         if (id_jefe_directo !== undefined && id_jefe_directo !== "") {
             updateUser.id_jefe_directo = id_jefe_directo;
@@ -129,7 +119,7 @@ export const updateUser = async (req, res, next) => {
             message: "Usuario Actualizado Correctamente",
         });
     } catch (error) {
-        logger.error("Controlador updateUser", error);
+        logger.error(`[${fileName} -> updateUser] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -142,13 +132,10 @@ export const deleteUser = async (req, res, next) => {
         const user = await Usuarios.findOne({ where: { id_usuario: id } });
 
         if (!user) {
-            res.status(400).json({
-                code: 400,
-                message: "No existe este usuario en la base de datos",
-            });
+            throw new NotFoundError("No existe el usuario en la base de datos")
         }
 
-        Usuarios.destroy({
+        await Usuarios.destroy({
             where: {
                 id_usuario: id,
             },
@@ -156,38 +143,39 @@ export const deleteUser = async (req, res, next) => {
 
         res.status(200).json({
             code: 200,
-            message: "Usuarios Eliminado con éxito",
+            message: "Usuario Eliminado con éxito",
         });
     } catch (error) {
-        logger.error("Controlador deleteUser", error);
+        logger.error(`[${fileName} -> deleteUser] ${error.message}`);
         console.log(error);
         next(error);
     }
 };
 
 export const createUser = async (req, res, next) => {
-    const { nombre, email, id_rol, id_cargo, id_jefe_directo } = req.body;
-
-    await userIfExist(email);
-    const password = crypto.randomBytes(16).toString("hex");
-
-    const hash = hashPassword(password);
-
-    await Usuarios.create({
-        nombre,
-        email,
-        password_hash: hash,
-        id_rol,
-        id_cargo,
-        id_jefe_directo,
-    });
+    
     try {
+        const { nombre, email, id_rol, id_cargo, id_jefe_directo } = req.body;
+
+        await userIfExist(email);
+        const password = crypto.randomBytes(16).toString("hex");
+
+        const hash = hashPassword(password);
+
+        await Usuarios.create({
+            nombre,
+            email,
+            password_hash: hash,
+            id_rol,
+            id_cargo,
+            id_jefe_directo,
+        });
         res.status(201).json({
             code: 201,
             message: "Usuario Creado con éxito",
         });
     } catch (error) {
-        logger.error("Controlador createUser", error);
+        logger.error(`[${fileName} -> createUser] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -197,13 +185,17 @@ export const createUser = async (req, res, next) => {
 export const getAllRoles = async (req, res, next) => {
     try {
         const roles = await Roles.findAll();
+
+        if(roles.length === 0){
+            throw new NotFoundError("No Roles en la base de datos")
+        }
         res.status(200).json({
             code: 200,
             message: "Roles Encontrados con éxito",
             data: roles,
         });
     } catch (error) {
-        logger.error("Controlador getAllRoles", error);
+        logger.error(`[${fileName} -> getAllRoles] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -220,10 +212,7 @@ export const getRolById = async (req, res, next) => {
         });
 
         if (!rol) {
-            res.status(400).json({
-                code: 400,
-                message: "No existe este rol en la base de datos",
-            });
+            throw new NotFoundError("No Existe el rol en la base de datos")
         }
 
         res.status(200).json({
@@ -232,7 +221,7 @@ export const getRolById = async (req, res, next) => {
             data: rol,
         });
     } catch (error) {
-        logger.error("Controlador getRolById", error);
+        logger.error(`[${fileName} -> getRolById] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -246,10 +235,7 @@ export const updateRol = async (req, res, next) => {
         const rol = await Roles.findByPk(id);
 
         if (!rol) {
-            res.status(400).json({
-                code: 400,
-                message: "No existe este rol en la base de datos",
-            });
+            throw new NotFoundError("No Existe el rol en la base de datos")
         }
 
         await Roles.update(
@@ -268,7 +254,7 @@ export const updateRol = async (req, res, next) => {
             message: "Rol Actualizado Correctamente",
         });
     } catch (error) {
-        logger.error("Controlador updateRoles", error);
+        logger.error(`[${fileName} -> updateRol] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -281,13 +267,10 @@ export const deleteRol = async (req, res, next) => {
         const rol = await Roles.findByPk(id);
 
         if (!rol) {
-            res.status(400).json({
-                code: 400,
-                message: "No existe este rol en la base de datos",
-            });
+            throw new NotFoundError("No Existe el rol en la base de datos")
         }
 
-        Roles.destroy({
+        await Roles.destroy({
             where: {
                 id_rol: id,
             },
@@ -298,7 +281,7 @@ export const deleteRol = async (req, res, next) => {
             message: "Rol Eliminado con éxito",
         });
     } catch (error) {
-        logger.error("Controlador deleteRoles", error);
+        logger.error(`[${fileName} -> deleteRol] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -311,10 +294,7 @@ export const createRol = async (req, res, next) => {
         const roles = await Roles.findOne({ where: { nombre } });
 
         if (roles) {
-            res.status(400).json({
-                code: 400,
-                message: "Ya existe un Rol con este nombre",
-            });
+            throw new NotFoundError("Ya existe un rol con ese nombre")
         }
 
         await Roles.create({
@@ -326,7 +306,7 @@ export const createRol = async (req, res, next) => {
             message: "Rol Creado Correctamente",
         });
     } catch (error) {
-        logger.error("Controlador createRoles", error);
+        logger.error(`[${fileName} -> createRol] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -336,13 +316,17 @@ export const createRol = async (req, res, next) => {
 export const getAllCargos = async (req, res, next) => {
     try {
         const cargos = await Cargo.findAll();
+
+        if(cargos.length === 0){
+            throw new NotFoundError("No existen cargos en la base de datos")
+        }
         res.status(200).json({
             code: 200,
             message: "Cargos Encontrados con éxito",
             data: cargos,
         });
     } catch (error) {
-        logger.error("Controlador getAllCargos", error);
+        logger.error(`[${fileName} -> getAllCargos] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -359,10 +343,7 @@ export const getCargoById = async (req, res, next) => {
         });
 
         if (!cargo) {
-            res.status(400).json({
-                code: 400,
-                message: "No existe este cargo en la base de datos",
-            });
+            throw new NotFoundError("No existe este cargo en la base de datos")
         }
 
         res.status(200).json({
@@ -371,7 +352,7 @@ export const getCargoById = async (req, res, next) => {
             data: cargo,
         });
     } catch (error) {
-        logger.error("Controlador getCargoById", error);
+        logger.error(`[${fileName} -> getCargoById] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -385,10 +366,7 @@ export const updateCargo = async (req, res, next) => {
         const cargo = await Cargo.findByPk(id);
 
         if (!cargo) {
-            res.status(400).json({
-                code: 400,
-                message: "No existe este cargo en la base de datos",
-            });
+            throw new NotFoundError("No existe este cargo en la base de datos")
         }
 
         await Cargo.update(
@@ -407,7 +385,7 @@ export const updateCargo = async (req, res, next) => {
             message: "Cargo Actualizado Correctamente",
         });
     } catch (error) {
-        logger.error("Controlador updateCargos", error);
+        logger.error(`[${fileName} -> updateCargo] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -420,13 +398,10 @@ export const deleteCargo = async (req, res, next) => {
         const cargo = await Cargo.findByPk(id);
 
         if (!cargo) {
-            res.status(400).json({
-                code: 400,
-                message: "No existe este cargo en la base de datos",
-            });
+            throw new NotFoundError("No existe este cargo en la base de datos")
         }
 
-        Cargo.destroy({
+        await Cargo.destroy({
             where: {
                 id_cargo: id,
             },
@@ -437,7 +412,7 @@ export const deleteCargo = async (req, res, next) => {
             message: "Cargo Eliminado con éxito",
         });
     } catch (error) {
-        logger.error("Controlador deleteCargos", error);
+        logger.error(`[${fileName} -> deleteCargo] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -450,10 +425,7 @@ export const createCargo = async (req, res, next) => {
         const cargo = await Cargo.findOne({ where: { nombre } });
 
         if (cargo) {
-            res.status(400).json({
-                code: 400,
-                message: "Ya existe un Cargo con este nombre",
-            });
+            throw new NotFoundError("Ya existe un cargo con ese nombre")
         }
 
         await Cargo.create({
@@ -466,7 +438,7 @@ export const createCargo = async (req, res, next) => {
             message: "Cargo Creado Correctamente",
         });
     } catch (error) {
-        logger.error("Controlador createCargos", error);
+        logger.error(`[${fileName} -> createCargo] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -476,13 +448,17 @@ export const createCargo = async (req, res, next) => {
 export const getAllNiveles = async (req, res, next) => {
     try {
         const niveles = await Niveles.findAll();
+
+        if(niveles.length === 0){
+            throw new NotFoundError("No hay niveles en la base de datos")
+        }
         res.status(200).json({
             code: 200,
             message: "Niveles Encontrados con éxito",
             data: niveles,
         });
     } catch (error) {
-        logger.error("Controlador getAllNiveles", error);
+        logger.error(`[${fileName} -> getAllNiveles] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -499,10 +475,7 @@ export const getNivelById = async (req, res, next) => {
         });
 
         if (!nivel) {
-            res.status(400).json({
-                code: 400,
-                message: "No existe este nivel en la base de datos",
-            });
+            throw new NotFoundError("No existe el nivel en la base de datos")
         }
 
         res.status(200).json({
@@ -511,7 +484,7 @@ export const getNivelById = async (req, res, next) => {
             data: nivel,
         });
     } catch (error) {
-        logger.error("Controlador getNivelById", error);
+        logger.error(`[${fileName} -> getNivelById] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -525,10 +498,7 @@ export const updateNivel = async (req, res, next) => {
         const nivel = await Niveles.findByPk(id);
 
         if (!nivel) {
-            res.status(400).json({
-                code: 400,
-                message: "No existe este nivel en la base de datos",
-            });
+            throw new NotFoundError("No existe el nivel en la base de datos")
         }
 
         await Niveles.update(
@@ -546,7 +516,7 @@ export const updateNivel = async (req, res, next) => {
             message: "Nivel Modificado Correctamente",
         });
     } catch (error) {
-        logger.error("Controlador updateNiveles", error);
+        logger.error(`[${fileName} -> updateNivel] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -559,13 +529,10 @@ export const deleteNivel = async (req, res, next) => {
         const nivel = await Niveles.findByPk(id);
 
         if (!nivel) {
-            res.status(400).json({
-                code: 400,
-                message: "No existe este nivel en la base de datos",
-            });
+            throw new NotFoundError("No existe el nivel en la base de datos")
         }
 
-        Niveles.destroy({
+        await Niveles.destroy({
             where: {
                 id_nivel: id,
             },
@@ -576,7 +543,7 @@ export const deleteNivel = async (req, res, next) => {
             message: "Nivel Eliminado con éxito",
         });
     } catch (error) {
-        logger.error("Controlador deleteNiveles", error);
+        logger.error(`[${fileName} -> deleteNivel] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -589,10 +556,7 @@ export const createNivel = async (req, res, next) => {
         const nivel = await Niveles.findOne({ where: { nombre } });
 
         if (nivel) {
-            res.status(400).json({
-                code: 400,
-                message: "Ya existe un Nivel con este nombre",
-            });
+            throw new NotFoundError("Ya existe un Nivel con este nombre")
         }
 
         await Niveles.create({
@@ -604,7 +568,7 @@ export const createNivel = async (req, res, next) => {
             message: "Nivel Creado Correctamente",
         });
     } catch (error) {
-        logger.error("Controlador createNiveles", error);
+        logger.error(`[${fileName} -> createNivel] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -614,17 +578,9 @@ export const createNivel = async (req, res, next) => {
 
 export const setAdminConfig = async (req, res, next) => {
     try {
-        const {
-            bucket,
-            procesos,
-            adjuntos,
-            imagenes,
-            documentacion,
-            tokenSesionValor,
-            tokenSesionUnidad,
-            tokenRecuperacionValor,
-            tokenRecuperacionUnidad,
-        } = req.body;
+        const {bucket, procesos, adjuntos, imagenes, documentacion, tokenSesionValor, tokenSesionUnidad,tokenRecuperacionValor, tokenRecuperacionUnidad} = req.body;
+        
+        adminValidation(bucket, procesos, adjuntos, imagenes, documentacion, tokenSesionValor, tokenSesionUnidad,tokenRecuperacionValor, tokenRecuperacionUnidad)
 
         const data = {
             token_expiracion_login: `${tokenSesionValor}${tokenSesionUnidad}`,
@@ -640,10 +596,10 @@ export const setAdminConfig = async (req, res, next) => {
 
         res.status(200).json({
             code: 200,
-            message: "Usuarios Encontrados con éxito",
+            message: "Configuración Guardada con éxito",
         });
     } catch (error) {
-        logger.error("Controlador getAllProcess", error);
+        logger.error(`[${fileName} -> setAdminConfig] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -667,11 +623,11 @@ export const getAdminDataConfig = async (req, res, next) => {
 
         res.status(200).json({
             code: 200,
-            message: "Usuarios Encontrados con éxito",
+            message: "Configuración obtenida exitosamente",
             data: config,
         });
     } catch (error) {
-        logger.error("Controlador getAllProcess", error);
+        logger.error(`[${fileName} -> getAdminDataConfig] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -687,6 +643,18 @@ export const getCardData = async (req, res, next) => {
             attributes: { exclude: ["password_hash"] },
         });
 
+        if(niveles.length === 0){
+            throw new NotFoundError("No existen niveles en la base de datos")
+        }
+        if(cargos.length === 0){
+            throw new NotFoundError("No existen cargos en la base de datos")
+        }
+        if(roles.length === 0){
+            throw new NotFoundError("No existen roles en la base de datos")
+        }
+        if(usuarios.length === 0){
+            throw new NotFoundError("No existen usuarios en la base de datos")
+        }
         const cardsData = {
             usuarios: usuarios.length,
             cargos: cargos.length,
@@ -696,11 +664,11 @@ export const getCardData = async (req, res, next) => {
 
         res.status(200).json({
             code: 200,
-            message: "Roles Encontrados con éxito",
+            message: "Datos Encontrados con éxito",
             data: cardsData,
         });
     } catch (error) {
-        logger.error("Controlador getAllProcess", error);
+        logger.error(`[${fileName} -> getUserById] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -714,6 +682,18 @@ export const getEntidades = async (req, res, next) => {
         const usuarios = await Usuarios.findAll({
             attributes: ["id_usuario", "nombre"],
         });
+        if(niveles.length === 0){
+            throw new NotFoundError("No existen niveles en la base de datos")
+        }
+        if(cargos.length === 0){
+            throw new NotFoundError("No existen cargos en la base de datos")
+        }
+        if(roles.length === 0){
+            throw new NotFoundError("No existen roles en la base de datos")
+        }
+        if(usuarios.length === 0){
+            throw new NotFoundError("No existen usuarios en la base de datos")
+        }
 
         const entidades = {
             cargos,
@@ -728,7 +708,7 @@ export const getEntidades = async (req, res, next) => {
             data: entidades,
         });
     } catch (error) {
-        logger.error("Controlador getEntidades", error);
+        logger.error(`[${fileName} -> getEntidades] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -740,10 +720,7 @@ export const uploadProcess = async (req, res, next) => {
     const transaction = await sequelize.transaction();
     try {
         if (!req.files || Object.keys(req.files).length === 0) {
-            return res.status(400).json({
-                code: 400,
-                message: "No se ha subido ningún archivo.",
-            });
+            throw new FileError("No se adjuntaron archivos")
         }
         const { archivos } = req.files;
         const { id_aprobador, id_creador, id_nivel } = req.body;
@@ -845,7 +822,7 @@ export const uploadProcess = async (req, res, next) => {
         });
     } catch (error) {
         await transaction.rollback();
-        logger.error("Controlador Cargar Proceso", error);
+        logger.error(`[${fileName} -> uploadProcess] ${error.message}`);
         console.log(error);
         next(error);
     }

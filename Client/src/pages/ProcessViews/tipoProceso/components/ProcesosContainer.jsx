@@ -23,7 +23,7 @@ export const ProcesosContainer = () => {
                 if (!procesoActual) {
                     // En nivel raíz: cargar macroprocesos
                     const resNivel = await fetch(
-                        `${URL}/api/v1/procesos/get-nivel/${idNivel}`, {credentials: "include"}
+                        `${URL}/api/v1/niveles/get-nivel/${idNivel}`, {credentials: "include"}
                     );
                     const dataNivel = await resNivel.json();
                     setNivelActual(dataNivel.data);

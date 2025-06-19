@@ -7,6 +7,11 @@ import externalAuthRoutes  from "./routes/externalAuth.routes.js"
 import processRoutes  from "./routes/procesos.routes.js"
 import aprobadoresRoutes  from "./routes/aprobadores.routes.js"
 import adminRoutes  from "./routes/admin.routes.js"
+import comentariosRoutes  from "./routes/comentarios.routes.js"
+import bitacoraRoutes  from "./routes/bitacora.routes.js"
+import oportunidadesRoutes  from "./routes/oportunidades.routes.js"
+import cargosRoutes  from "./routes/cargos.routes.js"
+import nivelesRoutes  from "./routes/niveles.routes.js"
 import {errorHandler} from "./middlewares/errors.middlewares.js"
 
 //Importaciones Para autenticación con SAML
@@ -60,6 +65,11 @@ app.use("/api/v1/externalAuth", externalAuthRoutes)
 app.use("/api/v1/procesos", processRoutes)
 app.use("/api/v1/aprobadores", aprobadoresRoutes)
 app.use("/api/v1/admin", adminRoutes)
+app.use("/api/v1/comentarios", comentariosRoutes)
+app.use("/api/v1/oportunidades", oportunidadesRoutes)
+app.use("/api/v1/bitacora", bitacoraRoutes)
+app.use("/api/v1/niveles", nivelesRoutes)
+app.use("/api/v1/cargos", cargosRoutes)
 
 
 //Errors Handler

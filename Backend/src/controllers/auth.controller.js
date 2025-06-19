@@ -1,24 +1,28 @@
 import { Usuarios, Token } from "../models/models.js";
+import jwt from "jsonwebtoken";
 import { createToken, hashPassword, verifyToken } from "../services/auth.services.js";
-import {
-    validateUserData,
-    userIfExist,
-    userNotExist,
-} from "../services/validateUserData.js";
-import { AuthenticationError } from "../errors/TypeError.js";
+import { validateUserData, userIfExist, userNotExist } from "../services/validateUserData.js";
+import { AuthenticationError, NotFoundError } from "../errors/TypeError.js";
 import { normalizeEmail } from "../utils/normalize.js";
 import logger from "../utils/logger.js";
 import { sendEmail } from "../services/email.services.js";
 import { getAdminConfig } from "../services/admin.services.js";
+import { fileURLToPath } from "url";
+import path from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const fileName = path.basename(__filename);
 
 const { token_expiracion_password } = await getAdminConfig()
 
 export const createUser = async (req, res, next) => {
+    const transaction = await sequelize.transaction();
     try {
         const { nombre, email, password, empresa } = req.body;
 
         //Se valida que el usuario no exista en la base de datos
         await userIfExist(email);
+
         //se validan que la información personal cumpla ciertas condiciones
         validateUserData(nombre, email, password);
 
@@ -29,17 +33,19 @@ export const createUser = async (req, res, next) => {
             email: normalizeEmail(email),
             password_hash: hash,
             id_empresa: empresa,
-        });
+        }, {transaction});
 
         sendEmail(normalizeEmail(email), "registro", nombre);
 
+        await transaction.commit()
         res.status(201).json({
             code: 201,
             message: "Usuario creado con éxito",
         });
     } catch (error) {
+        await transaction.rollback()
+        logger.error(`[${fileName} -> createUser] ${error.message}`);
         console.log(error);
-        logger.error("Ha ocurrido un error en createUser Controller", error);
         next(error);
     }
 };
@@ -60,13 +66,14 @@ export const login = async (req, res, next) => {
             message: "Inicio de sesión Exitoso"
         });
     } catch (error) {
+        logger.error(`[${fileName} -> login] ${error.message}`);
         console.log(error);
-        logger.error("Ha ocurrido un error en login Controller", error);
         next(error);
     }
 };
 
 export const forgotPassword = async (req, res, next) => {
+    const transaction = await sequelize.transaction();
     try {
         const { email } = req.body;
 
@@ -79,39 +86,45 @@ export const forgotPassword = async (req, res, next) => {
             id_usuario: user.id_usuario,
             token,
             activo: true,
-        });
+        }, { transaction });
 
         sendEmail(email, "recover-password", user.nombre, token);
 
+        await transaction.commit();
         res.status(200).json({
             code: 200,
             message:
                 "Email de recuperación de contraseña enviado correctamente",
         });
     } catch (error) {
+        logger.error(`[${fileName} -> forgotPassword] ${error.message}`);
         console.log(error);
-        logger.error(
-            "Ha ocurrido un error en forgotPassword Controller",
-            error
-        );
         next(error);
     }
 };
 
 export const changePassword = async (req, res, next) => {
+    const transaction = await sequelize.transaction();
     try {
         const { password } = req.body;
         const email = req.user.data
 
+        const user = await Usuarios.findOne({ where: { email }, transaction });
 
+        if (!user) {
+            throw new NotFoundError("No existe un usuario con este email en la base de datos.");
+        }
+        
         if (!email) {
             throw new AuthenticationError("No se pudo validar tu solicitud. Por favor solicita un nuevo enlace de recuperación.");
         }
 
         //se verifica si el token existe en la base de datos de token de recuperación de contraseña
         const token = await Token.findOne({
-            where: { token: req.token },
-        });
+            where: { 
+                token: req.token,
+                id_usuario: user.id_usuario
+            }, transaction});
 
 
         if (!token) {
@@ -122,39 +135,30 @@ export const changePassword = async (req, res, next) => {
             throw new AuthenticationError("El enlace de recuperación ya no es válido.");
         }
 
+        const decoded = jwt.verify(req.token, process.env.SECRET);
+
+        if (decoded.email !== email) {
+            throw new AuthenticationError("Token inválido para este usuario.");
+        }
+
         const hash = hashPassword(password);
-        const user = await Usuarios.findOne({ where: { email } });
         
-        await Usuarios.update(
-            {
-                password_hash: hash,
-            },
-            {
-                where: { email },
-            }
-        );
+        
+        await user.update({password_hash: hash}, {transaction});
 
         sendEmail(email, "passwordChanged", user.Nombre, null);
 
         //Se anula el token luego de utilizado
-        await Token.update(
-            {
-                activo: false,
-            },
-            {
-                where: { token: req.token },
-            }
-        );
+        await token.update({activo: false}, {transaction});
+
+        await transaction.commit()
         res.status(200).json({
             code: 200,
             message: "Contraseña modificada con éxito",
         });
     } catch (error) {
+        logger.error(`[${fileName} -> changePassword] ${error.message}`);
         console.log(error);
-        logger.error(
-            "Ha ocurrido un error en forgotPassword Controller",
-            error
-        );
         next(error);
     }
 };
@@ -167,9 +171,9 @@ export const getAuthenticatedUser = async (req, res, next) => {
             res.clearCookie("token", {
                 httpOnly: true,
                 secure: false,
-                sameSite: "strict",
-            });
-            return res.status(401).json({ message: "No autenticado" });
+                sameSite: "strict"});
+
+            throw new AuthenticationError("Usuario no autenticado.")
         }
 
         const data = await verifyToken(token); 
@@ -182,15 +186,16 @@ export const getAuthenticatedUser = async (req, res, next) => {
             secure: false,
             sameSite: "strict",
         });
+        console.log(error);
         logger.error("Ha ocurrido un error en getAuthenticatedUser Controller", error);
-        return res.status(401).json({ message: "Error de autenticación" });
+        next(error)
     }
 };
 
-
 export const logout = (req, res) => {
 
-    res.clearCookie("token", {
+    try {
+        res.clearCookie("token", {
         httpOnly: true,
         secure: false,
         sameSite: "strict"
@@ -200,4 +205,9 @@ export const logout = (req, res) => {
         code:200,
         message: "Sesión cerrada exitosamente" 
     });
+    } catch (error) {
+        console.log(error);
+        logger.error("Ha ocurrido un error en getAuthenticatedUser Controller", error);
+        next(error)
+    }
 };

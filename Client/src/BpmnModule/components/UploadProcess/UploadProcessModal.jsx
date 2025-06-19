@@ -116,7 +116,7 @@ export const UploadProcessModal = ({ setShowModal }) => {
                 import.meta.env.VITE_APP_MODE === "desarrollo"
                     ? import.meta.env.VITE_URL_DESARROLLO
                     : import.meta.env.VITE_URL_PRODUCCION;
-                const response = await fetch(`${URL}/api/v1/procesos/get-niveles`, {credentials: "include"})
+                const response = await fetch(`${URL}/api/v1/niveles/get-niveles`, {credentials: "include"})
                 const data = await response.json()
                 setNiveles(data.data)
             } catch (error) {

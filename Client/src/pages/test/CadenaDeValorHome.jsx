@@ -60,7 +60,7 @@ export const CadenaDeValorHome = () => {
                         ? import.meta.env.VITE_URL_DESARROLLO
                         : import.meta.env.VITE_URL_PRODUCCION;
                 const response = await fetch(
-                    `${URL}/api/v1/procesos/`, {credentials: "include"}
+                    `${URL}/api/v1/procesos/get-all`, {credentials: "include"}
                 );
                 const data = await response.json();
                 setProcesos(data.data);
@@ -71,9 +71,9 @@ export const CadenaDeValorHome = () => {
         getAllProcess();
     }, []);
 
-    const operativos = procesos.filter((p) => p.id_nivel === 1)
-    const soporte = procesos.filter((p) => p.id_nivel === 2)
-    const estrategicos = procesos.filter((p) => p.id_nivel === 3)
+    const operativos = procesos.filter((p) => p.id_nivel === 1 && p.macroproceso)
+    const soporte = procesos.filter((p) => p.id_nivel === 2 && p.macroproceso)
+    const estrategicos = procesos.filter((p) => p.id_nivel === 3 && p.macroproceso)
 
     return (
         <>

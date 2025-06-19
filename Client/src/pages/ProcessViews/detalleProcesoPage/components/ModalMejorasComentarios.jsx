@@ -3,6 +3,7 @@ import { FaUpload, FaFileUpload } from "react-icons/fa";
 import { IoMdCloseCircle } from "react-icons/io";
 import { useSnackbar } from "notistack";
 import { useSelector } from "react-redux";
+import PulseLoader from "react-spinners/PulseLoader";
 
 export default function ModalMejorasComentarios({
     menu,
@@ -18,6 +19,7 @@ export default function ModalMejorasComentarios({
     const [asunto, setAsunto] = useState("");
     const fileInputRef = useRef(null);
     const [files, setFiles] = useState([]);
+    const [ loading, setLoading ] = useState(false)
     const user = useSelector((state) => state.auth.user);
 
     const handleFileChange = (e) => {
@@ -37,12 +39,14 @@ export default function ModalMejorasComentarios({
 
     const handleClick = async () => {
         try {
+            setLoading(true)
+        
             const path =
                 menu === "oportunidades"
-                    ? "/api/v1/procesos/oportunidades/agregar"
+                    ? "/api/v1/oportunidades/agregar"
                     : menu === "bitacora"
-                    ? "/api/v1/procesos/bitacora/agregar"
-                    : "/api/v1/procesos/comentarios/agregar";
+                    ? "/api/v1/bitacora/agregar"
+                    : "/api/v1/comentarios/agregar";
 
             const URL =
                 import.meta.env.VITE_APP_MODE === "desarrollo"
@@ -76,6 +80,7 @@ export default function ModalMejorasComentarios({
             if (data.code === 201) {
                 enqueueSnackbar(data.message, { variant: "success" });
                 setOpenModal(false);
+                setLoading(false)
                 if (menu === "comentarios") {
                     getAllComentaries();
                 } else if((menu === "oportunidades")) {
@@ -85,8 +90,10 @@ export default function ModalMejorasComentarios({
                 }
             } else {
                 enqueueSnackbar(data.message, { variant: "error" });
+                setLoading(false)
             }
         } catch (error) {
+            setLoading(false)
             console.log(error);
         }
     };
@@ -180,8 +187,13 @@ export default function ModalMejorasComentarios({
                     <button
                         className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded"
                         onClick={handleClick}
+                        disabled={loading}
                     >
-                        Guardar
+                        {loading ? (
+                        <PulseLoader color="#ffffff" size={10} />
+                    ) : (
+                        "Guardar"
+                    )}
                     </button>
                 </div>
             </div>

@@ -31,8 +31,8 @@ export default function ModalBitacoraComentarios({ menu, setOpenModal, idProceso
         try {
             const path =
                 menu === "oportunidades"
-                    ? "/api/v1/procesos/oportunidades/agregar"
-                    : "/api/v1/procesos/comentarios/agregar";
+                    ? "/api/v1/oportunidades/agregar"
+                    : "/api/v1/comentarios/agregar";
             const URL =
                 import.meta.env.VITE_APP_MODE === "desarrollo"
                     ? import.meta.env.VITE_URL_DESARROLLO

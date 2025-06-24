@@ -16,6 +16,8 @@ import _Roles from  "./Roles.js";
 import _Token from  "./Token.js";
 import _Usuarios from  "./Usuarios.js";
 import _VersionProceso from  "./VersionProceso.js";
+import _ProcesosAprobadores from "./ProcesosAprobadores.js";
+
 
 export default function initModels(sequelize) {
   const Aprobadores = _Aprobadores.init(sequelize, DataTypes);
@@ -34,11 +36,11 @@ export default function initModels(sequelize) {
   const Usuarios = _Usuarios.init(sequelize, DataTypes);
   const VersionProceso = _VersionProceso.init(sequelize, DataTypes);
   const Administracion = _Administracion.init(sequelize, DataTypes);
+  const ProcesosAprobadores = _ProcesosAprobadores.init(sequelize, DataTypes);
 
-  VersionProceso.belongsTo(Aprobadores, { as: "id_aprobador_aprobadore", foreignKey: "id_aprobador"});
-  Aprobadores.hasMany(VersionProceso, { as: "version_procesos", foreignKey: "id_aprobador"});
-  Procesos.belongsTo(Cargo, { as: "id_aprobadores_cargo_cargo", foreignKey: "id_aprobadores_cargo"});
-  Cargo.hasMany(Procesos, { as: "procesos", foreignKey: "id_aprobadores_cargo"});
+
+  Procesos.belongsToMany(Cargo, { as: "cargos_aprobadores", through: ProcesosAprobadores, foreignKey: "id_proceso" });
+  Cargo.belongsToMany(Procesos, { as: "procesos_aprobados", through: ProcesosAprobadores, foreignKey: "id_cargo" });
   Usuarios.belongsTo(Cargo, { as: "id_cargo_cargo", foreignKey: "id_cargo"});
   Cargo.hasMany(Usuarios, { as: "usuarios", foreignKey: "id_cargo"});
   ArchivosComentariosVersionProceso.belongsTo(ComentariosVersionProceso, { as: "id_comentario_comentarios_version_proceso", foreignKey: "id_comentario"});
@@ -119,6 +121,7 @@ Usuarios.hasMany(BitacoraAprobaciones, {
     Token,
     Usuarios,
     VersionProceso,
-    Administracion
+    Administracion,
+    ProcesosAprobadores
   };
 }

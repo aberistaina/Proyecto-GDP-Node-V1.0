@@ -10,6 +10,7 @@ import ModalMejorasComentarios from "./components/ModalMejorasComentarios";
 import ModalVersiones from "./components/ModalVersiones";
 import PulseLoader from "react-spinners/PulseLoader";
 import { ModalArchivos } from "./components/ModalArchivos";
+import { ModalObservaciones } from "./components/ModalObservaciones";
 //agregar comentarios (todos) y oportunidades
 export const DetalleProcesoPage = () => {
     const user = useSelector((state) => state.auth.user);
@@ -27,6 +28,8 @@ export const DetalleProcesoPage = () => {
     const [versiones, setVeriones ] = useState([])
     const [comentarioBitacora, setComentarioBitacora] = useState("");
     const [ openModalArchivos, setOpenModalArchivos ] = useState(false)
+    const [ openModalObservaciones, setOpenModalObservaciones ] = useState(false)
+    const [ observacion, setObservacion ] = useState("")
     const [ idComentario, setIdComentario ] = useState("")
 
 const getAllComentaries = async() =>{
@@ -165,7 +168,8 @@ const getAllComentaries = async() =>{
                             getPendingProcess={getPendingProcess}
                             estaAprobado={estaAprobado}
                             versiones={versiones}
-                            getData={getData}
+                            setOpenModalObservaciones={setOpenModalObservaciones}
+                            
                         />
                         <ResumenProceso resumenProceso={resumenProceso}/>
                         <VisualizadorProceso
@@ -219,7 +223,11 @@ const getAllComentaries = async() =>{
                     {openModalArchivos && (
                         <ModalArchivos setOpenModalArchivos={setOpenModalArchivos} version= {version} idComentario={idComentario} tabActiva={tabActiva}/>
                     )}
-                </div>
+
+                    {openModalObservaciones && (
+                        <ModalObservaciones setOpenModalObservaciones={setOpenModalObservaciones} version= {version} idProceso={idProceso} observacion={observacion} setObservacion={setObservacion} getData={getData}/>
+                    )}
+                </div> 
             )}
         </BpmnProvider>
     );

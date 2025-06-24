@@ -1,5 +1,6 @@
-import { Aprobadores, Cargo, Usuarios, VersionProceso, Procesos } from "../models/models.js";
+import { Aprobadores, Cargo, Usuarios, VersionProceso, Procesos, ProcesosAprobadores } from "../models/models.js";
 import { sequelize } from "../database/database.js";
+import { getProximoCiclo } from "../services/Bpmn.services.js";
 import { NotFoundError, ProcessError } from "../errors/TypeError.js";
 import logger from "../utils/logger.js";
 import { fileURLToPath } from "url";
@@ -33,7 +34,7 @@ export const getAprobadores = async (req, res, next) => {
 export const enviarAprobacion = async (req, res, next) => {
     const transaction = await sequelize.transaction();
     try {
-        const { idProceso, version } = req.body;
+        const { idProceso, version, observacion } = req.body;
 
         const proceso = await Procesos.findOne({
             where: {id_bpmn: idProceso}, 
@@ -41,17 +42,30 @@ export const enviarAprobacion = async (req, res, next) => {
         });
 
         if(!proceso){
-            await transaction.rollback()
             throw new NotFoundError("No existe el proceso en la base de datos.")
         }
 
-        const aprobadores = await Usuarios.findAll({
-            where: {id_cargo: proceso.id_aprobadores_cargo},
+        const cargosAprobadores = await ProcesosAprobadores.findAll({
+            raw:true,
+            where: {id_proceso: proceso.id_proceso},
             transaction 
         });
 
+        const aprobadores = []
+        for (const cargo of cargosAprobadores) {
+            const aprobador = await Usuarios.findOne({
+            raw:true,
+            where:{
+                id_cargo: cargo.id_cargo,
+                id_rol: 2
+            }
+            })
+            if (aprobador) {
+                aprobadores.push(aprobador);
+            }
+        }
+
         if(aprobadores.length === 0 ){
-            await transaction.rollback()
             throw new NotFoundError("No existen aprobadores en la base de datos con ese cargo.")
         }
 
@@ -59,12 +73,11 @@ export const enviarAprobacion = async (req, res, next) => {
 
         
         if(!versionProceso){
-            await transaction.rollback()
             throw new NotFoundError("No existe esta versión del proceso.")
         }
 
         
-        await versionProceso.update({ estado: "enviado" }, {transaction});
+        await versionProceso.update({ estado: "enviado", observacion_version: observacion }, {transaction});
 
         const nuevoCiclo = await getProximoCiclo(version);
         const cicloActual = nuevoCiclo - 1;
@@ -77,10 +90,9 @@ export const enviarAprobacion = async (req, res, next) => {
         });
 
         if (cicloEnCurso) {
-            await transaction.rollback()
             throw new ProcessError("Ya existe una solicitud de aprobación activa para este proceso.")
         }
-
+        console.log(aprobadores);
         for (const aprobador of aprobadores) {
             await Aprobadores.create({
                 id_usuario: aprobador.id_usuario,

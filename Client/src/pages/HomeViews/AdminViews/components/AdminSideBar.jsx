@@ -6,7 +6,7 @@ export const AdminSideBar = ({usuario}) => {
   { id: "usuarios", label: "Usuarios" },
   ...(usuario?.id_rol === 5 ? [{ id: "rol", label: "Roles" }] : []),
   { id: "cargo", label: "Cargos" },
-  { id: "nivel", label: "Niveles" },
+  ...(usuario?.id_rol === 5 ? [{ id: "nivel", label: "Niveles" }] : []),
   { id: "aprobadores", label: "Aprobadores" },
   { id: "opciones", label: "Opciones Admin" }
 ];

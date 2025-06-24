@@ -1,6 +1,6 @@
 import { FaUserLarge } from "react-icons/fa6";
 import { FaRegCalendarAlt, FaPaperPlane, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
-import { CiEdit } from "react-icons/ci";
+import { CiEdit, CiLineHeight } from "react-icons/ci";
 import { IoMdDownload } from "react-icons/io";
 import { MdOutlinePendingActions } from "react-icons/md";
 import { HiUserGroup } from "react-icons/hi2";
@@ -14,14 +14,12 @@ import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import { useBpmnContext } from "../../../../BpmnModule/context/useBpmnContext";
 
-export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVersiones, version, getPendingProcess, estaAprobado, versiones, getData}) => {
+export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVersiones, version, getPendingProcess, estaAprobado, versiones, setOpenModalObservaciones }) => {
     const { enqueueSnackbar } = useSnackbar();
     const [isLastVersion, setIsLastVersion] = useState(false);
 
-    
 
     const user = useSelector((state) => state.auth.user);
-    console.log(user);
     const navigate = useNavigate()
 
 
@@ -53,40 +51,6 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
         }
     }
 
-    const solicitarAprobacion = async() =>{
-        try {
-
-            const formData = new FormData()
-
-            formData.append("idProceso", idProceso)
-            formData.append("version", version)
-
-            const requestOptions = {
-                method: "POST",
-                body: formData ,
-                credentials: "include"
-
-            }
-            const URL =
-                import.meta.env.VITE_APP_MODE === "desarrollo"
-                ? import.meta.env.VITE_URL_DESARROLLO
-                : import.meta.env.VITE_URL_PRODUCCION;
-
-            const response = await fetch(`${URL}/api/v1/aprobadores/solicitar-aprobacion`, requestOptions)
-            const data = await response.json()
-
-            if (data.code === 201) {
-                enqueueSnackbar(data.message, { variant: "success" });
-                getData()
-
-            } else {
-                enqueueSnackbar(data.message, { variant: "error" });
-            }
-
-        } catch (error) {
-            console.log(error);
-        }
-    }
 
     const aprobarProceso = async() =>{
         try {
@@ -244,7 +208,7 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
                         {headerProceso.estadoVersion === "borrador" && [1, 3, 5].includes(user.usuario?.id_rol) && (
                             <button
                             className="bg-[#6f42c1] hover:bg-[#8556d4] text-white text-xs py-2 w-42 px-4 rounded focus:outline-none focus:shadow-outline flex items-center transition duration-300 ease-in-out transform hover:scale-105"
-                            onClick={solicitarAprobacion}
+                            onClick={() => setOpenModalObservaciones(true)}
                         >
                             <FaPaperPlane className="me-1" /> Solicitar Aprobación
                         </button>

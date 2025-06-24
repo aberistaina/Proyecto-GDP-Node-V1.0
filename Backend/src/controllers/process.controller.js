@@ -1,9 +1,10 @@
 import * as path from "path";
 import mime from "mime-types";
+import { NotFoundError, ProcessError, FileError } from "../errors/TypeError.js";
 import { fileURLToPath } from "url";
 import fs from "fs"; //Debug, luego borrar
 import puppeteer from "puppeteer";
-import {Procesos, IntermediaProcesos, Usuarios, Aprobadores, VersionProceso, Cargo} from "../models/models.js";
+import {Procesos, IntermediaProcesos, Usuarios, Aprobadores, VersionProceso, Cargo, ProcesosAprobadores} from "../models/models.js";
 import logger from "../utils/logger.js";
 import { changeCallElement, extraerDatosBpmn, extraerParticipantesBpmn} from "../utils/bpmnUtils.js";
 import { formatearFecha, formatShortTime } from "../utils/formatearFecha.js";
@@ -15,20 +16,46 @@ import {getMacroProcessData, getProcessData,} from "../services/documentacion.se
 import {generarContenidoMacroproceso, generarPortada, generarContenidoProceso, generarTemplateFinal} from "../utils/documentacion.js";
 
 
+const __filename = fileURLToPath(import.meta.url);
+const fileName = path.basename(__filename);
+
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 //Función para obtener todos los procesos
 export const getAllProcess = async (req, res, next) => {
     try {
-        const procesos = await Procesos.findAll();
+        const procesos = await Procesos.findAll({
+            include: [
+                {
+                    model: VersionProceso,
+                    as: "version_procesos",
+                    attributes: ["nombre_version", "id_version_proceso"],
+                    where: { estado: "aprobado" },
+                },
+            ]
+        });
+
+        if (procesos.length === 0) {
+            return res.status(200).json({
+                code: 200,
+                message: "No hay Procesos",
+                data: [],
+            });
+        }
+        const procesosMap = procesos.map((proceso) => ({
+            ...proceso.toJSON(),
+            version: proceso.version_procesos?.[0]?.id_version_proceso,
+        }));
 
         res.status(200).json({
             code: 200,
             message: "Procesos Cargados Correctamente",
-            data: procesos,
+            data: procesosMap,
         });
+        
     } catch (error) {
-        logger.error("Controlador getAllProcess", error);
+        logger.error(`[${fileName} -> getAllProcess] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -60,6 +87,14 @@ export const getProcessByNivel = async (req, res, next) => {
             },
         });
 
+        if (procesos.length === 0) {
+            return res.status(200).json({
+                code: 200,
+                message: "No hay Procesos para este nivel",
+                data: [],
+            });
+        }
+
         const procesosMap = procesos.map((proceso) => ({
             ...proceso.toJSON(),
             created_at: formatShortTime(proceso.created_at),
@@ -70,10 +105,10 @@ export const getProcessByNivel = async (req, res, next) => {
         res.status(200).json({
             code: 200,
             message: "Oportunidades obtenidas correctamente",
-            data: procesosMap,
+            data: procesosMap
         });
     } catch (error) {
-        logger.error("Controlador getProcessByNivel", error);
+        logger.error(`[${fileName} -> getProcessByNivel] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -84,8 +119,19 @@ export const readActualProcessVersion = async (req, res, next) => {
     try {
         const { idProceso, version } = req.params;
 
-        const procesoVersionActual = await VersionProceso.findByPk(version);
+        let procesoVersionActual;
 
+        if (!version || version === "undefined") {
+            procesoVersionActual = await VersionProceso.findOne({
+                where: {
+                    id_bpmn: idProceso,
+                    estado: "aprobado",
+                }
+            })
+        }else{
+            procesoVersionActual = await VersionProceso.findByPk(version);
+        } 
+    
         const versionActiva = procesoVersionActual.nombre_version;
 
         const { s3_bucket, s3_bucket_procesos } = await getAdminConfig();
@@ -96,10 +142,14 @@ export const readActualProcessVersion = async (req, res, next) => {
             versionActiva
         );
 
+        if (!xmlContent) {
+            throw new NotFoundError("No se encontró el archivo XML de esta versión");
+        }
+
         res.setHeader("Content-Type", "application/xml");
         res.status(200).send(xmlContent);
     } catch (error) {
-        logger.error("Controlador readProcessById", error);
+        logger.error(`[${fileName} -> readActualProcessVersion] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -118,16 +168,24 @@ export const readProcessVersion = async (req, res, next) => {
             },
         });
 
+        if(!versionProceso){
+            throw new NotFoundError("No existe esa versión del proceso")
+        }
+
         const xmlContent = await getFileFromS3Version(
             s3_bucket,
             `${s3_bucket_procesos}/${idProceso}.bpmn`,
             versionProceso.nombre_version
         );
 
+        if (!xmlContent) {
+            throw new NotFoundError("No se encontró el archivo XML de esta versión");
+        }
+
         res.setHeader("Content-Type", "application/xml");
         res.status(200).send(xmlContent);
     } catch (error) {
-        logger.error("Controlador readSubprocesoById", error);
+        logger.error(`[${fileName} -> readProcessVersion] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -137,25 +195,12 @@ export const readProcessVersion = async (req, res, next) => {
 export const connectSubprocess = async (req, res, next) => {
     const transaction = await sequelize.transaction();
     try {
-        const {
-            idProceso,
-            calledElement,
-            callActivity,
-            aprobadores,
-            nivel,
-            nombre,
-            descripcion,
-            esMacroproceso,
-            id_creador,
-        } = req.body;
+        const {idProceso, calledElement, callActivity, aprobadores, nivel, nombre, descripcion, esMacroproceso, id_creador } = req.body;
 
         const { archivo } = req.files;
         const archivoTransformado = archivo.data.toString("utf8");
 
-        const procesoPadre = await Procesos.findOne(
-            { where: { id_bpmn: idProceso } },
-            { transaction }
-        );
+        const procesoPadre = await Procesos.findOne({ where: { id_bpmn: idProceso }, transaction });
 
         if (!procesoPadre) {
             await Procesos.create(
@@ -173,21 +218,16 @@ export const connectSubprocess = async (req, res, next) => {
             );
         }
 
-        const subproceso = await Procesos.findOne(
-            { where: { id_bpmn: calledElement } },
-            { transaction }
-        );
+        const subproceso = await Procesos.findOne({ where: { id_bpmn: calledElement }, transaction });
         const nombreSubproceso = subproceso.nombre;
 
-        const referenciaExistente = await IntermediaProcesos.findOne(
-            {
-                where: {
-                    id_bpmn_padre: idProceso,
-                    call_activity: callActivity,
-                },
-            },
-            { transaction }
-        );
+        const referenciaExistente = await IntermediaProcesos.findOne({
+            where: {
+                id_bpmn_padre: idProceso,
+                call_activity: callActivity},
+                transaction 
+        });
+
         const archivoModificado = await changeCallElement(
             archivoTransformado,
             callActivity,
@@ -218,7 +258,7 @@ export const connectSubprocess = async (req, res, next) => {
         await transaction.commit();
     } catch (error) {
         await transaction.rollback();
-        logger.error("Controlador updateSubproceso", error);
+        logger.error(`[${fileName} -> connectSubprocess] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -226,45 +266,41 @@ export const connectSubprocess = async (req, res, next) => {
 
 //Funcion para guardar un nuevo proceso
 export const saveNewProcessChanges = async (req, res, next) => {
+    const transaction = await sequelize.transaction();
     try {
         const { archivo, imagen } = req.files;
-        console.log(req.files);
-        const {
-            id_creador,
-            aprobadores,
-            nombre,
-            descripcion,
-            nivel,
-            esMacroproceso,
-        } = req.body;
+        const { id_creador, aprobadores, nombre, descripcion, nivel, esMacroproceso } = req.body;
 
         const { s3_bucket, s3_bucket_procesos, s3_bucket_imagenes } = await getAdminConfig();
         const datoArchivo = await extraerDatosBpmn(archivo);
         const idProceso = datoArchivo.idProceso;
 
+        const aprobadoresArray = typeof aprobadores === "string"
+            ? aprobadores.split(",").map((id) => Number(id.trim()))
+            : Array.isArray(aprobadores)
+            ? aprobadores.map(Number)
+            : [Number(aprobadores)];
+
+
         if (!req.files || Object.keys(req.files).length === 0) {
-            return res.status(400).json({
-                code: 400,
-                message: "No se ha subido ningún archivo.",
-            });
+            throw new FileError("No se pudo procesar el archivo xml")
         }
 
         const nuevoProceso = await createProcessIfNotExist(
             id_creador,
             idProceso,
-            aprobadores,
             nivel,
             nombre,
             descripcion,
             null,
             esMacroproceso,
-            null
+            transaction
         );
 
         const proceso = await Procesos.findOne({
             where: {
                 id_bpmn: idProceso,
-            },
+            }, transaction
         });
 
         const nuevaVersion = await VersionProceso.create({
@@ -272,7 +308,15 @@ export const saveNewProcessChanges = async (req, res, next) => {
             id_proceso: proceso.id_proceso,
             id_bpmn: idProceso,
             nombre_version: "1.0",
-        });
+        }, {transaction});
+
+        for (const aprobador of aprobadoresArray) {
+            await ProcesosAprobadores.create({
+                id_proceso: proceso.id_proceso,
+                id_cargo: aprobador
+                
+            }, {transaction})
+        }
 
         const datosProceso = {
             id_version_proceso: nuevaVersion.id_version_proceso,
@@ -297,13 +341,16 @@ export const saveNewProcessChanges = async (req, res, next) => {
             "borrador"
         );
 
+        await transaction.commit();
+        
         res.status(201).json({
             code: 201,
             message: "Proceso Guardado Correctamente",
             data: datosProceso
         });
     } catch (error) {
-        logger.error("Controlador Save Changes", error);
+        await transaction.rollback();
+        logger.error(`[${fileName} -> connectSubprocess] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -340,9 +387,10 @@ export const getSubprocessesOfProcess = async (req, res, next) => {
         });
 
         if (!subprocesos) {
-            res.status(400).json({
-                code: 400,
+            return res.status(200).json({
+                code: 200,
                 message: "No hay subprocesos vinculados a este proceso",
+                data:[]
             });
         }
 
@@ -365,7 +413,7 @@ export const getSubprocessesOfProcess = async (req, res, next) => {
             data: subprocesosMap,
         });
     } catch (error) {
-        logger.error("Controlador Save Changes", error);
+        logger.error(`[${fileName} -> getSubprocessesOfProcess] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -395,6 +443,14 @@ export const getPendingProcess = async (req, res, next) => {
             ],
         });
 
+        if(aprobacionesPendientes.length === 0){
+            return res.status(200).json({
+                code: 200,
+                message: "No hay Aprobaciones Pendientes",
+                data: [],
+            })
+        }
+
         const resultadosMapeados = aprobacionesPendientes.map((item) => ({
             idAprobador: item.id_aprobador,
             idUsuario: item.id_usuario,
@@ -418,7 +474,7 @@ export const getPendingProcess = async (req, res, next) => {
             data: resultadosMapeados,
         });
     } catch (error) {
-        logger.error("Controlador getPendingProcess", error);
+        logger.error(`[${fileName} -> getPendingProcess] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -441,16 +497,23 @@ export const getPendingDraft = async (req, res, next) => {
                         "id_bpmn",
                         "nombre",
                         "descripcion",
-                        "id_aprobadores_cargo",
                     ],
                 },
+                
             ],
         });
+
+        if(borradoresActivos.length === 0){
+            return res.status(200).json({
+                code: 200,
+                message: "No hay Aprobaciones Pendientes",
+                data: [],
+            })
+        }
 
         const resultadosMapeados = borradoresActivos.map((item) => ({
             idVersionProceso: item.id_version_proceso,
             idProceso: item.id_proceso,
-            idAprobador: item.id_proceso_proceso?.id_aprobadores_cargo,
             nombre_version: item.nombre_version,
             observacion: item.observacion_version,
             estado: item.estado,
@@ -466,7 +529,7 @@ export const getPendingDraft = async (req, res, next) => {
             data: resultadosMapeados,
         });
     } catch (error) {
-        logger.error("Controlador getPendingDraft", error);
+        logger.error(`[${fileName} -> getPendingDraft] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -474,23 +537,26 @@ export const getPendingDraft = async (req, res, next) => {
 
 //Función que extrae contenido de un archivo BPMN para visualizar el resumen del proceso
 export const getProcessSummary = async (req, res, next) => {
+    const transaction = await sequelize.transaction();
     try {
         const { idProceso, version } = req.params;
+
         let xmlContent;
         let versionProceso;
         const { s3_bucket, s3_bucket_procesos } = await getAdminConfig();
 
         if (!version || version === "undefined") {
-            xmlContent = await getDataFileBpmnFromS3(
-                "test-bpmn",
-                `${s3_bucket_procesos}/${idProceso}.bpmn`
-            );
             versionProceso = await VersionProceso.findOne({
                 where: {
                     id_bpmn: idProceso,
                     estado: "aprobado",
                 },
             });
+            xmlContent = await getFileFromS3Version(
+                s3_bucket,
+                `${s3_bucket_procesos}/${idProceso}.bpmn`,
+                versionProceso.nombre_version
+            );
         } else {
             versionProceso = await VersionProceso.findOne({
                 where: {
@@ -535,9 +601,10 @@ export const getProcessSummary = async (req, res, next) => {
                 id_bpmn: idProceso,
             },
         });
+
         const aprobadores = await Aprobadores.findAll({
             where: {
-                id_aprobador: proceso.id_aprobadores_cargo,
+                id_version_proceso: versionProceso.id_version_proceso,
             },
             raw: true,
             include: [
@@ -548,6 +615,8 @@ export const getProcessSummary = async (req, res, next) => {
                 },
             ],
         });
+
+        console.log(aprobadores);
 
         const subprocesos = await IntermediaProcesos.findAll({
             where: {
@@ -597,7 +666,7 @@ export const getProcessSummary = async (req, res, next) => {
             estadoVersion: versionProceso.estado,
             version: versionProceso.nombre_version,
         };
-
+        await transaction.commit();
         res.status(200).json({
             code: 200,
             message: "Resumen de Proceso",
@@ -605,7 +674,8 @@ export const getProcessSummary = async (req, res, next) => {
             dataHeader: headerProceso,
         });
     } catch (error) {
-        logger.error("Controlador Resumen Proceso", error);
+        await transaction.rollback();
+        logger.error(`[${fileName} -> getProcessSummary] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -632,7 +702,7 @@ export const downloadFiles = async (req, res, next) => {
 
         Body.pipe(res);
     } catch (error) {
-        logger.error("Controlador downloadProcess", error);
+        logger.error(`[${fileName} -> downloadFiles] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -662,7 +732,7 @@ export const downloadProcess = async (req, res, next) => {
 
         Body.pipe(res);
     } catch (error) {
-        logger.error("Controlador downloadProcess", error);
+        logger.error(`[${fileName} -> downloadProcess] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -693,7 +763,7 @@ export const getProcessVersions = async (req, res, next) => {
             data: versionesMap,
         });
     } catch (error) {
-        logger.error("Controlador getProcessVersions", error);
+        logger.error(`[${fileName} -> getProcessVersions] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -710,6 +780,10 @@ export const createNewProcessVersion = async (req, res, next) => {
         const proceso = await Procesos.findOne({
             where: { id_bpmn: idProceso },
         }, transaction);
+
+        if(!proceso){
+            throw new NotFoundError("El Proceso buscado no existe")
+        }
 
         const versionBase = await VersionProceso.findByPk(version);
         if (!versionBase) {
@@ -809,7 +883,7 @@ export const createNewProcessVersion = async (req, res, next) => {
         });
     } catch (error) {
         await transaction.rollback();
-        logger.error("Controlador createNewProcessVersion", error);
+        logger.error(`[${fileName} -> createNewProcessVersion] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -903,7 +977,7 @@ export const generarDocumentacion = async (req, res, next) => {
         );
         res.send(buffer);
     } catch (error) {
-        logger.error("Controlador getBitacoraMessages", error);
+        logger.error(`[${fileName} -> generarDocumentacion] ${error.message}`);
         console.log(error);
         next(error);
     }

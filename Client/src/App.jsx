@@ -18,6 +18,7 @@ import { AdminDashboard } from "./pages/HomeViews/AdminViews/AdminDashboard";
 import { UnauthorizedPage } from "./pages/Unauthorized/UnauthorizedPage";
 import { ViewerProcessPage } from "./pages/ProcessViews/detalleProcesoPage/components/viewer/ViewerProcessPage";
 import { ScrollTop } from "./components/ScrollTop";
+import { CadenaDeValorPage } from "./pages/CadenaDeValorViews/CadenaDeValorPage";
 
 
 function App() {
@@ -78,6 +79,8 @@ function App() {
                                 <Route path="/process-details/:idProceso" element={<DetalleProcesoPage />} />
                                 <Route path="/process-details/:idProceso/:version" element={<DetalleProcesoPage />} />
                                 <Route path="/viewer-process/:idProceso/:version" element={<ViewerProcessPage />} />
+                                <Route path="/cadena-valor" element={<CadenaDeValorPage />} />
+                                
                             </Route>
                         </Route>
 

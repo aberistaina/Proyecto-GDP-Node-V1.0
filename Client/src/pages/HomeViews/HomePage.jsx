@@ -2,7 +2,6 @@ import { useSelector } from "react-redux";
 import { AdminDashboard } from "./AdminViews/AdminDashboard";
 import { AprobadoresHome } from "./Aprobadores/AprobadoresHome";
 import { ModeladoresHome } from "./Modeladores/ModeladoresHome";
-import { CadenaDeValorHome } from "../test/CadenaDeValorHome";
 
 
 export const HomePage = () => {
@@ -28,7 +27,6 @@ export const HomePage = () => {
     }
   return (
     <>
-        <CadenaDeValorHome />
         {user && renderPage()}
     </>
   )

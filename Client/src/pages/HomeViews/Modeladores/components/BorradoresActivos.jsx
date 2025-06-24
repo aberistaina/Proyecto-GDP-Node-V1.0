@@ -21,7 +21,6 @@ export const BorradoresActivos = ({ borradoresActivos, isLoading }) => {
     const borradores = borradoresActivos.filter((b) => b.estado === "borrador");
     const borradoresRechazados = borradoresActivos.filter((b) => b.estado === "rechazado");
     const borradoresAprobados = borradoresActivos.filter((b) => b.estado === "aprobado");
-    console.log(borradoresAprobados);
     const borradoresEnEspera = borradoresActivos.filter(
         (b) => b.estado === "enviado"
     );

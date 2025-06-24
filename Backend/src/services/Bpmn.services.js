@@ -10,7 +10,6 @@ const fileName = path.basename(__filename);
 export const createProcessIfNotExist = async (
     idCreador,
     idProceso,
-    idAprobadores,
     idNivel,
     nombre = "pendiente",
     descripcion = "",
@@ -26,7 +25,6 @@ export const createProcessIfNotExist = async (
             const nuevoProceso = await Procesos.create(
                 {
                     id_creador: idCreador,
-                    id_aprobadores_cargo: idAprobadores,
                     id_nivel: idNivel,
                     nombre: nombre,
                     descripcion: descripcion,
@@ -40,7 +38,6 @@ export const createProcessIfNotExist = async (
         } else {
             await Procesos.update(
                 {
-                    id_aprobadores_cargo: idAprobadores,
                     nombre:
                         proceso.nombre === "pendiente"
                             ? nombre

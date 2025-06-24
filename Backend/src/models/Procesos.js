@@ -18,14 +18,6 @@ export default class Procesos extends Model {
         key: 'id_usuario'
       }
     },
-    id_aprobadores_cargo: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: 'cargo',
-        key: 'id_cargo'
-      }
-    },
     id_nivel: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -83,13 +75,6 @@ export default class Procesos extends Model {
         using: "BTREE",
         fields: [
           { name: "id_creador" },
-        ]
-      },
-      {
-        name: "id_aprobadores_cargo",
-        using: "BTREE",
-        fields: [
-          { name: "id_aprobadores_cargo" },
         ]
       },
       {

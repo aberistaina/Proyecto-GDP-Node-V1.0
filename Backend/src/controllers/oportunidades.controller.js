@@ -1,8 +1,14 @@
 import { Usuarios, VersionProceso, OportunidadesMejora, ArchivosOportunidadesMejora } from "../models/models.js";
 import logger from "../utils/logger.js";
 import { sequelize } from "../database/database.js";
+import { isValidFilesExtension } from "../utils/validators.js";
 import { getAdminConfig } from "../services/admin.services.js";
 import { formatShortTime } from "../utils/formatearFecha.js";
+import { fileURLToPath } from "url";
+import path from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const fileName = path.basename(__filename);
 
 //Funcion que crea las oportunidades de la versión de un proceso
 export const createOppotunity = async (req, res, next) => {
@@ -64,7 +70,7 @@ export const createOppotunity = async (req, res, next) => {
         });
     } catch (error) {
         await transaction.rollback();
-        logger.error("Controlador Crear Oportunidad", error);
+        logger.error(`[${fileName} -> createOppotunity] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -90,6 +96,14 @@ export const getOpportunities = async (req, res, next) => {
             order: [["created_at", "DESC"]],
         });
 
+        if (oportunidades.length === 0) {
+            return res.status(200).json({
+                code: 200,
+                message: "No hay oportunidades aún para este proceso",
+                data: [],
+            });
+        }
+
         const oportunidadesMap = oportunidades.map((oportunidad) => {
             const data = oportunidad.toJSON();
             return {
@@ -105,7 +119,7 @@ export const getOpportunities = async (req, res, next) => {
             data: oportunidadesMap,
         });
     } catch (error) {
-        logger.error("Controlador Crear Oportunidad", error);
+        logger.error(`[${fileName} -> getOpportunities] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -122,13 +136,21 @@ export const getOpportunitiesFiles = async (req, res, next) => {
             },
         });
 
+        if(archivos.length === 0 ){
+            return res.status(200).json({
+                code: 200,
+                message: "No hay archivos vinculados a esta oportunidad",
+                data: [],
+            });
+        }
+
         res.status(202).json({
             code: 202,
             message: "Archivos obtenidos correctamente",
             data: archivos,
         });
     } catch (error) {
-        logger.error("Controlador getComentariesFiles", error);
+        logger.error(`[${fileName} -> getOpportunitiesFiles] ${error.message}`);
         console.log(error);
         next(error);
     }

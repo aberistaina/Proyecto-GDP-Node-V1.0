@@ -46,6 +46,10 @@ export default class VersionProceso extends Model {
     id_bpmn: {
       type: DataTypes.STRING(255),
       allowNull: true
+    },
+    fecha_aprobación: {
+        type: DataTypes.DATE,
+        allowNull: true,
     }
   }, {
     tableName: 'version_proceso',
@@ -74,14 +78,7 @@ export default class VersionProceso extends Model {
         fields: [
           { name: "id_creador" },
         ]
-      },
-      {
-        name: "id_aprobador",
-        using: "BTREE",
-        fields: [
-          { name: "id_aprobador" },
-        ]
-      },
+      }
     ]
   });
   }

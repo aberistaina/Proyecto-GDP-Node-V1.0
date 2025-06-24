@@ -19,7 +19,8 @@ export const {
   Usuarios, 
   VersionProceso,
   Token,
-  Administracion
+  Administracion,
+  ProcesosAprobadores
 } = models;
 
 export default models;

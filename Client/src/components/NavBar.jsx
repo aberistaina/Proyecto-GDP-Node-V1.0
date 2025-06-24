@@ -6,6 +6,7 @@ import { useSnackbar } from "notistack";
 import { useDispatch } from "react-redux";
 import { HiOutlineArchiveBox } from "react-icons/hi2";
 import { FiSettings, FiBriefcase } from "react-icons/fi";
+import { MdDoubleArrow } from "react-icons/md";
 
 export const NavBar = () => {
     const { enqueueSnackbar } = useSnackbar();
@@ -80,6 +81,18 @@ export const NavBar = () => {
                         </NavLink>
                     </li>
                 ))}
+                <li>
+                        <NavLink
+                            to={`/cadena-valor`}
+                            className={({ isActive }) =>
+                                isActive
+                                    ? "bg-[#99CC33] px-6 py-2 rounded-lg text-white text-sm flex justify-center items-center gap-2 hover:scale-105 transition duration-300 ease-in-out "
+                                    : "bg-white px-6 py-2 rounded-lg text-[#313132] text-sm flex justify-center items-center gap-2 hover:bg-[#F5FAEA] hover:text-[#99CC33] hover:scale-105 transition duration-300 ease-in-out"
+                            }
+                        >
+                        <MdDoubleArrow className="text-xl"  /> Cadena De Valor
+                        </NavLink>
+                    </li>
             </ul>
             <div>
                 <button

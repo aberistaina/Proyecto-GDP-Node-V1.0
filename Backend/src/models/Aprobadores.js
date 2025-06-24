@@ -35,6 +35,10 @@ export default class Aprobadores extends Model {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+    fecha_aprobación: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    }
   }, {
     tableName: 'aprobadores',
     paranoid: true,

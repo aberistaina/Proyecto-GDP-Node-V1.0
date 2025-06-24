@@ -5,10 +5,15 @@ import { isValidFilesExtension } from "../utils/validators.js";
 import { formatShortTime } from "../utils/formatearFecha.js";
 import logger from "../utils/logger.js";
 import { sequelize } from "../database/database.js";
+import { fileURLToPath } from "url";
+import path from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const fileName = path.basename(__filename);
+
 
 //Funcion que crea los comentarios de la versión de un proceso
 export const createCommentary = async (req, res, next) => {
-    console.log("HOLA");
     const transaction = await sequelize.transaction();
     try {
         const { idProceso, comentario, version, id_usuario } = req.body;
@@ -65,7 +70,7 @@ export const createCommentary = async (req, res, next) => {
             message: "Comentario creado correctamente",
         });
     } catch (error) {
-        logger.error("Controlador Crear Comentario", error);
+        logger.error(`[${fileName} -> createCommentary] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -91,6 +96,14 @@ export const getCommentaries = async (req, res, next) => {
             order: [["created_at", "DESC"]],
         });
 
+        if (comentarios.length === 0) {
+            return res.status(200).json({
+                code: 200,
+                message: "No hay comentarios aún para este proceso",
+                data: [],
+            });
+        }
+
         const comentariosMap = comentarios.map((comentario) => {
             const data = comentario.toJSON();
             return {
@@ -106,7 +119,7 @@ export const getCommentaries = async (req, res, next) => {
             data: comentariosMap,
         });
     } catch (error) {
-        logger.error("Controlador Obtener Comentarios", error);
+        logger.error(`[${fileName} -> getCommentaries] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -123,6 +136,13 @@ export const getComentariesFiles = async (req, res, next) => {
             },
         });
 
+        if(archivos.length === 0 ){
+            return res.status(200).json({
+                code: 200,
+                message: "No hay archivos vinculados a este comentario",
+                data: [],
+            });
+        }
 
         res.status(202).json({
             code: 202,
@@ -130,7 +150,7 @@ export const getComentariesFiles = async (req, res, next) => {
             data: archivos,
         });
     } catch (error) {
-        logger.error("Controlador getComentariesFiles", error);
+        logger.error(`[${fileName} -> getComentariesFiles] ${error.message}`);
         console.log(error);
         next(error);
     }

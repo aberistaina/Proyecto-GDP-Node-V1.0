@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useSnackbar } from "notistack";
 import { useNavigate } from "react-router-dom"
 import { validarDatosProceso } from "../../../../utils/validators";
+import Select from "react-select";
 
 export const ModalCrearProceso = ({ isOpen, closeModal }) => {
     const { enqueueSnackbar } = useSnackbar();
@@ -25,6 +26,8 @@ export const ModalCrearProceso = ({ isOpen, closeModal }) => {
 
     const handleSubmit = (e) => {
         try {
+            e.preventDefault()
+            console.log(formProceso);
             validarDatosProceso(formProceso)
             e.preventDefault();
             sessionStorage.setItem("datos", JSON.stringify(formProceso));
@@ -46,7 +49,13 @@ export const ModalCrearProceso = ({ isOpen, closeModal }) => {
                     `${URL}/api/v1/aprobadores/get-all`, {credentials: "include"}
                 );
                 const data = await response.json();
-                setAprobadores(data.data);
+                setAprobadores(
+                    data.data.map((aprobador) => ({
+                        value: aprobador.id_cargo,
+                        label: aprobador.nombre
+                }))
+                );
+
             } catch (error) {
                 console.log(error);
             }
@@ -65,7 +74,12 @@ export const ModalCrearProceso = ({ isOpen, closeModal }) => {
                     `${URL}/api/v1/niveles/get-niveles`, {credentials: "include"}
                 );
                 const data = await response.json();
-                setNiveles(data.data);
+                setNiveles(
+                    data.data.map((nivel) => ({
+                        value: nivel.id_nivel,
+                        label: nivel.nombre
+                }))
+                );
             } catch (error) {
                 console.log(error);
             }
@@ -108,31 +122,40 @@ export const ModalCrearProceso = ({ isOpen, closeModal }) => {
                                 <label className="block text-sm font-medium mb-1">
                                     Nivel
                                 </label>
-                                <select
-                                    className="w-full border rounded px-3 py-2"
-                                    name="nivel"
-                                    value={formProceso.nivel}
-                                    onChange={handleChange}
-                                >
-                                    <option value="">
-                                        Seleccionar Nivel
-                                    </option>
-                                    {niveles.map((nivel) => (
-                                        <option
-                                            key={nivel.id_nivel}
-                                            value={nivel.id_nivel}
-                                        >
-                                            {nivel.nombre}
-                                        </option>
-                                    ))}
-                                </select>
+                                <Select
+                                    options={niveles}
+                                    value={niveles.find((n) => n.value === formProceso.nivel) || null}
+                                    onChange={(selected) =>
+                                        setFormProceso({ ...formProceso, nivel: selected?.value || "" })
+                                    }
+                                    placeholder="Seleccionar Nivel"
+                                    className="text-sm text-black"
+                                    isClearable
+                                />
+
                             </div>
 
                             <div className="mb-4">
                                 <label className="block text-sm font-medium mb-1">
                                     Aprobadores
                                 </label>
-                                <select
+                                <Select
+                                    isMulti
+                                    options={aprobadores}
+                                    value={aprobadores.filter((a) =>
+                                        formProceso.aprobadores.includes(a.value)
+                                    )}
+                                    onChange={(selected) =>
+                                        setFormProceso({
+                                        ...formProceso,
+                                        aprobadores: selected.map((s) => s.value)
+                                        })
+                                    }
+                                    placeholder="Selecciona Aprobadores"
+                                    className="text-sm text-black"
+                                />
+
+                                {/* <select
                                     className="w-full border rounded px-3 py-2"
                                     name="aprobadores"
                                     value={formProceso.aprobadores}
@@ -149,7 +172,7 @@ export const ModalCrearProceso = ({ isOpen, closeModal }) => {
                                             {aprobador.nombre}
                                         </option>
                                     ))}
-                                </select>
+                                </select> */}
                             </div>
 
                             <div className="mb-4 ">

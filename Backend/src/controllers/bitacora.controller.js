@@ -1,6 +1,11 @@
 import { BitacoraAprobaciones, Usuarios } from "../models/models.js";
 import { formatShortTime } from "../utils/formatearFecha.js";
 import logger from "../utils/logger.js";
+import { fileURLToPath } from "url";
+import path from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const fileName = path.basename(__filename);
 
 //Función para crear un nuevo comentario en la bitácora
 export const createNewBitacoraMessage = async (req, res, next) => {
@@ -17,7 +22,7 @@ export const createNewBitacoraMessage = async (req, res, next) => {
             message: "Comentario creado con éxito",
         });
     } catch (error) {
-        logger.error("Controlador createNewBitacoraMessage", error);
+        logger.error(`[${fileName} -> createNewBitacoraMessage] ${error.message}`);
         console.log(error);
         next(error);
     }
@@ -42,6 +47,14 @@ export const getBitacoraMessages = async (req, res, next) => {
             order: [["created_at", "DESC"]],
         });
 
+        if (comentarios.length === 0) {
+            return res.status(200).json({
+                code: 200,
+                message: "No hay comentarios aún para este proceso",
+                data: [],
+            });
+        }
+
         const comentariosMap = comentarios.map((comentario) => {
             const data = comentario.toJSON();
             return {
@@ -57,7 +70,7 @@ export const getBitacoraMessages = async (req, res, next) => {
             data: comentariosMap,
         });
     } catch (error) {
-        logger.error("Controlador getBitacoraMessages", error);
+        logger.error(`[${fileName} -> getBitacoraMessages] ${error.message}`);
         console.log(error);
         next(error);
     }

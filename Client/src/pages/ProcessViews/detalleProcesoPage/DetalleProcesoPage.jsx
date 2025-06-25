@@ -178,8 +178,7 @@ const getAllComentaries = async() =>{
                         />
                         
                         <div className="pb-10">
-                            {headerProceso.estadoVersion !== "borrador" &&
-                            headerProceso.estadoVersion !== "enviado" && (
+                            {headerProceso.estadoVersion && (
                                 <ComentariosMejoras
                                     idProceso={idProceso}
                                     setOpenModal={setOpenModal}

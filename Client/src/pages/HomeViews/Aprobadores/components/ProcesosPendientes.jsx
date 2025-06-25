@@ -23,8 +23,6 @@ export const ListaProcesosPendientes = ({ procesos, isLoading }) => {
     const procesosRechazados = procesos.filter((p) => p.estado === "rechazado");
 
     if (!isLoading) return <PulseLoader color="#10644C" size={15} />;
-    if (procesosPendientes.length === 0)
-        return <p>No Hay Procsos Pendientes Para Aprobar</p>;
     return (
         <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

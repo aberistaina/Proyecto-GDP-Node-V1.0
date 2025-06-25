@@ -33,6 +33,7 @@ export const ModalSaveChanges = ({ setShowModalSaveChanges }) => {
     
                 let response = null
                 if(idProcesoPadre && callActivity){
+                    console.log("PRIMER IF");
                     formData.append("idProcesoPadre", idProcesoPadre)
                     formData.append("callActivity", callActivity)
                     const requestOptions = {
@@ -69,6 +70,11 @@ export const ModalSaveChanges = ({ setShowModalSaveChanges }) => {
                     const nuevaVersion = data.data?.id_version_proceso
                     const id_proceso = data.data?.id_bpmn || idProceso;
                     navigate(`/process-details/${id_proceso}/${nuevaVersion}`)
+                    setRefreshProcess(true)
+                    enqueueSnackbar(data.message, { variant: "success" });
+                    setShowModalSaveChanges(false)
+                }else if(data.code == 200){
+                    navigate(`/process-details/${idProceso}/${version}`)
                     setRefreshProcess(true)
                     enqueueSnackbar(data.message, { variant: "success" });
                     setShowModalSaveChanges(false)

@@ -98,7 +98,7 @@ const extraerDescripcionProceso = (xmlString) => {
     }
 };
 
-export const changeCallElement = async (xmlContent, callActivity, calledElement, name) => {
+export const changeCallElement = async (xmlContent, callActivity, calledElement, name, descripcion) => {
   try {
     const $ = cheerio.load(xmlContent, {
       xmlMode: true,
@@ -113,9 +113,18 @@ export const changeCallElement = async (xmlContent, callActivity, calledElement,
         logger.error(`[${fileName} -> changeCallElement - IF] ${msg}`);
         throw new BpmnError(null, msg);
     }
+    
 
     call.attr("name", name);
     call.attr("calledElement", calledElement);
+
+    const documentacion = call.children("bpmn\\:documentation");
+
+    if (documentacion.length > 0) {
+      documentacion.text(descripcion);
+    } else {
+      call.prepend(`<bpmn:documentation>${descripcion}</bpmn:documentation>`);
+    }
 
     return $.xml();
   } catch (error) {

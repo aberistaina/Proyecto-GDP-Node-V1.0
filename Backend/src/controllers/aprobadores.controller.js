@@ -142,7 +142,10 @@ export const aprobarProceso = async (req, res, next) => {
             throw new NotFoundError("No existe esta solicitud de aprobación.") 
         }
 
-        await solicitud.update({ estado: "aprobado" }, { transaction });
+        await solicitud.update({ 
+            estado: "aprobado",
+            fecha_aprobacion: new Date()
+         }, { transaction });
 
         const solicitudes = await Aprobadores.findAll({
             where: {id_version_proceso: version},
@@ -150,7 +153,6 @@ export const aprobarProceso = async (req, res, next) => {
         });
 
         if (!solicitudes) {
-            await transaction.rollback();
             throw new NotFoundError("No hay solicitudes en la base de datos.") 
         }
 
@@ -180,7 +182,10 @@ export const aprobarProceso = async (req, res, next) => {
             }
 
             await versionBorrador.update(
-                {estado: "aprobado"},
+            {
+                estado: "aprobado",
+                fecha_aprobacion: new Date()
+            },
                 { transaction }
             );
         } else if (hayRechazadas && !hayPendientes) {
@@ -197,7 +202,6 @@ export const aprobarProceso = async (req, res, next) => {
             });
 
             if (!versionProceso) {
-                await transaction.rollback();
                 throw new NotFoundError("No existe esta versión del proceso.") 
             }
 

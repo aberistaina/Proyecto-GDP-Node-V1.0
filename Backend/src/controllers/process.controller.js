@@ -33,6 +33,12 @@ export const getAllProcess = async (req, res, next) => {
                     attributes: ["nombre_version", "id_version_proceso"],
                     where: { estado: "aprobado" },
                 },
+                {
+                    model: Usuarios,
+                    as: "id_creador_usuario",
+                    attributes: ["nombre"],
+                },
+                
             ]
         });
 
@@ -46,6 +52,9 @@ export const getAllProcess = async (req, res, next) => {
         const procesosMap = procesos.map((proceso) => ({
             ...proceso.toJSON(),
             version: proceso.version_procesos?.[0]?.id_version_proceso,
+            nombre_version: proceso.version_procesos?.[0]?.nombre_version,
+            created_at: formatShortTime(proceso.created_at),
+            creador: proceso.id_creador_usuario?.nombre,
         }));
 
         res.status(200).json({
@@ -195,7 +204,7 @@ export const readProcessVersion = async (req, res, next) => {
 export const connectSubprocess = async (req, res, next) => {
     const transaction = await sequelize.transaction();
     try {
-        const {idProceso, calledElement, callActivity, aprobadores, nivel, nombre, descripcion, esMacroproceso, id_creador } = req.body;
+        const {idProceso, calledElement, callActivity, aprobadores, nivel, nombre, descripcion, esMacroproceso, id_creador, version } = req.body;
 
         const { archivo } = req.files;
         const archivoTransformado = archivo.data.toString("utf8");
@@ -220,6 +229,7 @@ export const connectSubprocess = async (req, res, next) => {
 
         const subproceso = await Procesos.findOne({ where: { id_bpmn: calledElement }, transaction });
         const nombreSubproceso = subproceso.nombre;
+        const descripcionSubproceso = subproceso.descripcion
 
         const referenciaExistente = await IntermediaProcesos.findOne({
             where: {
@@ -232,8 +242,10 @@ export const connectSubprocess = async (req, res, next) => {
             archivoTransformado,
             callActivity,
             calledElement,
-            nombreSubproceso
+            nombreSubproceso,
+            descripcionSubproceso
         );
+
 
         if (referenciaExistente) {
             await referenciaExistente.update(
@@ -255,6 +267,7 @@ export const connectSubprocess = async (req, res, next) => {
             res.setHeader("Content-Type", "application/xml");
             res.status(200).send(archivoModificado);
         }
+
         await transaction.commit();
     } catch (error) {
         await transaction.rollback();
@@ -435,8 +448,7 @@ export const getPendingProcess = async (req, res, next) => {
                     include: [
                         {
                             model: Procesos,
-                            as: "id_proceso_proceso",
-                            attributes: ["id_bpmn", "nombre", "descripcion"],
+                            as: "id_proceso_proceso"
                         },
                     ],
                 },
@@ -818,8 +830,8 @@ export const createNewProcessVersion = async (req, res, next) => {
                 borradorAcutal.nombre_version,
                 "borrador"
             );
-            return res.status(201).json({
-                code: 201,
+            return res.status(200).json({
+                code: 200,
                 message: "Borrador Guardado con éxito",
             });
         }

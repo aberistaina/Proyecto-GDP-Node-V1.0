@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
 import { ButtonMejorasComentarios } from "./ButtonMejorasComentarios";
 import Comentarios from "./Comentarios";
 import { Oportunidades } from "./Oportunidades";
-import ModalMejorasComentarios from "./ModalMejorasComentarios";
 import { TablaBitacoraComentarios } from "./TablaBitacoraComentarios";
 import { useSelector } from "react-redux";
 

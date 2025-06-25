@@ -5,8 +5,8 @@ import { BiErrorCircle } from "react-icons/bi";
 export const DashboardResumen = ({ procesos }) => {
 
     const procesosPendientes = procesos.filter((p) => p.estado === "pendiente")
-    const procesosAprobados = procesos.filter((p) => p.estado === "rechazado")
-    const procesosRechazados = procesos.filter((p) => p.estado === "aprobado")
+    const procesosAprobados = procesos.filter((p) => p.estado === "aprobado")
+    const procesosRechazados = procesos.filter((p) => p.estado === "rechazado")
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

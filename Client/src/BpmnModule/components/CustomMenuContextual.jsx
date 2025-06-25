@@ -139,13 +139,14 @@ export const CustomMenuContextual = ({modo}) => {
             }
 
             const response = await fetch(`${URL}/api/v1/procesos/connect-subprocess`, requestOptions);
+            const xml = await response.text()
             
-            if (!response.ok) {
-                createDiagram(bpmnModelerRef, response.xml);
+            if (response.ok) {
+                createDiagram(bpmnModelerRef, xml);
                 enqueueSnackbar("Proceso vinculado correctamente", { variant: "success" });
                 
             } else {
-                enqueueSnackbar(response.message, { variant: "error" });
+                enqueueSnackbar("Hubo un error al vincular el proceso", { variant: "error" });
             }
         } catch (error) {
             console.log(error);
@@ -160,7 +161,9 @@ export const CustomMenuContextual = ({modo}) => {
                         ? import.meta.env.VITE_URL_DESARROLLO
                         : import.meta.env.VITE_URL_PRODUCCION;
 
-                const data = await fetch(`${URL}/api/v1/procesos/get-all`, {credentials: "include"})
+                const response = await fetch(`${URL}/api/v1/procesos/get-all`, {credentials: "include"})
+                const data = await response.json()
+                console.log(data);
                 setSubProcess(data.data || []);
             } catch (error) {
                 console.log("Error al cargar subprocesos:", error);
@@ -180,13 +183,6 @@ export const CustomMenuContextual = ({modo}) => {
             id="menu-contextual"
             style={{ top: y, left: x }}
         >
-            {modo === "designer" && <li
-                className="px-4 py-2 hover:bg-gray-100 whitespace-nowrap cursor-pointer"
-                onClick={goToProcess}
-            >
-                Ir al Subproceso
-            </li>}
-
             {/* Submenú */}
             <li className="relative group px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center justify-between">
                 <span>Vincular Subproceso</span>

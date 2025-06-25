@@ -47,7 +47,7 @@ export default class VersionProceso extends Model {
       type: DataTypes.STRING(255),
       allowNull: true
     },
-    fecha_aprobación: {
+    fecha_aprobacion: {
         type: DataTypes.DATE,
         allowNull: true,
     }

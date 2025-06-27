@@ -7,12 +7,14 @@ export const Oportunidades = ({
     oportunidades,
     setOpenModalArchivos,
     setIdComentario,
+    setMenu
 }) => {
     useEffect(() => {
         getAllOpportunities();
     }, []);
 
     const handleClick = (idComentario) => {
+        setMenu("oportunidades")
         setIdComentario(idComentario);
         setOpenModalArchivos(true);
     };

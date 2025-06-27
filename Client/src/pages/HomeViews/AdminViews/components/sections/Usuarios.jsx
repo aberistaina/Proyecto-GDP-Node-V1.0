@@ -1,16 +1,39 @@
+import { useState } from "react";
 import { FaEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
 import { useConfirmAlert } from "../../../../../context/ConfirmAlertProvider";
 import { useAdminData } from "../../../../../context/AdminDataContext";
 import { CreateButton } from "./CreateButton";
-
+import { FiltroTexto } from "../FiltroTexto";
+import { FiltroOptions } from "../FiltroOptions";
 import { useSnackbar } from "notistack";
+
+const roles = [
+    {
+        id: 1,
+        nombre: "Administrador"
+    },
+    {
+        id: 2,
+        nombre: "Aprobador"
+    },
+    {
+        id: 3,
+        nombre: "Diseñador"
+    },
+    {
+        id: 4,
+        nombre: "Visualizador"
+    }
+]
 
 
 export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
     const { confirm } = useConfirmAlert();
     const { enqueueSnackbar } = useSnackbar();
     const { usuarios, getAllUsers, setID, setModo } = useAdminData();
+    const [ busqueda, setBusqueda ] = useState("")
+    const [ rol, setRol ] = useState("")
 
     const handleUpdateClick = (id) =>{
         try {
@@ -53,31 +76,47 @@ export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
         }
     }
 
-    const usuariosFiltrados = usuarios.filter((u) => u.id_rol !== 5)
-    console.log(usuariosFiltrados);
+    const usuariosFiltrados = usuarios.filter((u) => {
+        const usuariosPorRoles =  u.id_rol !== 5
+
+        const filtroTexto = u.nombre?.toLowerCase().includes(busqueda.toLowerCase())
+
+        const filtroNivel = rol ? u.id_rol === Number(rol) : true;
+        
+        return usuariosPorRoles && filtroTexto && filtroNivel
+    })
+
+
     return (
 
     <>  
         
         <div className="flex flex-col justify-center items-center">
             <div className="flex justify-end w-full">
-                <div className=" ">
+                <div className="w-full grid grid-cols-1 sm:grid-cols-3 items-center gap-4 mb-4" >
+                    <FiltroTexto setBusqueda={setBusqueda} />
+                    <FiltroOptions values={roles} setOptions={setRol} label={"Rol"} value={rol} initialState={"Selecciona un Rol"}/>
+                </div>
+                <div className="w-full flex justify-end">
                     <CreateButton  setIsOpenCreateUpdateModal={setIsOpenCreateUpdateModal}  />
                 </div>
             </div>
-            {usuariosFiltrados && (<table className="w-[50%] divide-y divide-gray-200 shadow-md rounded-lg overflow-hidden mb-6 p-4 ">
+            {usuariosFiltrados.length === 0 ? 
+            (<h1>No hay Coincidencias</h1>): 
+            (
+                <table className="w-[50%] divide-y divide-gray-200 shadow-md rounded-lg overflow-hidden mb-6 p-4 ">
                 <thead className="bg-gray-100">
                     <tr>
-                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider min-w-[165px]">
                             Nombre
                         </th>
                         <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">
                             Email
                         </th>
-                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider min-w-[188px]">
                             Rol
                         </th>
-                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">
+                        <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider min-w-[209px]">
                             Cargo
                         </th>
                         <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">
@@ -136,7 +175,8 @@ export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
                         </tr>
                     ))}
                 </tbody>
-            </table>)}
+            </table>
+            )}
         </div>
     </>
   )

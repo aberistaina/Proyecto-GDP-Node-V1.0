@@ -50,17 +50,14 @@ export const CadenaDeValorEstrategicos = ({estrategicos}) => {
         };
     }, []);
   return (
-    <div className="flex items-center">
+    <div ref={scrollRef} className="flex items-center overflow-x-auto py-6 px-4 w-full cursor-grab select-none" >
             <div className="w-[50px] flex justify-center">
                 <p className="-rotate-90 font-bold whitespace-nowrap">
                     Procesos Estratégicos
                 </p>
             </div>
             
-            <div
-                ref={scrollRef}
-                className="overflow-x-auto py-6 px-4 w-full cursor-grab select-none"
-            >
+            <div>
                 <div className="flex min-w-full bg-[#67AA39] min-h-40 rounded-md py-2 items-center">
                     {estrategicos
                         .filter((proceso) => proceso.estado === "activo")

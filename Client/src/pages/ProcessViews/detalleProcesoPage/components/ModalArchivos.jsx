@@ -7,7 +7,8 @@ export const  ModalArchivos = ({
     setOpenModalArchivos,
     version,
     idComentario, 
-    tabActiva
+    menu,
+    setMenu
 }) => {
     const [archivos, setArchivos] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -40,6 +41,10 @@ export const  ModalArchivos = ({
             }
         }
 
+    const closeModal = () =>{
+        setMenu("")
+        setOpenModalArchivos(false)
+    }
     useEffect(() => {
         const getArchivos = async () => {
             try {
@@ -48,14 +53,13 @@ export const  ModalArchivos = ({
                         ? import.meta.env.VITE_URL_DESARROLLO
                         : import.meta.env.VITE_URL_PRODUCCION;
                 let response;
-                if(tabActiva === "comentarios"){
-                    response = await fetch(
-                    `${URL}/api/v1/comentarios/get-files/${idComentario}`, {credentials: "include"}
-                );
+                if(menu === "comentarios"){
+                    response = await fetch(`${URL}/api/v1/comentarios/get-files/${idComentario}`, {credentials: "include"});
+                }else if(menu === "oportunidades"){
+                    response = await fetch(`${URL}/api/v1/oportunidades/get-files/${idComentario}`,{credentials: "include"});
                 }else{
-                    response = await fetch(
-                    `${URL}/api/v1/oportunidades/get-files/${idComentario}`,{credentials: "include"}
-                );
+                    response = await fetch(`${URL}/api/v1/adjuntos/get-files/${version}`,{credentials: "include"})
+                    
                 }
                 
                 const data = await response.json();
@@ -66,6 +70,8 @@ export const  ModalArchivos = ({
         };
         getArchivos();
     }, []);
+
+
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -108,7 +114,7 @@ export const  ModalArchivos = ({
 
                 <div className="flex justify-end space-x-3">
                     <button
-                        onClick={() => setOpenModalArchivos(false)}
+                        onClick={closeModal}
                         className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded"
                     >
                         Cerrar

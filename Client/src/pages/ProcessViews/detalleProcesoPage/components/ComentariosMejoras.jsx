@@ -1,10 +1,11 @@
 import { ButtonMejorasComentarios } from "./ButtonMejorasComentarios";
 import Comentarios from "./Comentarios";
 import { Oportunidades } from "./Oportunidades";
+import { ResumenProceso } from "./ResumenProceso";
 import { TablaBitacoraComentarios } from "./TablaBitacoraComentarios";
 import { useSelector } from "react-redux";
 
-export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabActiva, version, comentarios, oportunidades, getAllComentaries, getAllOpportunities, comentarioBitacora, getComentariosBitacora, setOpenModalArchivos, setIdComentario}) => {
+export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabActiva, version, comentarios, oportunidades, getAllComentaries, getAllOpportunities, comentarioBitacora, getComentariosBitacora, setOpenModalArchivos, setIdComentario, setMenu, resumenProceso}) => {
     
     const user = useSelector((state) => state.auth.user);
     const roles = [1, 2, 3, 5]
@@ -15,6 +16,16 @@ export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabAc
       {/* Pestañas */}
       <div className="flex border-b border-gray-300 mb-4 justify-between">
         <div>
+            <button
+            className={`px-4 py-2 font-semibold ${
+                tabActiva === "resumen"
+                ? "border-b-4 border-green-500 text-black"
+                : "text-gray-500 hover:text-black"
+            }`}
+            onClick={() => setTabActiva("resumen")}
+            >
+            Resumen
+            </button>
             <button
             className={`px-4 py-2 font-semibold ${
                 tabActiva === "oportunidades"
@@ -60,17 +71,24 @@ export const ComentariosMejoras = ({idProceso, setOpenModal, tabActiva, setTabAc
     </div>
 
       {/* Contenido condicional */}
+      {tabActiva === "resumen" && (
+        <div>
+          {/* Oportunidades */}
+          <ResumenProceso resumenProceso={resumenProceso} />
+        </div>
+      )}
+
       {tabActiva === "oportunidades" && (
         <div>
           {/* Oportunidades */}
-          <Oportunidades idProceso={idProceso} version={version} oportunidades={oportunidades} getAllOpportunities={getAllOpportunities} setOpenModalArchivos={setOpenModalArchivos} setIdComentario={setIdComentario} />
+          <Oportunidades idProceso={idProceso} version={version} oportunidades={oportunidades} getAllOpportunities={getAllOpportunities} setOpenModalArchivos={setOpenModalArchivos} setIdComentario={setIdComentario} setMenu={setMenu} />
         </div>
       )}
 
       {tabActiva === "comentarios" && (
         <div>
           {/* Comentarios */}
-            <Comentarios idProceso={idProceso} version={version} comentarios={comentarios} getAllComentaries={getAllComentaries} setOpenModalArchivos={setOpenModalArchivos} setIdComentario={setIdComentario} />
+            <Comentarios idProceso={idProceso} version={version} comentarios={comentarios} getAllComentaries={getAllComentaries} setOpenModalArchivos={setOpenModalArchivos} setIdComentario={setIdComentario} setMenu={setMenu}/>
         </div>
       )}
 

@@ -46,6 +46,17 @@ export const getAllNiveles = async (URL, setNiveles) => {
         }
     };
 
+    export const getAllProcess = async (URL, setProcesos) => {
+        try {
+            const response = await fetch(`${URL}/api/v1/procesos/get-all`, {
+            credentials: "include",});
+            const data = await response.json();
+            setProcesos(data.data);
+        } catch (error) {
+            console.error("Error al obtener niveles:", error);
+        }
+    };
+
 export const handleUpdateClick = (setModo, setIsOpenCreateUpdateModal, id, setID) =>{
         try {
             setModo("modificar")

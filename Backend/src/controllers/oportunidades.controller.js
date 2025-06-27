@@ -3,9 +3,11 @@ import logger from "../utils/logger.js";
 import { sequelize } from "../database/database.js";
 import { isValidFilesExtension } from "../utils/validators.js";
 import { getAdminConfig } from "../services/admin.services.js";
+import { uploadFileToS3 } from "../services/s3Client.services.js";
 import { formatShortTime } from "../utils/formatearFecha.js";
 import { fileURLToPath } from "url";
 import path from "path";
+import mime from "mime-types";
 
 const __filename = fileURLToPath(import.meta.url);
 const fileName = path.basename(__filename);

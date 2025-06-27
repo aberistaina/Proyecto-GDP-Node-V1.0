@@ -12,6 +12,8 @@ import bitacoraRoutes  from "./routes/bitacora.routes.js"
 import oportunidadesRoutes  from "./routes/oportunidades.routes.js"
 import cargosRoutes  from "./routes/cargos.routes.js"
 import nivelesRoutes  from "./routes/niveles.routes.js"
+import cargosAdjuntos  from "./routes/adjuntos.routes.js"
+
 import {errorHandler} from "./middlewares/errors.middlewares.js"
 
 //Importaciones Para autenticación con SAML
@@ -29,10 +31,10 @@ export const app = express()
 
 //Middlewares SAML
 app.use(session({
-  secret: process.env.SECRET_MIDDLEWARE_SAML, 
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false }
+    secret: process.env.SECRET_MIDDLEWARE_SAML, 
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }
 }));
 
 /* app.use(passport.initialize());
@@ -70,6 +72,7 @@ app.use("/api/v1/oportunidades", oportunidadesRoutes)
 app.use("/api/v1/bitacora", bitacoraRoutes)
 app.use("/api/v1/niveles", nivelesRoutes)
 app.use("/api/v1/cargos", cargosRoutes)
+app.use("/api/v1/adjuntos", cargosAdjuntos)
 
 
 //Errors Handler

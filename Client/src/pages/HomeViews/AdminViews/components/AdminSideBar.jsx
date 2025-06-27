@@ -8,10 +8,9 @@ export const AdminSideBar = ({usuario}) => {
   { id: "cargo", label: "Cargos" },
   ...(usuario?.id_rol === 5 ? [{ id: "nivel", label: "Niveles" }] : []),
   { id: "aprobadores", label: "Aprobadores" },
+  { id: "procesos", label: "Procesos" },
   { id: "opciones", label: "Opciones Admin" }
 ];
-
-
 
   return (
     <aside className="w-64 p-4 space-y-4">

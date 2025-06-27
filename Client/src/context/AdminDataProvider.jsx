@@ -1,12 +1,13 @@
 import {  useState, useEffect, useContext } from "react";
 import { AdminDataContext } from "./AdminDataContext";
-import { getAllUsers, getAllRoles, getAllCargos, getAllNiveles } from "../utils/adminFetch"
+import { getAllUsers, getAllRoles, getAllCargos, getAllNiveles, getAllProcess } from "../utils/adminFetch"
 
 export const AdminDataProvider = ({ children }) => {
     const [usuarios, setUsuarios] = useState([]);
     const [roles, setRoles] = useState([]);
     const [cargos, setCargos] = useState([]);
     const [niveles, setNiveles] = useState([]);
+    const [procesos, setProcesos] = useState([]);
     const [modo, setModo ] = useState("")
     const [type, setType ] = useState("usuarios")
     const [ id, setID ] = useState("")
@@ -21,6 +22,7 @@ export const AdminDataProvider = ({ children }) => {
     getAllRoles(URL, setRoles);
     getAllCargos(URL, setCargos);
     getAllNiveles(URL, setNiveles);
+    getAllProcess(URL, setProcesos)
   }, []);
 
   return (
@@ -31,6 +33,7 @@ export const AdminDataProvider = ({ children }) => {
         cargos,
         niveles,
         modo,
+        procesos,
         setModo,
         type,
         setType,
@@ -40,6 +43,7 @@ export const AdminDataProvider = ({ children }) => {
         getAllRoles: () => getAllRoles(URL, setRoles),
         getAllCargos: () => getAllCargos(URL, setCargos),
         getAllNiveles: () => getAllNiveles(URL, setNiveles),
+        getAllProcess: () => getAllProcess(URL, setProcesos),
       }}
     >
       {children}

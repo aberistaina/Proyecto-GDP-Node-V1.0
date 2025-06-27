@@ -7,6 +7,7 @@ import logger from "../utils/logger.js";
 import { sequelize } from "../database/database.js";
 import { fileURLToPath } from "url";
 import path from "path";
+import mime from "mime-types";
 
 const __filename = fileURLToPath(import.meta.url);
 const fileName = path.basename(__filename);

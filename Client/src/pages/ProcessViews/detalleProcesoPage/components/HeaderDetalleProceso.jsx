@@ -1,5 +1,5 @@
 import { FaUserLarge } from "react-icons/fa6";
-import { FaRegCalendarAlt, FaPaperPlane, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import { FaRegCalendarAlt, FaPaperPlane, FaCheckCircle, FaTimesCircle, FaUpload } from "react-icons/fa";
 import { CiEdit, CiLineHeight } from "react-icons/ci";
 import { IoMdDownload } from "react-icons/io";
 import { MdOutlinePendingActions } from "react-icons/md";
@@ -14,7 +14,7 @@ import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 import { useBpmnContext } from "../../../../BpmnModule/context/useBpmnContext";
 
-export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVersiones, version, getPendingProcess, estaAprobado, versiones, setOpenModalObservaciones }) => {
+export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVersiones, version, getPendingProcess, estaAprobado, versiones, setOpenModalObservaciones, setOpenModalAdjuntos, setOpenModalArchivos, setTabActiva, setMenu }) => {
     const { enqueueSnackbar } = useSnackbar();
     const [isLastVersion, setIsLastVersion] = useState(false);
 
@@ -131,6 +131,8 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
         };
 
 
+
+
     useEffect(() => {
         if (!user) return
         calcularSiEsUltimaVersion()
@@ -173,7 +175,18 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
 
                     <div className="flex items-center ms-[2.6rem] ">
                         <RiFolderDownloadLine title="Adjuntos" className="text-xl" />
-                        <p className="italic ms-4 cursor-pointer hover:text-[#48752c]">Adjuntos</p>
+                        <p onClick={() => setOpenModalArchivos(true)} className="italic ms-4 cursor-pointer hover:text-[#48752c]">Adjuntos</p>
+                    </div>
+
+                    <div className="flex justify-start ms-4 px-5 gap-2 mt-4">
+                        {headerProceso.estadoVersion === "borrador" && [1, 3, 5].includes(user.usuario?.id_rol) && (
+                            <button
+                            className="bg-[#22C55E] hover:bg-[#16A34A] text-white text-xs py-2 w-42 px-4 rounded focus:outline-none focus:shadow-outline flex items-center transition duration-300 ease-in-out transform hover:scale-105"
+                            onClick={() => setOpenModalAdjuntos(true)}
+                        >
+                            <FaUpload className="me-1" /> Cargar Archivos Adjuntos
+                        </button>
+                        )}
                     </div>
                 </div>
 
@@ -181,8 +194,9 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
 
                 {/* Lado derecho */}
                 {/*Visualizadores versión, quienes aprobaron (quitar estado actual y detalle avanzado). eliminar fecha de modificación, documentacion y adjuntos*/ }
-                <div className="w-[30%] pl-4 flex flex-col">
-                    <div className="mb-4">
+                <div className="w-[30%] pl-4 flex flex-col justify-between">
+                    <div>
+                        <div className="mb-4">
                         <h1 className="text-2xl ms-5">
                             Detalles
                         </h1>
@@ -204,7 +218,8 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
                         onClick={(e) =>setOpenModalVersiones(true)}>Versión {headerProceso.version}</p>
                     </div>
 
-                    <div className="flex justify-end ms-4 px-5 gap-2 mt-4">
+                    </div>
+                    <div className="flex justify-end ms-4 px-5 gap-2 mt-4 align-baseline">
                         {headerProceso.estadoVersion === "borrador" && [1, 3, 5].includes(user.usuario?.id_rol) && (
                             <button
                             className="bg-[#6f42c1] hover:bg-[#8556d4] text-white text-xs py-2 w-42 px-4 rounded focus:outline-none focus:shadow-outline flex items-center transition duration-300 ease-in-out transform hover:scale-105"

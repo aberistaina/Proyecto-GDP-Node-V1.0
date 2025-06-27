@@ -7,8 +7,10 @@ export default function Comentarios({
     getAllComentaries,
     setOpenModalArchivos,
     setIdComentario,
+    setMenu
 }) {
     const handleClick = (idComentario) => {
+        setMenu("comentarios")
         setIdComentario(idComentario);
         setOpenModalArchivos(true);
     };

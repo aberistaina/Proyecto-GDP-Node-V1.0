@@ -1,4 +1,4 @@
-import { Usuarios, VersionProceso, Niveles, Cargo, Roles, Administracion } from "../models/models.js";
+import { Usuarios, VersionProceso, Niveles, Cargo, Roles, Administracion, Procesos } from "../models/models.js";
 import crypto from "crypto";
 import {  extraerDatosBpmn } from "../utils/bpmnUtils.js";
 import { adminValidation } from "../services/admin.services.js";
@@ -573,6 +573,99 @@ export const createNivel = async (req, res, next) => {
         next(error);
     }
 };
+
+//CRUD Procesos
+
+export const getProcessById = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const proceso = await Procesos.findOne({
+            where: {
+                id_proceso: id,
+            },
+        });
+
+        if (!proceso) {
+            throw new NotFoundError("No existe el proceso en la base de datos")
+        }
+
+        res.status(200).json({
+            code: 200,
+            message: "proceso Encontrado con éxito",
+            data: proceso,
+        });
+    } catch (error) {
+        logger.error(`[${fileName} -> getProcessById] ${error.message}`);
+        console.log(error);
+        next(error);
+    }
+};
+
+export const updateProcess = async (req, res, next) => {
+    try {
+        const { nivel, nombre, descripcion, estado, macroproceso } = req.body;
+        const { id } = req.params;
+
+        const proceso = await Procesos.findByPk(id);
+
+        if (!proceso) {
+            throw new NotFoundError("No existe el proceso en la base de datos")
+        }
+
+        await proceso.update(
+            {
+                nombre,
+                nivel,
+                descripcion,
+                estado,
+                macroproceso
+            },
+            {
+                where: {
+                    id_proceso: id,
+                },
+            }
+        );
+        res.status(200).json({
+            code: 200,
+            message: "Proceso Modificado Correctamente",
+        });
+    } catch (error) {
+        logger.error(`[${fileName} -> updateProcess] ${error.message}`);
+        console.log(error);
+        next(error);
+    }
+};
+
+export const deleteProcess = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const proceso = await Procesos.findByPk(id);
+
+        if (!proceso) {
+            throw new NotFoundError("No existe el proceso en la base de datos")
+        }
+
+        await Procesos.destroy({
+            where: {
+                id_nivel: id,
+            },
+        });
+
+        res.status(200).json({
+            code: 200,
+            message: "Proceso Eliminado con éxito",
+        });
+    } catch (error) {
+        logger.error(`[${fileName} -> deleteProcess] ${error.message}`);
+        console.log(error);
+        next(error);
+    }
+};
+
+
 
 //Options Admin
 

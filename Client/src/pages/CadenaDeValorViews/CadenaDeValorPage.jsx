@@ -20,6 +20,7 @@ export const CadenaDeValorPage = () => {
                     credentials: "include",
                 });
                 const data = await response.json();
+                console.log("CADENA",data.data);
                 setProcesos(data.data);
             } catch (error) {
                 console.log(error);
@@ -28,9 +29,10 @@ export const CadenaDeValorPage = () => {
         getAllProcess();
     }, []);
 
-    const operativos = procesos.filter((p) => p.id_nivel === 1 && p.macroproceso);
-    const soporte = procesos.filter((p) => p.id_nivel === 2 && p.macroproceso);
-    const estrategicos = procesos.filter((p) => p.id_nivel === 3 && p.macroproceso);
+    const estrategicos = procesos.filter((p) => p.id_nivel === 1 && p.macroproceso);
+    const operativos = procesos.filter((p) => p.id_nivel === 2 && p.macroproceso);
+    const soporte = procesos.filter((p) => p.id_nivel === 3 && p.macroproceso);
+    
     return (
 
         <div className="flex items-center">

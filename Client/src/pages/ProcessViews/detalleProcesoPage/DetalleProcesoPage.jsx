@@ -11,6 +11,8 @@ import ModalVersiones from "./components/ModalVersiones";
 import PulseLoader from "react-spinners/PulseLoader";
 import { ModalArchivos } from "./components/ModalArchivos";
 import { ModalObservaciones } from "./components/ModalObservaciones";
+import { ModalAdjuntos } from "./components/ModalAdjuntos";
+
 //agregar comentarios (todos) y oportunidades
 export const DetalleProcesoPage = () => {
     const user = useSelector((state) => state.auth.user);
@@ -19,7 +21,7 @@ export const DetalleProcesoPage = () => {
     const [resumenProceso, setResumenProceso] = useState({});
     const [headerProceso, setHeaderProceso] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [tabActiva, setTabActiva] = useState("oportunidades");
+    const [tabActiva, setTabActiva] = useState("resumen");
     const [openModal, setOpenModal] = useState(false);
     const [openModalVersiones, setOpenModalVersiones] = useState(false);
     const [estaAprobado, setEstaAprobado ] = useState()
@@ -31,6 +33,8 @@ export const DetalleProcesoPage = () => {
     const [ openModalObservaciones, setOpenModalObservaciones ] = useState(false)
     const [ observacion, setObservacion ] = useState("")
     const [ idComentario, setIdComentario ] = useState("")
+    const [ openModalAdjuntos, setOpenModalAdjuntos] = useState(false)
+    const [ menu, setMenu ] = useState("")
 
 const getAllComentaries = async() =>{
             try {
@@ -169,9 +173,12 @@ const getAllComentaries = async() =>{
                             estaAprobado={estaAprobado}
                             versiones={versiones}
                             setOpenModalObservaciones={setOpenModalObservaciones}
+                            setOpenModalAdjuntos={setOpenModalAdjuntos}
+                            setOpenModalArchivos={setOpenModalArchivos}
+                            setTabActiva={setTabActiva}
+                            setMenu={setMenu}
                             
                         />
-                        <ResumenProceso resumenProceso={resumenProceso}/>
                         <VisualizadorProceso
                             idProceso={idProceso}
                             version={version}
@@ -193,6 +200,8 @@ const getAllComentaries = async() =>{
                                     comentarioBitacora={comentarioBitacora}
                                     setOpenModalArchivos={setOpenModalArchivos}
                                     setIdComentario={setIdComentario}
+                                    setMenu={setMenu}
+                                    resumenProceso={resumenProceso}
                                     
                                 />
                             )}
@@ -220,11 +229,15 @@ const getAllComentaries = async() =>{
                     )}
 
                     {openModalArchivos && (
-                        <ModalArchivos setOpenModalArchivos={setOpenModalArchivos} version= {version} idComentario={idComentario} tabActiva={tabActiva}/>
+                        <ModalArchivos setOpenModalArchivos={setOpenModalArchivos} version= {version} idComentario={idComentario} tabActiva={tabActiva} menu={menu} setMenu={setMenu}/>
                     )}
 
                     {openModalObservaciones && (
                         <ModalObservaciones setOpenModalObservaciones={setOpenModalObservaciones} version= {version} idProceso={idProceso} observacion={observacion} setObservacion={setObservacion} getData={getData}/>
+                    )}
+
+                    {openModalAdjuntos && (
+                        <ModalAdjuntos setOpenModalAdjuntos={setOpenModalAdjuntos} version= {version} idProceso={idProceso} />
                     )}
                 </div> 
             )}

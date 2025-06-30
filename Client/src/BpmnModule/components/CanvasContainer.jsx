@@ -7,7 +7,7 @@ import { useParams } from "react-router-dom";
 
 
 //Componente que actúa como contenedor del modelo (Acá se renderiza el modelador o visualizador BPMN)
-export const CanvasContainer = ({ height = "h-[555px]", border, modo }) => {
+export const CanvasContainer = ({ height , border, modo }) => {
     const { containerRef, bpmnModelerRef } = useBpmnContext();
     const { idProceso } = useParams();
 
@@ -37,7 +37,7 @@ export const CanvasContainer = ({ height = "h-[555px]", border, modo }) => {
     return (
         <div
             ref={containerRef}
-            className={`w-full ${height} bg-white rounded-lg relative ${border ? "shadow-md border border-black" : "shadow-lg"}`}
+            className={`w-full ${height === "details" ? "h-[555px]" : height === "viewer" ? "h-screen" : "h-[800px]"} bg-white rounded-lg relative ${border ? "shadow-md border border-black" : "shadow-lg"}`}
 
 
         >

@@ -16,6 +16,14 @@ export default class CustomPropertiesProvider {
 
     getGroups(element) {
         return (groups) => {
+            const ocultarNombreYDescripcionEn = ["bpmn:Process", "bpmn:Lane"];
+            const debeOcultar = ocultarNombreYDescripcionEn.some(type => is(element, type));
+
+            if (debeOcultar) {
+                groups = groups.filter(
+                    (group) => group.id !== "general" && group.id !== "documentation"
+                );
+            }
             // Campos del proceso general
             if (
                 is(element, "bpmn:Process") ||

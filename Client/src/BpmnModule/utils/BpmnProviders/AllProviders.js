@@ -4,6 +4,7 @@ import customTranslate from "./CustomTranslateProvider";
 import CustomMarkerProvider from "./CustomMarkerProvider";
 import CustomPropertiesProvider from "./CustomPropertiesProvider";
 import CustomOverrideProvider from "./CustomOverrideProvider";
+import PreventLaneDeleteProvider from "./PreventLaneDeleteProvider";
 
 
 
@@ -25,6 +26,10 @@ export const customBpmnProviders = [
     {
         __init__: ['customOverrideProvider'],
         customOverrideProvider: ['type', CustomOverrideProvider]
+    },
+    {
+        __init__: ["preventLaneDeleteProvider"],
+        preventLaneDeleteProvider: ["type", PreventLaneDeleteProvider],
     },
     {
         translate: ['value', customTranslate]

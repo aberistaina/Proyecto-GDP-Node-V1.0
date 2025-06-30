@@ -1,24 +1,23 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"
 import { FaEdit,FaCheckCircle, FaTimesCircle, FaEye } from "react-icons/fa";
-import { MdDelete } from "react-icons/md";
+import { MdDelete, MdOutlineNavigateNext, MdOutlineNavigateBefore } from "react-icons/md";
+
 import { useAdminData } from "../../../../../context/AdminDataContext";
-import { useConfirmAlert } from "../../../../../context/ConfirmAlertProvider";
-import { useSnackbar } from "notistack";
-import { CreateButton } from "./CreateButton";
-import {  handleUpdateClick, handleDeleteClick, getAllRoles } from "../../../../../utils/adminFetch";
 import { FiltroTexto } from "../FiltroTexto";
 import { FiltroCheck } from "../FiltroCheck";
 import { FiltroOptions } from "../FiltroOptions";
 
-export const Procesos = () => {
+export const Procesos = ({ setOpenModalProcess }) => {
 
-    const { procesos, setModo, setID, type, getAllRoles } = useAdminData();
+    const { procesos, setID } = useAdminData();
     const navigate = useNavigate()
     const [ busqueda, setBusqueda ] = useState("")
     const [macroproceso, setMacroproceso] = useState(false);
     const [ nivel, setNivel ] = useState("")
     const [ estado, setEstado ] = useState("")
+    const [paginaActual, setPaginaActual] = useState(1);
+    const elementosPorPagina = 10;
 
     const niveles = [
         {id: 1, nombre: "Procesos Estratégicos"},
@@ -37,6 +36,10 @@ export const Procesos = () => {
         console.log(version);;
         navigate(`/process-details/${idProceso}/${version}`)
     }
+    const handleUpdateClick = (id_proceso) =>{
+        setOpenModalProcess(true)
+        setID(id_proceso)
+    }
 
     const elementosFiltrados = procesos.filter((proceso) => {
         const filtroTexto =
@@ -53,6 +56,21 @@ export const Procesos = () => {
         return filtroTexto && filtroMacroproceso && filtroNivel && filtroEstado;
     });
 
+    const paginacion = elementosFiltrados.slice(
+        (paginaActual - 1) * elementosPorPagina,
+        paginaActual * elementosPorPagina
+    );
+
+    const cambiarPagina = (numeroPagina) => {
+        setPaginaActual(numeroPagina);
+    };
+
+    const totalPaginas = Math.ceil(elementosFiltrados.length / elementosPorPagina);
+
+    useEffect(() => {
+        setPaginaActual(1);
+    }, [busqueda, macroproceso, nivel, estado]);
+
   return (
     <>
             
@@ -65,7 +83,7 @@ export const Procesos = () => {
                 </div>
                 <div className="w-[50%]">
                 </div>
-                { elementosFiltrados.length === 0 ? (
+                { paginacion.length === 0 ? (
                     <h1>No hay Procesos</h1>
                 ) : 
                 (
@@ -106,7 +124,7 @@ export const Procesos = () => {
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                        {elementosFiltrados.map((proceso) => (
+                        {paginacion.map((proceso) => (
                             <tr key={proceso.id_proceso} className="hover:bg-gray-50 transition">
                                 <td className="px-6 py-4 whitespace-wrap text-sm text-gray-800 min-w-[300px]">
                                     {proceso.nombre}
@@ -130,7 +148,7 @@ export const Procesos = () => {
                                 <td className="px-6 py-4 text-sm text-gray-800">
                                     <div className="flex justify-center items-center min-h-full">
                                         <button className="px-4 flex items-center py-2 bg-amber-400 hover:bg-amber-500 text-white rounded-md  transition duration-200 ease-in-out transform hover:scale-105"
-                                        /* onClick={() => handleUpdateClick(setModo, setIsOpenCreateUpdateModal, rol.id_rol, setID)} */
+                                        onClick={() => handleUpdateClick(proceso.id_proceso)}
                                         >
                                             <FaEdit className="me-2" />Modificar
                                         </button>
@@ -161,6 +179,24 @@ export const Procesos = () => {
                     </tbody>
                 </table>
                 )}
+                {/* Paginación */}
+                <div className="flex justify-center items-center">
+                    <button 
+                        onClick={() => cambiarPagina(paginaActual - 1)} 
+                        disabled={paginaActual === 1} 
+                        className="px-1 py-1 text-lg bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-all duration-300 cursor-pointer">
+                        <MdOutlineNavigateBefore className="inline-block mb-1 mr-1" />
+                    </button>
+                    <span className="text-lg text-slate-200">
+                        {paginaActual} de {totalPaginas}
+                    </span>
+                    <button 
+                        onClick={() => cambiarPagina(paginaActual + 1)} 
+                        disabled={paginaActual === totalPaginas} 
+                        className="px-1 py-1 text-lg bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-all duration-300 cursor-pointer">
+                        <MdOutlineNavigateNext className="inline-block mb-1 mr-1" />
+                    </button>
+                </div>
             </div>
         </>
   )

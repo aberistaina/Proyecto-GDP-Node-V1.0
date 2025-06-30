@@ -2,7 +2,7 @@ import { Router } from "express";
 
 import { verifyTokenMiddleware } from "../middlewares/login.middleware.js";
 import { verificarRoles } from "../middlewares/rol.middleware.js";
-import { createCargo, createNivel, createRol, createUser, deleteCargo, deleteNivel, deleteRol, deleteUser, getAdminDataConfig, getAllCargos, getAllNiveles, getAllRoles, getAllUsers, getCardData, getCargoById, getEntidades, getNivelById, getRolById, getUserById, setAdminConfig, updateCargo, updateNivel, updateRol, updateUser, uploadProcess } from "../controllers/admin.controller.js";
+import { createCargo, createNivel, createRol, createUser, deleteCargo, deleteNivel, deleteRol, deleteUser, getAdminDataConfig, getAllCargos, getAllNiveles, getallProcess, getAllRoles, getAllUsers, getCardData, getCargoById, getEntidades, getNivelById, getProcessById, getRolById, getUserById, setAdminConfig, updateCargo, updateNivel, updateProcess, updateRol, updateUser, uploadProcess } from "../controllers/admin.controller.js";
 
 
 const router = Router()
@@ -19,6 +19,10 @@ router.get("/get-nivel/:id", verifyTokenMiddleware, verificarRoles([1, 5]), getN
 router.get("/cards-data", verifyTokenMiddleware, verificarRoles([1, 5]), getCardData)
 router.get("/all-entidades", verifyTokenMiddleware, verificarRoles([1, 5]), getEntidades)
 router.get("/get-config", verifyTokenMiddleware, verificarRoles([1, 5]), getAdminDataConfig)
+router.get("/get-all-data-process", verifyTokenMiddleware, verificarRoles([1, 5]), getallProcess)
+router.get("/get-data-process/:id", verifyTokenMiddleware, verificarRoles([1, 5]), getProcessById)
+
+getallProcess
 
 router.post("/create-user", verifyTokenMiddleware, verificarRoles([1, 5]), createUser)
 router.post("/create-cargo", verifyTokenMiddleware, verificarRoles([1, 5]), createCargo)
@@ -28,6 +32,7 @@ router.post("/set-config", verifyTokenMiddleware, verificarRoles([1, 5]), setAdm
 router.put("/update-user/:id",verifyTokenMiddleware, verificarRoles([1, 5]), updateUser)
 router.put("/update-cargo/:id", verifyTokenMiddleware, verificarRoles([1, 5]), updateCargo)
 router.put("/update-nivel/:id",verifyTokenMiddleware, verificarRoles([1, 5]), updateNivel)
+router.put("/update-proceso/:id",verifyTokenMiddleware, verificarRoles([1, 5]), updateProcess)
 
 router.delete("/delete-user/:id",verifyTokenMiddleware, verificarRoles([1, 5]), deleteUser)
 router.delete("/delete-cargo/:id", verifyTokenMiddleware, verificarRoles([1, 5]), deleteCargo)

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaEdit } from "react-icons/fa";
-import { MdDelete } from "react-icons/md";
+import { MdDelete,  MdOutlineNavigateNext, MdOutlineNavigateBefore } from "react-icons/md";
 import { useConfirmAlert } from "../../../../../context/ConfirmAlertProvider";
 import { useAdminData } from "../../../../../context/AdminDataContext";
 import { CreateButton } from "./CreateButton";
@@ -34,6 +34,8 @@ export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
     const { usuarios, getAllUsers, setID, setModo } = useAdminData();
     const [ busqueda, setBusqueda ] = useState("")
     const [ rol, setRol ] = useState("")
+    const [paginaActual, setPaginaActual] = useState(1);
+    const elementosPorPagina = 10;
 
     const handleUpdateClick = (id) =>{
         try {
@@ -86,6 +88,20 @@ export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
         return usuariosPorRoles && filtroTexto && filtroNivel
     })
 
+    const paginacion = usuariosFiltrados.slice(
+            (paginaActual - 1) * elementosPorPagina,
+            paginaActual * elementosPorPagina
+        );
+    
+        const cambiarPagina = (numeroPagina) => {
+            setPaginaActual(numeroPagina);
+        };
+    
+        const totalPaginas = Math.ceil(usuariosFiltrados.length / elementosPorPagina);
+    
+        useEffect(() => {
+            setPaginaActual(1);
+        }, [busqueda, rol])
 
     return (
 
@@ -101,7 +117,7 @@ export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
                     <CreateButton  setIsOpenCreateUpdateModal={setIsOpenCreateUpdateModal}  />
                 </div>
             </div>
-            {usuariosFiltrados.length === 0 ? 
+            {paginacion.length === 0 ? 
             (<h1>No hay Coincidencias</h1>): 
             (
                 <table className="w-[50%] divide-y divide-gray-200 shadow-md rounded-lg overflow-hidden mb-6 p-4 ">
@@ -136,7 +152,7 @@ export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                    {usuariosFiltrados.map((user) => (
+                    {paginacion.map((user) => (
                         <tr key={user.id_usuario} className="hover:bg-gray-50 transition">
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                                 {user.nombre}
@@ -177,6 +193,24 @@ export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
                 </tbody>
             </table>
             )}
+            {/* Paginación */}
+            <div className="flex justify-center items-center">
+                <button 
+                    onClick={() => cambiarPagina(paginaActual - 1)} 
+                    disabled={paginaActual === 1} 
+                    className="px-1 py-1 text-lg bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-all duration-300 cursor-pointer">
+                    <MdOutlineNavigateBefore className="inline-block mb-1 mr-1" />
+                </button>
+                <span className="text-lg text-slate-200">
+                    {paginaActual} de {totalPaginas}
+                </span>
+                <button 
+                    onClick={() => cambiarPagina(paginaActual + 1)} 
+                    disabled={paginaActual === totalPaginas} 
+                    className="px-1 py-1 text-lg bg-gray-800 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 transition-all duration-300 cursor-pointer">
+                    <MdOutlineNavigateNext className="inline-block mb-1 mr-1" />
+                </button>
+            </div>
         </div>
     </>
   )

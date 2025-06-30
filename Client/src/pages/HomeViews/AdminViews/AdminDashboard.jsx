@@ -6,11 +6,13 @@ import { AdminSections } from "./components/AdminSections";
 import { CreateUpdateModal } from "./components/CreateUpdateModal";
 import { AdminDataProvider } from "../../../context/AdminDataProvider";
 import { useSelector } from "react-redux";
+import { ModalUpdateProcess } from "./components/ModalUpdateProcess";
 
 
 export const AdminDashboard = () => {
     
     const [isOpenCreateUpdateModal, setIsOpenCreateUpdateModal] = useState(false)
+    const [openModalProcess, setOpenModalProcess] = useState(false)
     const user = useSelector((state) => state.auth.user);
     const usuario = user?.usuario;
 
@@ -23,8 +25,9 @@ export const AdminDashboard = () => {
                 <AdminSideBar usuario={usuario}/>
                 <main className="flex-1 p-6 space-y-6">
                     {/* <AdminCards /> */}
-                    <AdminSections setIsOpenCreateUpdateModal={setIsOpenCreateUpdateModal}  />
+                    <AdminSections setIsOpenCreateUpdateModal={setIsOpenCreateUpdateModal} setOpenModalProcess={setOpenModalProcess} />
                     {isOpenCreateUpdateModal && <CreateUpdateModal setIsOpenCreateUpdateModal ={setIsOpenCreateUpdateModal}/>  }
+                    {openModalProcess && <ModalUpdateProcess setOpenModalProcess ={setOpenModalProcess}/>  }
                 </main>
             </div>
         </AdminDataProvider>

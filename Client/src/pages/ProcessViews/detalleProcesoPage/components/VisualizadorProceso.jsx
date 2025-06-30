@@ -50,7 +50,7 @@ export const VisualizadorProceso = ({ idProceso, version }) => {
             </div>
 
             {/* Sin altura fija */}
-            <BpmnViewerModule />
+            <BpmnViewerModule height={"details"} />
         </div>
     );
 };

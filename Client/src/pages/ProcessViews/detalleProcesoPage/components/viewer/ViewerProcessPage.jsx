@@ -3,9 +3,9 @@ import { BpmnViewerModule } from "../../../../../BpmnModule/BpmnViewer/BpmnViewe
 export const ViewerProcessPage = () => {
     
     return (
-        <div className="flex justify-center h-[80vh] ">
-            <div className="w-[80%] flex h-full ">
-                <BpmnViewerModule height={"h-full"} border = {true} />
+        <div className="flex justify-center ">
+            <div className="w-full flex">
+                <BpmnViewerModule border = {true} />
             </div>
         </div>
     );

@@ -8,7 +8,7 @@ import { Procesos } from "./sections/Procesos";
 
 
 
-export const AdminSections = ({ setIsOpenCreateUpdateModal}) => {
+export const AdminSections = ({ setIsOpenCreateUpdateModal, setOpenModalProcess}) => {
     const { type } = useAdminData();
 
   return (
@@ -18,7 +18,7 @@ export const AdminSections = ({ setIsOpenCreateUpdateModal}) => {
       {type === "cargo" && <Cargos setIsOpenCreateUpdateModal={setIsOpenCreateUpdateModal} />}
       {type === "nivel" && <Niveles setIsOpenCreateUpdateModal={setIsOpenCreateUpdateModal} />}
       {type === "aprobadores" && <p>Gestión de Aprobadores</p>}
-      {type === "procesos" && <Procesos />}
+      {type === "procesos" && <Procesos setOpenModalProcess={setOpenModalProcess} />}
       {type === "opciones" && <Opciones />}
     </section>
   );

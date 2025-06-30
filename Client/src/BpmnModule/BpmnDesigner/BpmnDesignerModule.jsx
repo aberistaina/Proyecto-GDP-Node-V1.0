@@ -84,7 +84,7 @@ export const BpmnDesignerModule = () => {
         <>
             <BpmnProvider>
                 <div className="h-full w-full flex flex-col items-center justify-start ">
-                    <div className="w-[80%] space-y-8 mt-10 mb-10">
+                    <div className="w-full space-y-8 mt-10 mb-10">
                         {/* <ProcessSelector
                             setIdProcessSocket={setIdProcessSocket}
                             setShowModal={setShowModal}
@@ -95,7 +95,6 @@ export const BpmnDesignerModule = () => {
                             <BpmnModeler />
                             <PropertiesPanel />
                         </div>
-                        {<ModelerButtons modo="designer" setShowModalSaveChanges={setShowModalSaveChanges} />}
                         <MenuContextListener />
 
                         {/* Modal para Guardar cambios proceso */}

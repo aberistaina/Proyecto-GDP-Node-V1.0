@@ -576,6 +576,51 @@ export const createNivel = async (req, res, next) => {
 
 //CRUD Procesos
 
+export const getallProcess = async(req, res, next) =>{
+    try {
+        const procesos = await Procesos.findAll({
+            include: [
+                {
+                    model: Usuarios,
+                    as: "id_creador_usuario",
+                    attributes: ["nombre"],
+                },
+                {
+                    model: Niveles,
+                    as: "id_nivel_nivele",
+                },
+                
+            ]
+        });
+
+        if (procesos.length === 0) {
+            return res.status(200).json({
+                code: 200,
+                message: "No hay Procesos",
+                data: [],
+            });
+        }
+        const procesosMap = procesos.map((proceso) => ({
+            ...proceso.toJSON(),
+            created_at: formatShortTime(proceso.created_at),
+            creador: proceso.id_creador_usuario?.nombre,
+            nombre_nivel: proceso.id_nivel_nivele?.nombre,
+            id_creador_usuario: undefined,
+            id_nivel_nivele: undefined
+        }));
+
+        res.status(200).json({
+            code: 200,
+            message: "proceso Encontrado con éxito",
+            data: procesosMap,
+        });
+    } catch (error) {
+        logger.error(`[${fileName} -> getProcessById] ${error.message}`);
+        console.log(error);
+        next(error);
+    }
+}
+
 export const getProcessById = async (req, res, next) => {
     try {
         const { id } = req.params;
@@ -589,6 +634,7 @@ export const getProcessById = async (req, res, next) => {
         if (!proceso) {
             throw new NotFoundError("No existe el proceso en la base de datos")
         }
+
 
         res.status(200).json({
             code: 200,
@@ -616,7 +662,7 @@ export const updateProcess = async (req, res, next) => {
         await proceso.update(
             {
                 nombre,
-                nivel,
+                id_nivel: nivel,
                 descripcion,
                 estado,
                 macroproceso
@@ -664,8 +710,6 @@ export const deleteProcess = async (req, res, next) => {
         next(error);
     }
 };
-
-
 
 //Options Admin
 
@@ -920,3 +964,4 @@ export const uploadProcess = async (req, res, next) => {
         next(error);
     }
 };
+

@@ -621,6 +621,112 @@ export const getallProcess = async(req, res, next) =>{
     }
 }
 
+export const getallVersionsOfprocess = async(req, res, next) =>{
+    try {
+        const { idProceso } = req.params
+        const versiones = await VersionProceso.findAll({
+            where:{
+                id_proceso: idProceso
+            },
+            include: [
+                {
+                    model: Usuarios,
+                    as: "id_creador_usuario",
+                    attributes: ["nombre"],
+                },
+                {
+                    model: Procesos,
+                    as: "id_proceso_proceso",
+                },
+            ]
+        });
+
+        if (versiones.length === 0) {
+            return res.status(200).json({
+                code: 200,
+                message: "No hay Procesos",
+                data: [],
+            });
+        }
+        const versionesMap = versiones.map((version) => ({
+            ...version.toJSON(),
+            created_at: formatShortTime(version.created_at),
+            creador: version.id_creador_usuario?.nombre,
+            nombre_proceso: version.id_proceso_proceso?.nombre,
+            id_creador_usuario: undefined,
+            id_proceso_proceso: undefined
+        }));
+
+        res.status(200).json({
+            code: 200,
+            message: "proceso Encontrado con éxito",
+            data: versionesMap,
+        });
+    } catch (error) {
+        logger.error(`[${fileName} -> getProcessById] ${error.message}`);
+        console.log(error);
+        next(error);
+    }
+}
+
+export const getVersionData = async(req, res, next) =>{
+    try {
+        const { version } = req.params
+
+        const versionData = await VersionProceso.findOne({
+            where:{
+                id_version_proceso: version
+            }
+        });
+
+        if (!versionData) {
+            throw new NotFoundError("No existe esta versión")
+        }
+
+
+        res.status(200).json({
+            code: 200,
+            message: "proceso Encontrado con éxito",
+            data: versionData,
+        });
+    } catch (error) {
+        logger.error(`[${fileName} -> getVersionData] ${error.message}`);
+        console.log(error);
+        next(error);
+    }
+}
+
+export const updateVersion = async(req, res, next) =>{
+    try {
+        const { id } = req.params
+        const { observacion, estado } = req.body
+        const version = await VersionProceso.findOne({
+            where:{
+                id_version_proceso: id
+            },
+        });
+
+        if (!version) {
+            throw new NotFoundError("No existe esta versión")
+        }
+
+        await version.update({
+            observacion,
+            estado,
+            fecha_aprobacion: estado === "aprobado" ? new Date() : null
+        })
+
+        res.status(200).json({
+            code: 200,
+            message: "Versión Modificada Exitosamente",
+        });
+    } catch (error) {
+        logger.error(`[${fileName} -> getProcessById] ${error.message}`);
+        console.log(error);
+        next(error);
+    }
+}
+
 export const getProcessById = async (req, res, next) => {
     try {
         const { id } = req.params;

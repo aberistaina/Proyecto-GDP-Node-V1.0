@@ -11,6 +11,7 @@ export const AdminDataProvider = ({ children }) => {
     const [modo, setModo ] = useState("")
     const [type, setType ] = useState("usuarios")
     const [ id, setID ] = useState("")
+    const [ version, setVersion ] = useState("")
 
   const URL =
     import.meta.env.VITE_APP_MODE === "desarrollo"
@@ -39,11 +40,14 @@ export const AdminDataProvider = ({ children }) => {
         setType,
         id,
         setID,
+        version,
+        setVersion,
         getAllUsers: () => getAllUsers(URL, setUsuarios),
         getAllRoles: () => getAllRoles(URL, setRoles),
         getAllCargos: () => getAllCargos(URL, setCargos),
         getAllNiveles: () => getAllNiveles(URL, setNiveles),
         getAllProcess: () => getAllProcess(URL, setProcesos),
+        
       }}
     >
       {children}

@@ -48,9 +48,10 @@ export const getAllNiveles = async (URL, setNiveles) => {
 
     export const getAllProcess = async (URL, setProcesos) => {
         try {
-            const response = await fetch(`${URL}/api/v1/procesos/get-all`, {
+            const response = await fetch(`${URL}/api/v1/admin/get-all-data-process`, {
             credentials: "include",});
             const data = await response.json();
+            console.log(data);
             setProcesos(data.data);
         } catch (error) {
             console.error("Error al obtener niveles:", error);

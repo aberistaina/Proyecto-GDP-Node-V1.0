@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom"
-import { FaEdit,FaCheckCircle, FaTimesCircle, FaEye } from "react-icons/fa";
+import { FaEdit,FaCheckCircle, FaTimesCircle, FaEye, FaHistory } from "react-icons/fa";
 import { MdDelete, MdOutlineNavigateNext, MdOutlineNavigateBefore } from "react-icons/md";
 
 import { useAdminData } from "../../../../../context/AdminDataContext";
@@ -8,7 +8,7 @@ import { FiltroTexto } from "../FiltroTexto";
 import { FiltroCheck } from "../FiltroCheck";
 import { FiltroOptions } from "../FiltroOptions";
 
-export const Procesos = ({ setOpenModalProcess }) => {
+export const Procesos = ({ setOpenModalProcess, setModo }) => {
 
     const { procesos, setID } = useAdminData();
     const navigate = useNavigate()
@@ -32,12 +32,15 @@ export const Procesos = ({ setOpenModalProcess }) => {
     ]
 
     const handleVerClick = (idProceso, version) =>{
-        console.log(idProceso)
-        console.log(version);;
         navigate(`/process-details/${idProceso}/${version}`)
     }
     const handleUpdateClick = (id_proceso) =>{
         setOpenModalProcess(true)
+        setID(id_proceso)
+    }
+
+    const handleVersion = (id_proceso) =>{
+        setModo("version")
         setID(id_proceso)
     }
 
@@ -87,7 +90,7 @@ export const Procesos = ({ setOpenModalProcess }) => {
                     <h1>No hay Procesos</h1>
                 ) : 
                 (
-                    <table className="w-[50%] divide-y divide-gray-200 shadow-md rounded-lg overflow-hidden mb-6 p-4">
+                    <table className="w-[50%] divide-y divide-gray-200 shadow-md rounded-lg overflow-hidden p-4">
                     <thead className="bg-gray-100">
                         <tr>
                             <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">
@@ -98,9 +101,6 @@ export const Procesos = ({ setOpenModalProcess }) => {
                             </th>
                             <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">
                                 Creador
-                            </th>
-                            <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">
-                                Nivel
                             </th>
                             <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">
                                 Macroproceso
@@ -114,6 +114,11 @@ export const Procesos = ({ setOpenModalProcess }) => {
                             <th className="px-6 py-3 items-center text-sm font-medium text-gray-600 uppercase tracking-wider">
                                 <div className="flex justify-center">
                                     <MdDelete fill="#cd0805" className="text-xl"/>
+                                </div>
+                            </th>
+                            <th className="px-6 py-3 items-center text-sm font-medium text-gray-600 uppercase tracking-wider">
+                                <div className="flex justify-center">
+                                    <FaHistory fill="#3B82F6" className="text-xl"/>
                                 </div>
                             </th>
                             <th className="px-6 py-3 items-center text-sm font-medium text-gray-600 uppercase tracking-wider">
@@ -134,9 +139,6 @@ export const Procesos = ({ setOpenModalProcess }) => {
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                                     {proceso.creador}
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                                    {proceso.nivel}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
                                     {proceso.macroproceso ? 
@@ -167,6 +169,17 @@ export const Procesos = ({ setOpenModalProcess }) => {
 
                                 <td className="px-6 py-4  text-sm text-gray-800">
                                     <div className="flex justify-center items-center min-h-full">
+                                        <button className="flex items-center justify-center px-4 py-2 min-w-[108px] bg-blue-500 hover:bg-blue-600 text-white rounded-md transition duration-200 ease-in-out transform hover:scale-105" 
+                                        onClick={()=> handleVersion(proceso.id_proceso)}
+
+                                            >
+                                            <FaHistory className="me-2" />Versiones
+                                        </button>
+                                    </div>
+                                </td>
+
+                                <td className="px-6 py-4  text-sm text-gray-800">
+                                    <div className="flex justify-center items-center min-h-full">
                                         <button className="flex items-center justify-center px-4 py-2 min-w-[108px] bg-green-600 text-white rounded-md hover:bg-green-800 transition duration-200 ease-in-out transform hover:scale-105" 
                                         onClick={()=> handleVerClick(proceso.id_bpmn, proceso.version)}
                                             >
@@ -179,6 +192,10 @@ export const Procesos = ({ setOpenModalProcess }) => {
                     </tbody>
                 </table>
                 )}
+                <div className="w-full bg-[#EFF0F2] flex justify-center items-center mb-6">
+                    <span className="text-center text-sm">{`Mostrando un total de ${elementosFiltrados.length} procesos`}</span>
+                </div>
+                
                 {/* Paginación */}
                 <div className="flex justify-center items-center">
                     <button 

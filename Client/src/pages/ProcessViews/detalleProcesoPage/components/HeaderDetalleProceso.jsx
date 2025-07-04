@@ -14,9 +14,10 @@ import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
 
 
-export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVersiones, version, getPendingProcess, estaAprobado, versiones, setOpenModalObservaciones, setOpenModalAdjuntos, setOpenModalArchivos, setTabActiva, setMenu }) => {
+export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVersiones, version, getPendingProcess, estaAprobado, versiones, setOpenModalObservaciones, setOpenModalAdjuntos, setOpenModalArchivos, setLoading }) => {
     const { enqueueSnackbar } = useSnackbar();
     const [isLastVersion, setIsLastVersion] = useState(false);
+    
 
 
     const user = useSelector((state) => state.auth.user);
@@ -39,6 +40,50 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
 
             await downloadFile(response, nombreArchivo)
         } catch (error) {
+            console.log(error);
+        }
+    }
+
+    const handleDocumentacion = async() =>{
+        try {
+            setLoading(true)
+            const formData = new FormData()
+            formData.append("idProceso", idProceso)
+            formData.append("version", version)
+
+            const requestOptions = {
+                method: "POST",
+                credentials: "include",
+                body: formData,
+                headers: {
+                Accept: "application/pdf" 
+            }
+            }
+
+            const URL =
+                import.meta.env.VITE_APP_MODE === "desarrollo"
+                    ? import.meta.env.VITE_URL_DESARROLLO
+                    : import.meta.env.VITE_URL_PRODUCCION;
+            const response = await fetch(`${URL}/api/v1/procesos/generar-documentacion`,requestOptions )
+
+            if(response.ok){
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `documentacion_${idProceso}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                window.URL.revokeObjectURL(url);
+                enqueueSnackbar("Archivo Generado Correctamente", { variant: "success" });
+                setLoading(false)
+            }else {
+                setLoading(false)
+                enqueueSnackbar("Hubo un error al generar el documento", { variant: "error" });
+            }
+        } catch (error) {
+            setLoading(false)
             console.log(error);
         }
     }
@@ -170,7 +215,8 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
 
                     <div className="flex items-center ms-[2.6rem] ">
                         <GrDocumentDownload title="Documentación" className="text-xl" />
-                        <p className="italic ms-4 cursor-pointer hover:text-[#48752c]">Documentación</p>
+                        <p className="italic ms-4 cursor-pointer hover:text-[#48752c]" 
+                        onClick={handleDocumentacion}>Documentación</p>
                     </div>
 
                     <div className="flex items-center ms-[2.6rem] ">

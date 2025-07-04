@@ -117,11 +117,11 @@ export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
                     <CreateButton  setIsOpenCreateUpdateModal={setIsOpenCreateUpdateModal}  />
                 </div>
             </div> 
-            <div className=" overflow-x-auto">
+            <div className="w-full overflow-x-auto max-w-screen-xl mx-auto">
                 {paginacion.length === 0 ? 
             (<h1>No hay Coincidencias</h1>): 
             (
-                <table className="">
+                <table className="w-full">
                 <thead className="bg-gray-100 overflow-auto">
                     <tr>
                         <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider min-w-[165px]">
@@ -154,8 +154,8 @@ export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                     {paginacion.map((user) => (
-                        <tr key={user.id_usuario} className="hover:bg-gray-50 transition">
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
+                        <tr key={user.id_usuario} className="hover:bg-gray-50 transition ">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800 min-w-[100px] max-w-[150px]">
                                 {user.nombre}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
@@ -172,7 +172,10 @@ export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-800">
                                 <div className="flex justify-center items-center min-h-full">
-                                    <button className="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-white rounded-md  transition duration-200 ease-in-out transform hover:scale-105"
+                                    <button className="px-2 py-2 bg-amber-400 hover:bg-amber-500 text-white rounded-md  transition duration-200 ease-in-out transform hover:scale-105
+                                    2xl:px-4 
+                                    
+                                    "
                                     onClick={()=> handleUpdateClick(user.id_usuario)}
                                     >
                                         Modificar
@@ -194,6 +197,9 @@ export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
                 </tbody>
             </table>
             )}
+            </div>
+            <div className="w-full bg-[#EFF0F2] flex justify-center items-center mb-6">
+                    <span className="text-center text-sm">{`Mostrando un total de ${usuariosFiltrados.length} Usuarios`}</span>
             </div>
             {/* Paginación */}
             <div className="flex justify-center items-center">

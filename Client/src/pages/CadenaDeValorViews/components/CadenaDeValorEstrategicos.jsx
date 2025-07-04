@@ -58,13 +58,13 @@ export const CadenaDeValorEstrategicos = ({estrategicos}) => {
             </div>
             
             <div>
-                <div className="flex min-w-full bg-[#67AA39] min-h-40 rounded-md py-2 items-center">
+                <div className="flex min-w-full bg-[#10644C] min-h-40 rounded-md py-2 px-4 items-center gap-8">
                     {estrategicos
                         .filter((proceso) => proceso.estado === "activo")
                         .map((proceso, index) => (
                             <div
                                 key={proceso.id_proceso}
-                                className="w-60 h-20 bg-[#F0F0F0] bg-no-repeat bg-contain bg-center flex items-center justify-center text-black font-bold transition duration-300 ease-in-out transform hover:scale-105 ms-4 rounded-md"
+                                className="w-60 h-20 bg-[#F0F0F0] bg-no-repeat bg-contain bg-center flex items-center justify-center text-black font-bold transition duration-300 ease-in-out transform hover:scale-105  rounded-md"
                             >
                                 <span
                                     className="block max-w-[150px] break-words whitespace-normal text-wrap text-center cursor-pointer"

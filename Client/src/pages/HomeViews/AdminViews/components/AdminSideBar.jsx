@@ -7,7 +7,7 @@ export const AdminSideBar = ({usuario, setModo}) => {
   ...(usuario?.id_rol === 5 ? [{ id: "rol", label: "Roles" }] : []),
   { id: "cargo", label: "Cargos" },
   ...(usuario?.id_rol === 5 ? [{ id: "nivel", label: "Niveles" }] : []),
-  { id: "aprobadores", label: "Aprobadores" },
+  /* { id: "aprobadores", label: "Aprobadores" }, */
   { id: "procesos", label: "Procesos" },
   { id: "opciones", label: "Opciones Admin" }
 ];

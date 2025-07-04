@@ -1,4 +1,3 @@
-import { CadenaValor } from "./CadenaValor";
 export const TipoProcesoHeader = ({ titulo, allProcess }) => {
     return (
         <div className="bg-gradient-to-r from-[#FAF0FF] to-[#F3FAFF] shadow-lg rounded-2xl p-4 mb-8 ">

@@ -20,7 +20,7 @@ const main = async () => {
         logger.info("Modelos sincronizados correctamente.");
         await initializeCognitoOIDCClient();
         console.log("Cognito OIDC Client inicializado correctamente.");
-        const server = app.listen(PORT, () => {
+        const server = app.listen(PORT,"0.0.0.0", () => {
             console.log(`🚀Servidor escuchando en el puerto: ${PORT}🚀`);
             logger.info(`Servidor escuchando en el puerto: ${PORT}`);
         });

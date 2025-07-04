@@ -50,12 +50,13 @@ app.use(cookieParser());
 
 const origins = [
   "http://localhost:5173",
+  "http://192.168.50.66:5173",
   "https://test.backspace.cl/",
 ];
 app.use(cors({
     origin: origins,
     credentials: true
-  }));
+}));
 
 
 //Carpeta Publica

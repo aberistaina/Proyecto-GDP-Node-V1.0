@@ -39,6 +39,7 @@ export const TipoProcesoPage = () => {
                         
                 const response = await fetch(`${URL}/api/v1/procesos/get-process-nivel/${idNivel}`, {credentials: "include"});
                 const data = await response.json();
+                console.log("DATA",data);
                 setAllProcess(data.data)
             } catch (error) {
                 console.log(error);

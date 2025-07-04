@@ -34,6 +34,7 @@ export const DetalleProcesoPage = () => {
     const [ observacion, setObservacion ] = useState("")
     const [ idComentario, setIdComentario ] = useState("")
     const [ openModalAdjuntos, setOpenModalAdjuntos] = useState(false)
+    const [loading, setLoading] = useState(false);
     const [ menu, setMenu ] = useState("")
 
 const getAllComentaries = async() =>{
@@ -177,6 +178,7 @@ const getAllComentaries = async() =>{
                             setOpenModalArchivos={setOpenModalArchivos}
                             setTabActiva={setTabActiva}
                             setMenu={setMenu}
+                            setLoading={setLoading}
                             
                         />
                         <VisualizadorProceso
@@ -239,6 +241,13 @@ const getAllComentaries = async() =>{
                     {openModalAdjuntos && (
                         <ModalAdjuntos setOpenModalAdjuntos={setOpenModalAdjuntos} version= {version} idProceso={idProceso} />
                     )}
+
+                    {loading && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+                            <div className="text-white text-xl"><PulseLoader color="#10644C" size={15} /></div>
+                        </div>
+                    )}
+
                 </div> 
             )}
         </BpmnProvider>

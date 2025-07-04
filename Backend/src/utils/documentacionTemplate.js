@@ -69,7 +69,7 @@ export const getHtmlEstructuraBase = (titulo, dataUrl) => `
         <hr />
         <h1>${titulo}</h1>
         <hr />
-        <img src="${dataUrl}" alt="Diagrama BPMN" style="max-width: 50%; height: auto;" />
+        <img src="${dataUrl}" alt="Diagrama BPMN" style="max-width: 80%; height: auto;" />
       </div>
     </main>
 
@@ -86,7 +86,7 @@ export const documentacionTemplate = (procesos, dataUrl) => {
     const contenidoHTML = procesos
         .filter((proceso) => proceso.name !== "Proceso principal")
         .map((proceso, index) => {
-            const nombre = proceso.name || proceso.id;
+            const nombre = proceso.nombreReal || proceso.id;
             const descripcion =
                 proceso.documentation?.[0]?.text || "Sin descripción";
             const elementos = (proceso.flowElements || []).filter(
@@ -96,7 +96,7 @@ export const documentacionTemplate = (procesos, dataUrl) => {
             return `
         <section>
           <h2>${index + 1}. ${nombre}</h2>
-          <img src="${dataUrl}" alt="Diagrama BPMN" style="max-width: 50%; height: auto;text-align: center" />
+          <img src="${dataUrl}" alt="Diagrama BPMN" style="max-width: 80%; height: auto;text-align: center" />
           <h3>Descripción</h3>
           <p>${descripcion}</p>
 
@@ -211,7 +211,7 @@ export const documentacionTemplate = (procesos, dataUrl) => {
                 <hr />
                 <h1>${procesos[1].name}</h1>
                 <hr />
-                <img src="${dataUrl}" alt="Diagrama BPMN" style="max-width: 50%; height: auto;" />
+                <img src="${dataUrl}" alt="Diagrama BPMN" style="max-width: 80%; height: auto;" />
             </div>
         </main>
 

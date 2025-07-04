@@ -15,7 +15,19 @@ export const getMacroProcessData = async (xmlContent) => {
         const procesos = rootElement.rootElements.filter(
             (e) => e.$type === "bpmn:Process"
         );
-        return procesos
+        return procesos.map((proceso) => {
+            let nombre = proceso.name;
+            if (nombre === "Proceso Principal" && proceso.laneSets?.length) {
+                const primerLane = proceso.laneSets[0].lanes?.[0];
+                if (primerLane?.name) {
+                nombre = primerLane.name;
+                }
+            }
+            return {
+                ...proceso,
+                nombreReal: nombre
+            };
+        });
     } catch (error) {
         console.log(error);
         logger.error(`[${fileName} -> getMacroProcessData] ${error.message}`);
@@ -30,7 +42,19 @@ export const getProcessData = async (xmlContent) => {
         const procesos = rootElement.rootElements.filter(
             (e) => e.$type === "bpmn:Process"
         );
-        return procesos
+        return procesos.map((proceso) => {
+            let nombre = proceso.name;
+            if (nombre === "Proceso Principal" && proceso.laneSets?.length) {
+                const primerLane = proceso.laneSets[0].lanes?.[0];
+                if (primerLane?.name) {
+                nombre = primerLane.name;
+                }
+            }
+            return {
+                ...proceso,
+                nombreReal: nombre
+            };
+        });
     } catch (error) {
         console.log(error);
         logger.error(`[${fileName} -> getProcessData] ${error.message}`);

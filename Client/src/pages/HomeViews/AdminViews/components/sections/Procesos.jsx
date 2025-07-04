@@ -89,7 +89,7 @@ export const Procesos = ({ setOpenModalProcess, setModo }) => {
                     <h1>No hay Procesos</h1>
                 ) : 
                 (
-                    <table className="w-[50%] divide-y divide-gray-200 shadow-md rounded-lg p-4">
+                    <table className=" divide-y divide-gray-200 shadow-md rounded-lg p-4">
                     <thead className="bg-gray-100">
                         <tr>
                             <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">
@@ -110,11 +110,12 @@ export const Procesos = ({ setOpenModalProcess, setModo }) => {
                                 </div>
                             </th>
     
-                            <th className="px-6 py-3 items-center text-sm font-medium text-gray-600 uppercase tracking-wider">
+                            {/* <th className="px-6 py-3 items-center text-sm font-medium text-gray-600 uppercase tracking-wider">
                                 <div className="flex justify-center">
                                     <MdDelete fill="#cd0805" className="text-xl"/>
                                 </div>
-                            </th>
+                            </th> */}
+
                             <th className="px-6 py-3 items-center text-sm font-medium text-gray-600 uppercase tracking-wider">
                                 <div className="flex justify-center">
                                     <FaHistory fill="#3B82F6" className="text-xl"/>
@@ -130,7 +131,7 @@ export const Procesos = ({ setOpenModalProcess, setModo }) => {
                     <tbody className="bg-white divide-y divide-gray-200">
                         {paginacion.map((proceso) => (
                             <tr key={proceso.id_proceso} className="hover:bg-gray-50 transition">
-                                <td className="px-6 py-4 whitespace-wrap text-sm text-gray-800 min-w-[300px]">
+                                <td className="px-6 py-4 whitespace-wrap text-sm text-gray-800 min-w-[200px] max-w-[250px] lg:max-w-[400px]">
                                     {proceso.nombre}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
@@ -156,15 +157,15 @@ export const Procesos = ({ setOpenModalProcess, setModo }) => {
                                     </div>
                                 </td>
     
-                                <td className="px-6 py-4 text-sm text-gray-800">
+                                {/* <td className="px-6 py-4 text-sm text-gray-800">
                                     <div className="flex justify-center items-center min-h-full">
                                         <button className="flex items-center px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition duration-200 ease-in-out transform hover:scale-105" 
-                                        /* onClick={()=> handleDeleteClick(rol.id_rol, enqueueSnackbar, type, getAllRoles, confirm)} */
+                                        onClick={()=> handleDeleteClick(rol.id_rol, enqueueSnackbar, type, getAllRoles, confirm)}
                                             >
                                             <FaEdit className="me-2" />Eliminar
                                         </button>
                                     </div>
-                                </td>
+                                </td> */}
 
                                 <td className="px-6 py-4  text-sm text-gray-800">
                                     <div className="flex justify-center items-center min-h-full">

@@ -88,7 +88,7 @@ export const getProcessByNivel = async (req, res, next) => {
                     attributes: ["nombre_version", "id_version_proceso"],
                     where: { estado: "aprobado" },
                     separate: true,
-                    limit: 1,
+                    limit: 1
                 },
             ],
             where: {
@@ -110,6 +110,8 @@ export const getProcessByNivel = async (req, res, next) => {
             creador: proceso.id_creador_usuario?.nombre,
             version: proceso.version_procesos?.[0]?.id_version_proceso,
         }));
+
+        
 
         res.status(200).json({
             code: 200,
@@ -908,6 +910,13 @@ export const generarDocumentacion = async (req, res, next) => {
         const { idProceso, version } = req.body;
         const { s3_bucket, s3_bucket_procesos } = await getAdminConfig();
 
+        const procesoBuscado = await Procesos.findOne({
+            raw:true,
+            where:{
+                id_bpmn: idProceso
+            }
+        })
+
         const versionProceso = await VersionProceso.findOne({
             where: {
                 id_bpmn: idProceso,
@@ -925,6 +934,7 @@ export const generarDocumentacion = async (req, res, next) => {
         const imagen = await getImageFromS3Version(
             "test-bpmn",
             `Imagenes-Procesos/${idProceso}.png`,
+            versionProceso.nombre_version
         );
 
         const base64 = imagen.toString("base64");
@@ -932,7 +942,7 @@ export const generarDocumentacion = async (req, res, next) => {
 
         const macroProceso = await getMacroProcessData(xmlContent);
 
-        const portada = generarPortada(macroProceso.name, dataUrl);
+        const portada = generarPortada(procesoBuscado.nombre, dataUrl);
         const contenidoMacro = generarContenidoMacroproceso(macroProceso);
         const procesos = await IntermediaProcesos.findAll({
             attributes: ["id_bpmn"],
@@ -963,14 +973,13 @@ export const generarDocumentacion = async (req, res, next) => {
         const page = await browser.newPage();
         await page.setContent(template, { waitUntil: "load" });
 
-        const rutaRelativa = path.join("upload", `debug-${idProceso}.html`);
+        /* const rutaRelativa = path.join("upload", `debug-${idProceso}.html`);
         const rutaAbsoluta = path.join(__dirname, "../", rutaRelativa);
         fs.writeFileSync(rutaAbsoluta, template);
         const rutaRelativaPDF = path.join("upload", `debug-${idProceso}.pdf`);
-        const rutaAbsolutaPDF = path.join(__dirname, "../", rutaRelativaPDF);
+        const rutaAbsolutaPDF = path.join(__dirname, "../", rutaRelativaPDF);  */
 
         const buffer = await page.pdf({
-            path: rutaAbsolutaPDF,
             format: "A4",
             margin: {
                 top: "0.4in",
@@ -984,11 +993,14 @@ export const generarDocumentacion = async (req, res, next) => {
         await browser.close();
 
         res.setHeader("Content-Type", "application/pdf");
-        res.setHeader(
-            "Content-Disposition",
-            `attachment; filename=documentacion_${idProceso}.pdf`
-        );
-        res.send(buffer);
+        res.setHeader("Content-Disposition", `attachment; filename=documentacion_${idProceso}.pdf`);
+        res.setHeader("Content-Length", buffer.length);
+        res.writeHead(200, {
+            "Content-Type": "application/pdf",
+            "Content-Disposition": `attachment; filename=documentacion_${idProceso}.pdf`,
+            "Content-Length": buffer.length
+            });
+        res.end(buffer);
     } catch (error) {
         logger.error(`[${fileName} -> generarDocumentacion] ${error.message}`);
         console.log(error);

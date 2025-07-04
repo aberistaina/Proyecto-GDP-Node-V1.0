@@ -17,7 +17,7 @@ export const generarContenidoMacroproceso = (procesos) =>
   procesos
     .filter((proceso) => proceso.name !== "Proceso principal")
     .map((proceso, index) => {
-      const nombre = proceso.name || proceso.id;
+      const nombre = proceso.nombreReal || proceso.id;
       const descripcion = proceso.documentation?.[0]?.text || "Sin descripción";
       const elementos = (proceso.flowElements || []).filter((e) => e.name);
 
@@ -48,12 +48,14 @@ export const generarContenidoMacroproceso = (procesos) =>
 
 
 export const generarContenidoProceso = (proceso) => {
-  const nombre = proceso.name || proceso.id;
+  const nombre = proceso.nombreReal || proceso.id;
 
   if (nombre === "Proceso principal") return "";
 
   const descripcion = proceso.documentation?.[0]?.text || "Sin descripción";
-  const elementos = (proceso.flowElements || []).filter(e => e.name);
+  const elementos = (proceso.flowElements || []).filter(
+    (e) => e.name && e.$type !== "bpmn:SequenceFlow"
+  );
 
   return `
     <section style="page-break-before: always;">
@@ -64,8 +66,10 @@ export const generarContenidoProceso = (proceso) => {
       <h3>Elementos del proceso</h3>
       <ul>
         ${elementos.map((el, i) => {
-          const desc = el.documentation?.[0]?.text || "Sin descripción";
-          const icon = getBpmnIcon(el.$type);
+            const desc = el.documentation?.[0]?.text || "Sin descripción";
+            const icon = getBpmnIcon(el.$type);
+            console.log("Elemento",el);
+            console.log("TIPO",el.$type);
           return `
             <li>
               <h4>${i + 1}. ${icon} <strong>${el.name}</strong></h4>

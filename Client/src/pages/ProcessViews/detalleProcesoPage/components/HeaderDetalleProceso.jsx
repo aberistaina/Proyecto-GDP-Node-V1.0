@@ -1,6 +1,6 @@
 import { FaUserLarge } from "react-icons/fa6";
 import { FaRegCalendarAlt, FaPaperPlane, FaCheckCircle, FaTimesCircle, FaUpload } from "react-icons/fa";
-import { CiEdit, CiLineHeight } from "react-icons/ci";
+import { CiEdit  } from "react-icons/ci";
 import { IoMdDownload } from "react-icons/io";
 import { MdOutlinePendingActions } from "react-icons/md";
 import { HiUserGroup } from "react-icons/hi2";
@@ -12,7 +12,7 @@ import { downloadFile } from "../../../../BpmnModule/utils/downloadFile";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useState, useEffect } from "react";
-import { useBpmnContext } from "../../../../BpmnModule/context/useBpmnContext";
+
 
 export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVersiones, version, getPendingProcess, estaAprobado, versiones, setOpenModalObservaciones, setOpenModalAdjuntos, setOpenModalArchivos, setTabActiva, setMenu }) => {
     const { enqueueSnackbar } = useSnackbar();
@@ -149,7 +149,7 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
 
                 {/* Lado izquierdo */}
                 {/*Agregar etiquetas de Nombre creador y fecha aprovación*/ }
-                <div className="w-3/4 pr-4 border-r-2 border-r-[#adadad]">
+                <div className="w-3/4 lg:w-[70%] pr-4 border-r-2 border-r-[#adadad]">
                     <div className="flex items-center px-8">
                         <IoMdDownload onClick={handleClick} title="Descargar Proceso" className="text-4xl rounded-full bg-[#48752c] p-1 hover:bg-[#294618] cursor-pointer transition duration-300 ease-in-out transform hover:scale-105" fill="#ffffff" />
                         <h1 className="text-3xl font-bold px-2">
@@ -194,7 +194,7 @@ export const HeaderDetalleProceso = ({headerProceso, idProceso, setOpenModalVers
 
                 {/* Lado derecho */}
                 {/*Visualizadores versión, quienes aprobaron (quitar estado actual y detalle avanzado). eliminar fecha de modificación, documentacion y adjuntos*/ }
-                <div className="w-[30%] pl-4 flex flex-col justify-between">
+                <div className="w-[30%] lg:w-[40%] pl-4 flex flex-col justify-between">
                     <div>
                         <div className="mb-4">
                         <h1 className="text-2xl ms-5">

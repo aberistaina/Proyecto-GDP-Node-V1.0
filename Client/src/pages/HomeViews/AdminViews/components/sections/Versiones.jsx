@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { FaEdit, FaEye } from "react-icons/fa";
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom";
 import { IoArrowBackOutline } from "react-icons/io5";
 import { MdDelete } from "react-icons/md";
 import { useAdminData } from "../../../../../context/AdminDataContext";
@@ -30,10 +30,11 @@ export const Versiones = ({setModo, setOpenModalVersion, getVersions, versiones,
             >
                 <IoArrowBackOutline className="me-2" />Volver
             </button>
-            {versiones.length === 0 ? (
+            <div className="overflow-x-auto">
+                {versiones.length === 0 ? (
                 <h1>No hay Versiones para este proceso</h1>
             ) : (
-                <table className="w-[50%] divide-y divide-gray-200 shadow-md rounded-lg overflow-hidden mb-6 p-4">
+                <table className="w-[50%] divide-y divide-gray-200 shadow-md rounded-lg p-4">
                     <thead className="bg-gray-100">
                         <tr>
                             <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">
@@ -139,6 +140,7 @@ export const Versiones = ({setModo, setOpenModalVersion, getVersions, versiones,
                     </tbody>
                 </table>
             )}
+            </div>
         </div>
     );
 };

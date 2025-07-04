@@ -44,8 +44,10 @@ export const AdminDashboard = () => {
                 <AdminHeader usuario={usuario} />
             </div>
             <div className="min-h-screen flex">
-                <AdminSideBar usuario={usuario} setModo={setModo}/>
-                <main className="flex-1 p-6 space-y-6">
+                <div className="w-[20%]">
+                    <AdminSideBar usuario={usuario} setModo={setModo}/>
+                </div>
+                <main className="flex-1 p-6 space-y-6 w-[80%]">
                     {/* <AdminCards /> */}
                     <AdminSections setIsOpenCreateUpdateModal={setIsOpenCreateUpdateModal} setOpenModalProcess={setOpenModalProcess} setOpenModalVersion={setOpenModalVersion} modo={modo} setModo={setModo} getVersions={getVersions} setVersiones={setVersiones} versiones={versiones} />
                     {isOpenCreateUpdateModal && <CreateUpdateModal setIsOpenCreateUpdateModal ={setIsOpenCreateUpdateModal}/>  }

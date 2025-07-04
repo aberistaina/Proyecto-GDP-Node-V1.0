@@ -15,12 +15,12 @@ export const Layout = () => {
         <>
             {shouldShowSidebar && <NavBar />}
 
-            <div className="bg-[#EFF0F2] min-h-screen px-[16rem] pt-6 pb-10">
+            <div className="bg-[#EFF0F2] min-h-screen px-[10rem] pt-6 pb-10">
                 <Outlet />
             </div>
 
             {isVistaConBpmn() ? (
-                <div className="w-full bg-[#EFF0F2] pt-[36rem]">
+                <div className="w-full bg-[#EFF0F2] pt-[40rem]">
                     <Footer />
                 </div>
             ) : (

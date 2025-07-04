@@ -282,6 +282,7 @@ export const saveNewProcessChanges = async (req, res, next) => {
     const transaction = await sequelize.transaction();
     try {
         const { archivo, imagen } = req.files;
+        console.log(imagen);
         const { id_creador, aprobadores, nombre, descripcion, nivel, esMacroproceso } = req.body;
 
         const { s3_bucket, s3_bucket_procesos, s3_bucket_imagenes } = await getAdminConfig();
@@ -920,10 +921,10 @@ export const generarDocumentacion = async (req, res, next) => {
             versionProceso.nombre_version
         );
 
+
         const imagen = await getImageFromS3Version(
             "test-bpmn",
-            "Imagenes-Procesos/Id_6ba9787b-da8d-4cb1-a417-8f793a457e11.png",
-            "1.0"
+            `Imagenes-Procesos/${idProceso}.png`,
         );
 
         const base64 = imagen.toString("base64");

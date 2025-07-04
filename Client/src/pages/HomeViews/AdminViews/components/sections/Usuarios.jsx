@@ -107,21 +107,22 @@ export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
 
     <>  
         
-        <div className="flex flex-col justify-center items-center">
-            <div className="flex justify-end w-full">
-                <div className="w-full grid grid-cols-1 sm:grid-cols-3 items-center gap-4 mb-4" >
+        <div className="flex flex-col justify-center ">
+            <div className="flex flex-wrap justify-between mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4 mb-4" >
                     <FiltroTexto setBusqueda={setBusqueda} />
                     <FiltroOptions values={roles} setOptions={setRol} label={"Rol"} value={rol} initialState={"Selecciona un Rol"}/>
                 </div>
-                <div className="w-full flex justify-end">
+                <div className="">
                     <CreateButton  setIsOpenCreateUpdateModal={setIsOpenCreateUpdateModal}  />
                 </div>
-            </div>
-            {paginacion.length === 0 ? 
+            </div> 
+            <div className=" overflow-x-auto">
+                {paginacion.length === 0 ? 
             (<h1>No hay Coincidencias</h1>): 
             (
-                <table className="w-[50%] divide-y divide-gray-200 shadow-md rounded-lg overflow-hidden mb-6 p-4 ">
-                <thead className="bg-gray-100">
+                <table className="">
+                <thead className="bg-gray-100 overflow-auto">
                     <tr>
                         <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider min-w-[165px]">
                             Nombre
@@ -193,6 +194,7 @@ export const Usuarios = ( {setIsOpenCreateUpdateModal} ) => {
                 </tbody>
             </table>
             )}
+            </div>
             {/* Paginación */}
             <div className="flex justify-center items-center">
                 <button 

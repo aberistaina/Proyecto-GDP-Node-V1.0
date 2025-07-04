@@ -1,6 +1,6 @@
 export const FiltroCheck = ({ check, setCheck, label }) => {
     return (
-        <div className="flex items-center gap-3 px-4 py-2 rounded-lg w-fit max-w-sm">
+        <div className="flex items-center gap-3 px-4 py-2 rounded-lg ">
             <input
                 type="checkbox"
                 id={label}

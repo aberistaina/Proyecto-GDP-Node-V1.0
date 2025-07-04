@@ -77,20 +77,19 @@ export const Procesos = ({ setOpenModalProcess, setModo }) => {
   return (
     <>
             
-            <div className="flex flex-col justify-center items-center">
-                <div className="w-full mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="flex flex-col">
+                <div className="flex flex-wrap items-center justify-start mb-4">
                     <FiltroTexto setBusqueda={setBusqueda}/>
                     <FiltroOptions values={niveles} setOptions={setNivel} label={"Nivel"} value={nivel} initialState={"Selecciona un Nivel"} />
                     <FiltroOptions values={estados} setOptions={setEstado} label={"Estado"} value={estado} initialState={"Selecciona un Estado"} />
                     <FiltroCheck check={macroproceso} setCheck={setMacroproceso} label={"Macroproceso"}/>
                 </div>
-                <div className="w-[50%]">
-                </div>
-                { paginacion.length === 0 ? (
+                <div className="overflow-x-auto">
+                    { paginacion.length === 0 ? (
                     <h1>No hay Procesos</h1>
                 ) : 
                 (
-                    <table className="w-[50%] divide-y divide-gray-200 shadow-md rounded-lg overflow-hidden p-4">
+                    <table className="w-[50%] divide-y divide-gray-200 shadow-md rounded-lg p-4">
                     <thead className="bg-gray-100">
                         <tr>
                             <th className="px-6 py-3 text-left text-sm font-medium text-gray-600 uppercase tracking-wider">
@@ -192,6 +191,7 @@ export const Procesos = ({ setOpenModalProcess, setModo }) => {
                     </tbody>
                 </table>
                 )}
+                </div>
                 <div className="w-full bg-[#EFF0F2] flex justify-center items-center mb-6">
                     <span className="text-center text-sm">{`Mostrando un total de ${elementosFiltrados.length} procesos`}</span>
                 </div>
